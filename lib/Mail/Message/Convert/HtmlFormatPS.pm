@@ -7,7 +7,7 @@ use base 'Mail::Message::Convert';
 use Mail::Message::Body::String;
 
 use HTML::TreeBuilder;
-use HTML::FormatText;
+use HTML::FormatPS;
 
 =chapter NAME
 
@@ -74,7 +74,5 @@ sub format($)
       , data     => [ $self->{MMCH_formatter}->format($tree) ]
       );
 }
-
-#------------------------------------------
 
 1;

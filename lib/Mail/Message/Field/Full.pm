@@ -24,10 +24,6 @@ Mail::Message::Field::Full - construct one smart line in a message header
 
 =chapter SYNOPSIS
 
- !! UNDER CONSTRUCTION
- !! The details of this module are NOT FINISHED yet
- !! Most parts are already usable, however.  With care!
-
  # Getting to understand the complexity of a header field ...
 
  my $fast = $msg->head->get('subject');

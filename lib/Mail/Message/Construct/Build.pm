@@ -121,9 +121,10 @@ Start with a prepared header, otherwise one is created.
 =examples
 
  my $msg = Mail::Message->build
-  ( From   => 'me@home.nl'
-  , To     => Mail::Address->new('your name', 'you@yourplace.aq')
-  , Cc     => 'everyone@example.com'
+  ( From    => 'me@home.nl'
+  , To      => Mail::Address->new('your name', 'you@yourplace.aq')
+  , Cc      => 'everyone@example.com'
+  , Subject => "Let's talk",
   , $other_message->get('Bcc')
 
   , data   => [ "This is\n", "the first part of\n", "the message\n" ]
@@ -192,12 +193,12 @@ sub build(@)
         }
         elsif($key eq 'attach')
         {   foreach my $c (reftype $value eq 'ARRAY' ? @$value : $value)
-	    {   defined $c or next;
+            {   defined $c or next;
                 push @data, ref $c && $c->isa('Mail::Message')
 		          ? Mail::Message::Body::Nested->new(nested => $c)
-			  : $c;
+                  : $c;
             }
-	}
+        }
         elsif($key =~
            m/^content\-(type|transfer\-encoding|disposition|description|id)$/i )
         {   my $k     = lc $1;
@@ -214,7 +215,7 @@ sub build(@)
         {   $class->log(WARNING => "Skipped unknown key $key in build");
         }
 
-        push @parts, grep {defined $_} @data if @data;
+        push @parts, grep defined, @data;
     }
 
     my $body

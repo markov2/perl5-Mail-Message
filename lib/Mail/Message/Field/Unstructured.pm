@@ -10,7 +10,7 @@ Mail::Message::Field::Unstructured - smart unstructured field
 
 =chapter SYNOPSIS
 
- my $f = Mail::Message::Field::Unstructured->new(Comments => 'hi!');
+ my $f = Mail::Message::Field::Unstructured->new('Comments', 'hi!');
 
 =chapter DESCRIPTION
 
@@ -52,10 +52,9 @@ sub init($)
     if($args->{body} && ($args->{encoding} || $args->{charset}))
     {   $args->{body} = $self->encode($args->{body}, %$args);
     }
-
     $self->SUPER::init($args) or return;
 
-    $self->log(WARNING=>"Attributes are not supported for unstructured fields")
+    $self->log(WARNING =>"Attributes are not supported for unstructured fields")
         if defined $args->{attributes};
 
     $self->log(WARNING => "No extras for unstructured fields")

@@ -208,6 +208,10 @@ The eol encoding has effect on the size of the body!
 Read the data from the specified file, file handle, or object of
 type C<IO::Handle>.
 
+=option  filename FILENAME
+=default filename C<undef>
+[3.001] Overrule/set filename for content-disposition
+
 =option  message MESSAGE
 =default message undef
 The message where this body belongs to.
@@ -283,12 +287,16 @@ sub init($)
 
     $self->{MMB_modified} = $args->{modified} || 0;
 
-    my $filename;
+    my $filename = $args->{filename};
+	my $mime     = $args->{mime_type};
+
     if(defined(my $file = $args->{file}))
     {
         if(!ref $file)
         {   $self->_data_from_filename($file) or return;
-            $filename = $file;
+            $filename ||= $file;
+            $mime ||= $mime_types->mimeTypeOf($filename)
+                  || (-T $file ? 'text/plain' : 'application/octet-stream');
         }
         elsif(ref $file eq 'GLOB')
         {   $self->_data_from_glob($file) or return }
@@ -316,21 +324,15 @@ sub init($)
 
     # Set the content info
 
-    my ($mime, $transfer, $disp, $charset, $descr, $cid) = @$args{
-       qw/mime_type transfer_encoding disposition charset
-          description content_id/ }; 
+    my ($transfer, $disp, $charset, $descr, $cid) = @$args{
+       qw/transfer_encoding disposition charset description content_id/ }; 
 
     if(defined $filename)
-    {   $disp = Mail::Message::Field->new
-           ('Content-Disposition' => (-T $filename ? 'inline':'attachment')
-           , filename => basename($filename)
-           ) unless defined $disp;
-
-        unless(defined $mime)
-        {   $mime = $mime_types->mimeTypeOf($filename);
-            $mime = -T $filename ? 'text/plain' : 'application/octet-stream'
-                unless defined $mime;
-        }
+    {   $disp //= Mail::Message::Field->new
+          ( 'Content-Disposition' => (-T $filename ? 'inline' : 'attachment')
+          , filename => basename($filename)
+          );
+        $mime //= $mime_types->mimeTypeOf($filename);
     }
 
     if(ref $mime && $mime->isa('MIME::Type'))
@@ -345,7 +347,7 @@ sub init($)
         $cid      = $based->contentId        unless defined $cid;
 
         $self->{MMB_checked}
-               = defined $args->{checked} ? $args->{checked} : $based->checked;
+          = defined $args->{checked} ? $args->{checked} : $based->checked;
     }
     else
     {   $transfer = $args->{transfer_encoding};
@@ -373,6 +375,7 @@ sub init($)
     $self->{MMB_seqnr} = $body_count++;
     $self;
 }
+
 
 =method clone
 Return a copy of this body, usually to be included in a cloned
