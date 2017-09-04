@@ -106,10 +106,9 @@ sub addURI(@)
 {   my $self  = shift;
     my $uri   = ref $_[0] ? shift : URI->new(@_);
     push @{$self->{MMFU_uris}}, $uri->canonical if defined $uri;
+    delete $self->{MMFF_body};
     $uri;
 }
-
-#------------------------------------------
 
 =method URIs
 Returns a list with all URIs defined by the field.  Mind the lower-case

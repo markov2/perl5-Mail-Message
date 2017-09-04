@@ -9,11 +9,14 @@ use Encode ();
 use MIME::QuotedPrint ();
 use Storable 'dclone';
 
+use Mail::Message::Field::Addresses;
+use Mail::Message::Field::AuthResults;
+#use Mail::Message::Field::AuthRecChain;
+use Mail::Message::Field::Date;
+use Mail::Message::Field::DKIM;
 use Mail::Message::Field::Structured;
 use Mail::Message::Field::Unstructured;
-use Mail::Message::Field::Addresses;
 use Mail::Message::Field::URIs;
-use Mail::Message::Field::Date;
 
 my $atext = q[a-zA-Z0-9!#\$%&'*+\-\/=?^_`{|}~];  # from RFC
 my $atext_ill = q/\[\]/;     # illegal, but still used (esp spam)
@@ -145,6 +148,12 @@ BEGIN {
       for qw/content-disposition content-type content-id/;
    $implementation{$_} = 'Date'
       for qw/date resent-date/;
+   $implementation{$_} = 'AuthResults'
+      for qw/authentication-results/;
+   $implementation{$_} = 'DKIM'
+      for qw/dkim-signature/;
+#  $implementation{$_} = 'AuthRecChain'
+#     for qw/arc-authentication-results arc-message-signature arc-seal/;
 }
 
 sub new($;$$@)
@@ -390,6 +399,11 @@ Encode the string, even when it only contains us-ascii characters.  By
 default, this is off because it decreases readibility of the produced
 header fields.
 
+=option  name STRING
+=default name C<undef>
+[3.002] When the name of the field is given, the first encoded line will
+be shorter.
+
 =warning Illegal character in charset '$charset'
 
 The field is created with an utf8 string which only contains data from the
@@ -443,6 +457,9 @@ sub encode($@)
     }
     else { $encoding = 'q' }
 
+    my $name  = $args{name};
+    my $lname = defined $name ? length($name)+1 : 0;
+
     return $utf8
         if lc($encoding) eq 'q'
         && $utf8 =~ m/\A[\p{IsASCII}]+\z/ms
@@ -452,13 +469,15 @@ sub encode($@)
 
     my @result;
     if(lc($encoding) eq 'q')
-    {   my $llen = 73 - length $pre;
-        my $chunk  = '';
+    {   my $chunk  = '';
+        my $llen = 73 - length($pre) - $lname;
+
         while(length(my $chr = substr($utf8, 0, 1, '')))
         {   $chr  = _encode_q Encode::encode($charset, $chr, 0);
             if(bytes::length($chunk) + bytes::length($chr) > $llen)
             {   push @result, _mime_word($pre, $chunk);
                 $chunk = '';
+                $llen = 73 - length $pre;
             }
             $chunk .= $chr;
         }
@@ -466,13 +485,14 @@ sub encode($@)
             if length($chunk);
     }
     else
-    {    my $llen = int((73 - length($pre)) / 4) * 3;
-         my $chunk  = '';
+    {    my $chunk  = '';
+         my $llen = int((73 - length($pre) - $lname) / 4) * 3;
          while(length(my $chr = substr($utf8, 0, 1, '')))
          {   my $chr = Encode::encode($charset, $chr, 0);
              if(bytes::length($chunk) + bytes::length($chr) > $llen)
              {   push @result, _mime_word($pre, _encode_b($chunk));
                  $chunk = '';
+                 $llen  = int((73 - length $pre) / 4) * 3;
              }
              $chunk .= $chr;
         }

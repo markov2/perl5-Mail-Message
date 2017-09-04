@@ -85,7 +85,7 @@ sub date() { shift->{MMFD_date} }
 Attributes are not supported for date fields.
 
 =error No attributes for date fields.
-Is is not possible to add attributes to date fields: it is not permitted
+It is not possible to add attributes to date fields: it is not permitted
 by the RFCs.
 
 =cut

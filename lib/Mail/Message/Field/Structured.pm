@@ -157,7 +157,7 @@ sub beautify() { delete shift->{MMFF_body} }
 Returns a list with attribute name and value pairs.
 =cut
 
-sub attrPairs() { map { $_->name, $_->value } shift->attributes }
+sub attrPairs() { map +($_->name, $_->value), shift->attributes }
 
 #-------------------------
 

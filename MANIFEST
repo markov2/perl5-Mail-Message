@@ -34,6 +34,8 @@ lib/Mail/Message/Field/AddrGroup.pm
 lib/Mail/Message/Field/Address.pm
 lib/Mail/Message/Field/Addresses.pm
 lib/Mail/Message/Field/Attribute.pm
+lib/Mail/Message/Field/AuthResults.pm
+lib/Mail/Message/Field/DKIM.pm
 lib/Mail/Message/Field/Date.pm
 lib/Mail/Message/Field/Fast.pm
 lib/Mail/Message/Field/Flex.pm
@@ -76,6 +78,8 @@ t/115fieldu-parse.t
 t/116fieldu-userid.t
 t/117fieldu-addr.t
 t/118fieldu-uri.t
+t/119fieldu-auth.t
+t/120fieldu-dkim.t
 t/200head-create.t
 t/201head-partial.t
 t/202head-resentgroup.t
