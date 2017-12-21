@@ -4,20 +4,21 @@ use warnings;
 package Mail::Message;
 use base 'Mail::Reporter';
 
-use Mail::Message::Part;
-use Mail::Message::Head::Complete;
-use Mail::Message::Construct;
+use Mail::Message::Part ();
+use Mail::Message::Head::Complete ();
+use Mail::Message::Construct ();
+use Mail::Transport::Send ();
 
-use Mail::Message::Body::Lines;
-use Mail::Message::Body::Multipart;
-use Mail::Message::Body::Nested;
+use Mail::Message::Body::Lines ();
+use Mail::Message::Body::Multipart ();
+use Mail::Message::Body::Nested ();
 
 use Carp;
 use Scalar::Util   'weaken';
 
 BEGIN {
     unless($ENV{HARNESS_ACTIVE}) {   # no tests during upgrade
-        # v3 splits Mail::Box is many distributions
+        # v3 splits Mail::Box in a few distributions
 		eval { require Mail::Box };
 		my $v = $Mail::Box::VERSION || 3;
 		$v >= 3 or die "You need to upgrade the Mail::Box module";
@@ -378,14 +379,18 @@ sub write(;$)
 }
 
 =method send [$mailer], %options
-Transmit the message to anything outside this Perl program.  $mailer
-is a M<Mail::Transport::Send> object.  When the $mailer is not specified, one
-will be created, and kept as default for the next messages as well.
+Transmit the message to anything outside this Perl program.  Returns
+false when sending failed even after retries.
+
+The optional $mailer is a M<Mail::Transport::Send> object.  When the
+$mailer is not specified, one will be created and kept as default for
+the next messages as well.
 
 The %options are mailer specific, and a mixture of what is usable for
 the creation of the mailer object and the sending itself.  Therefore, see
 for possible options M<Mail::Transport::Send::new()> and
-M<Mail::Transport::Send::send()>.
+M<Mail::Transport::Send::send()>.  That object also provides a C<trySend()>
+method which gives more low-level control.
 
 =example
  $message->send;
@@ -411,8 +416,6 @@ my $default_mailer;
 
 sub send(@)
 {   my $self = shift;
-
-    require Mail::Transport::Send;
 
     my $mailer;
     $default_mailer = $mailer = shift

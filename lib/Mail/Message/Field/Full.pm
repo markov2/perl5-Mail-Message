@@ -217,7 +217,10 @@ sub unfoldedBody($;$)
 
     $body = $self->foldedBody;
     $body =~ s/^ //;
-    $body =~ s/\n//g;
+
+	# remove FWS, also required within quoted strings.
+    $body =~ s/\r?\n\s?/ /g;
+    $body =~ s/ +$//;
     $body;
 }
 
