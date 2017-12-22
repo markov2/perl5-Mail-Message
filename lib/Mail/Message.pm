@@ -7,7 +7,6 @@ use base 'Mail::Reporter';
 use Mail::Message::Part ();
 use Mail::Message::Head::Complete ();
 use Mail::Message::Construct ();
-use Mail::Transport::Send ();
 
 use Mail::Message::Body::Lines ();
 use Mail::Message::Body::Multipart ();
@@ -416,6 +415,9 @@ my $default_mailer;
 
 sub send(@)
 {   my $self = shift;
+
+	# Loosely coupled module
+    require Mail::Transport::Send;
 
     my $mailer;
     $default_mailer = $mailer = shift
