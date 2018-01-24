@@ -1,8 +1,13 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Box::Parser;
 use base 'Mail::Reporter';
+
+use strict;
+use warnings;
+
 use Carp;
 
 =chapter NAME
@@ -124,7 +129,7 @@ folder will not be removed (is not the responsibility of the parser).
 
 =warning File $filename changed during access.
 When a message parser starts working, it takes size and modification time
-of the file at hand.  If the folder is written, it checks wether there
+of the file at hand.  If the folder is written, it checks whether there
 were changes in the file made by external programs.
 
 Calling M<Mail::Box::update()> on a folder before it being closed

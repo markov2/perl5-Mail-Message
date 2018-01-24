@@ -1,10 +1,14 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Field::Full;
 use base 'Mail::Message::Field';
 
+use strict;
+use warnings;
 use utf8;
+
 use Encode ();
 use MIME::QuotedPrint ();
 use Storable 'dclone';
@@ -252,7 +256,7 @@ M<Mail::Message::Field::Full> object.  This conversion is done the hard
 way: the string which is produced by the original object is parsed
 again.  Usually, the string which is parsed is exactly the line (or lines)
 as found in the original input source, which is a good thing because Full
-fields are much more carefull with the actual content.
+fields are much more careful with the actual content.
 
 %options are passed to the constructor (see M<new()>).  In any case, some
 extensions of this Full field class is returned.  It depends on which
@@ -527,7 +531,7 @@ a '?'.
 =default is_text C<1>
 Encoding on text is slightly more complicated than encoding structured data,
 because it contains blanks.  Visible blanks have to be ignored between two
-encoded words in the text, but not when an encoded word follows or preceeds
+encoded words in the text, but not when an encoded word follows or precedes
 an unencoded word.  Phrases and comments are texts.
 
 =example

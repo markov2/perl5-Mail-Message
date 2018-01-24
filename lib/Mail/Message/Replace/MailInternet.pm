@@ -1,9 +1,12 @@
-
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Replace::MailInternet;
 use base 'Mail::Message';
+
+use strict;
+use warnings;
 
 use Mail::Box::FastScalar;
 use Mail::Box::Parser::Perl;
@@ -51,7 +54,7 @@ The L<Mail::Header> object, which is passed here, is a fake one as well...
 It is translated into a M<new(head)>.  If not given, the header will be
 parsed from the $arg.
 
-=option  Body ARRAY-OF-LINES
+=option  Body \@lines
 =default Body C<undef>
 Array of C<"\n"> terminated lines.  If not specified, the lines will be
 read from $arg.
@@ -200,7 +203,7 @@ sub MailFrom(;$)
 
 =section Constructing a message
 
-=ci_method read ARRAY|$fh, %options
+=ci_method read \@lines|$fh, %options
 Read header and body from the specified ARRAY or $fh.  When used as
 object method, M<Mail::Message::read()> is called, to be MailBox compliant.
 As class method, the Mail::Internet compatible read is called.  %options are
@@ -219,7 +222,7 @@ sub read($@)
     $thing->processRawData($data, 1, 1);
 }
 
-=method read_body ARRAY|$fh
+=method read_body \@lines|$fh
 Read only the message's body from the ARRAY or $fh.
 =cut
 
@@ -228,7 +231,7 @@ sub read_body($)
     $self->processRawData($data, 0, 1);
 }
 
-=method read_header ARRAY|$fh
+=method read_header \@lines|$fh
 Read only the message's header from the ARRAY or $fh
 =cut
 
@@ -237,7 +240,7 @@ sub read_header($)
     $self->processRawData($data, 1, 0);
 }
 
-=method extract ARRAY|$fh
+=method extract \@lines|$fh
 Read header and body from an ARRAY or $fh
 =cut
 
@@ -251,7 +254,7 @@ BE WARNED: the main job for creating a reply is done by
 M<Mail::Message::reply()>, which may produce a result which is compatible,
 but may be different from L<Mail::Internet>'s version.
 
-=option  header_template FILENAME|C<undef>
+=option  header_template $filename|C<undef>
 =default header_template C<$ENV{HOME}/.mailhdr>
 Read the return header from the template file.  When this is explicitly
 set to C<undef>, or the file does not exist, then a header will be created.
@@ -266,14 +269,14 @@ default of C<quote> is "E<gt> ", in stead of "E<gt>".
 Reply to the group?  Translated into M<reply(group_reply)>, which has
 as default the exact oposite of this option, being C<true>.
 
-=option  Keep ARRAY-OF-NAMES
+=option  Keep \@names
 =default Keep []
 Copy all header fields with the specified NAMES from the source to the
 reply message.
 
-=option  Exclude ARRAY-OF-NAMES
+=option  Exclude \@names
 =default Exclude []
-Remove the fields witht the specified names from the produced reply message.
+Remove the fields with the specified names from the produced reply message.
 
 =cut
 
@@ -326,11 +329,11 @@ sub add_signature(;$)
 =method sign %options
 Add a signature (a few extra lines) to the message.
 
-=option  File FILENAME
+=option  File $filename
 =default File C<undef>
 Specifies a filename where the signature is in.
 
-=option  Signature STRING|ARRAY-OF-LINES
+=option  Signature STRING|\@lines
 =default Signature ''
 The signature in memory.
 
@@ -370,7 +373,7 @@ sub send($@)
 Send an NNTP message (newsgroup message), which is equivalent to
 M<Mail::Transport::NNTP> or M<Mail::Message::send()> with C<via 'nntp'>.
 
-=option  Host HOSTNAME
+=option  Host $hostname
 =default Host <from Net::Config>
 
 =option  Port INTEGER
@@ -410,9 +413,9 @@ sub head(;$)
    $self->SUPER::head || $self->{MM_head_type}->new(message => $self);
 }
 
-=method header [ARRAY]
-Optionally reads a header from the ARRAY, and then returns those fields
-as array-ref nicely folded.
+=method header [\@lines]
+Optionally reads a header from the ARRAY of lines, and then returns
+those fields as array-ref nicely folded.
 Implemented by M<Mail::Message::Replace::MailHeader::header()>
 =cut
 
@@ -456,7 +459,7 @@ No effect anymore (always performed).
 
 sub tidy_headers() { }
 
-=method add $lines
+=method add \@lines
 Add header lines, which simply calls C<Mail::Message::Head::add()> on
 the header for each specified LINE. The last added LINE is returned.
 =cut
@@ -496,6 +499,8 @@ sub delete(@)
 {   my $self = shift;
     @_ ?  $self->head->delete(@_) : $self->SUPER::delete;
 }
+
+#------------
 
 =section The body
 
@@ -616,6 +621,8 @@ sub smtpsend(@)
     $self->send(via => 'smtp', %args);
 }
 
+#------------
+
 =section The whole message as text
 
 =method as_mbox_string
@@ -633,6 +640,8 @@ sub as_mbox_string()
     $mboxmsg->print($file);
     $buffer;
 }
+
+#------------
 
 =section The nasty bits
 
@@ -656,6 +665,8 @@ sub isa($)
     return 1 if $class eq 'Mail::Internet';
     $thing->SUPER::isa($class);
 }
+
+#------------
 
 =section Internals
 

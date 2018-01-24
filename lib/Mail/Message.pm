@@ -1,8 +1,12 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message;
 use base 'Mail::Reporter';
+
+use strict;
+use warnings;
 
 use Mail::Message::Part ();
 use Mail::Message::Head::Complete ();
@@ -56,7 +60,7 @@ Mail::Message - general message object
 =chapter DESCRIPTION
 
 A C<Mail::Message> object is a container for MIME-encoded message information,
-as defined by RFC2822.  Everything what is not specificly related to storing
+as defined by RFC2822.  Everything what is not specificaly related to storing
 the messages in mailboxes (folders) is implemented in this class.  Methods
 which are related to folders is implemented in the M<Mail::Box::Message>
 extension.
@@ -302,11 +306,11 @@ sub isPart() { 0 } # overridden by Mail::Message::Part
 =method partNumber
 Returns a string representing the location of this part.  In case the
 top message is a single message, 'undef' is returned.  When it is a
-multipart, '1' upto the number of multiparts is returned.  A multi-level
+multipart, '1' up to the number of multiparts is returned.  A multi-level
 nested part may for instance return '2.5.1'.
 
 Usually, this string is very short.  Numbering follows the IMAP4 design,
-see RFC2060 secion 6.4.5.
+see RFC2060 section 6.4.5.
 =cut
 
 sub partNumber()
@@ -777,7 +781,7 @@ sub body(;$@)
 
 =method decoded %options
 Decodes the body of this message, and returns it as a body object.
-Short for C<<$msg->body->decoded>>  All %options are passed-on.
+Short for C<< $msg->body->decoded >>  All %options are passed-on.
 =cut
 
 sub decoded(@)

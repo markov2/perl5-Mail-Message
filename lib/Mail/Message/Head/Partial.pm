@@ -1,8 +1,12 @@
-
-use strict;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Head::Partial;
 use base 'Mail::Message::Head::Complete';
+
+use strict;
+use warnings;
 
 use Scalar::Util 'weaken';
 
@@ -37,8 +41,8 @@ permanently: the header (and therefore the message) gets mutulated!
 
 =method removeFields <STRING|Regexp>, ...
 Remove the fields from the header which are exactly named 'STRING' (case
-insensitive) or match the REGular EXPresssion.  Do not forget to add the
-'i' modifier to the Regexp, because fields are case insensitive.
+insensitive) or match the regular expresssion.  Do not forget to add the
+'i' modifier to the regexp, because fields are case insensitive.
 
 See also M<removeField()> which is used to remove one field object from
 the header.  The reverse specification can be made with

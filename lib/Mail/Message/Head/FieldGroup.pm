@@ -1,3 +1,6 @@
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Head::FieldGroup;
 use base 'Mail::Reporter';
@@ -184,7 +187,7 @@ sub delete()
 
 Add a field to the header, using the field group.  When the field group
 is already attached to a real message header, it will appear in that
-one as well as being registed in this set.  If no header is defined,
+one as well as being registered in this set.  If no header is defined,
 the field only appears internally.
 
 =example adding a field to a detached list group
@@ -273,7 +276,7 @@ sub software() { shift->{MMHF_software} }
 
 =method type
 Returns an abstract name for the field group; which software is
-controling it.  C<undef> is returned in case the type is not known.
+controlling it.  C<undef> is returned in case the type is not known.
 Valid names are group type dependent: see the applicable manual
 pages.  A list of all types can be retrieved with M<implementedTypes()>.
 

@@ -1,8 +1,12 @@
-
-use strict;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Head::ResentGroup;
 use base 'Mail::Message::Head::FieldGroup';
+
+use strict;
+use warnings;
 
 use Scalar::Util 'weaken';
 use Mail::Message::Field::Fast;

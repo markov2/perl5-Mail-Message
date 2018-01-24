@@ -1,7 +1,11 @@
-
-use strict;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message;
+
+use strict;
+use warnings;
 
 use Mail::Message::Body::Multipart;
 use Mail::Address;
@@ -49,7 +53,7 @@ be added as additional headers to the reply message.
 Usually, the reply method can create a nice, sufficient message from the
 source message's body.  In case you like more complicated reformatting,
 you may also create a body yourself first, and pass this on to this
-C<reply> method. Some of the other options to this method will be ingored
+C<reply> method. Some of the other options to this method will be ignored
 in this case.
 
 =option  group_reply BOOLEAN

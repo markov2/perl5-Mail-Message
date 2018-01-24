@@ -1,8 +1,12 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Head;
 use base 'Mail::Reporter';
+
+use strict;
+use warnings;
 
 use Mail::Message::Head::Complete;
 use Mail::Message::Field::Fast;
@@ -227,7 +231,7 @@ sub message(;$)
 }
 
 =method orderedFields
-Retuns the fields ordered the way they were read or added.
+Returns the fields ordered the way they were read or added.
 =cut
 
 sub orderedFields() { grep defined $_, @{shift->{MMH_order}} }

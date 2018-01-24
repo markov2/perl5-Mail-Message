@@ -1,8 +1,12 @@
-use warnings;
-use strict;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Field::DKIM;
 use base 'Mail::Message::Field::Structured';
+
+use warnings;
+use strict;
 
 use URI;
 
@@ -82,7 +86,7 @@ sub addAttribute($;@)
 
 =method addTag $name, $value|@values
 Add a tag to the set.  When the tag already exists, it is replaced.
-Names are (coverted to) lower-case.  When multiple values are given,
+Names are (converted to) lower-case.  When multiple values are given,
 they will be concatenated with a blank (and may get folded there later)
 
 =cut
@@ -107,7 +111,7 @@ or modification.  For many situations, the actual content does not
 need (expensive) validation and interpretation.
 
 =method tagVersion
-Signature header synax version (usually 1)
+Signature header syntax version (usually 1)
 
 =method tagAlgorithm
 Signature algorithm.  Should be rsa-sha(1|256): check before use. Required.

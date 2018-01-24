@@ -1,11 +1,14 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Field::Attribute;
 use base 'Mail::Reporter';
-use 5.007003;
-use Encode ();
 
+use strict;
+use warnings;
+
+use Encode ();
 use Carp;
 
 =chapter NAME
@@ -88,7 +91,7 @@ Encode::encodings(':all').
 =option  language STRING
 =default language undef
 
-RFC2231 adds the possiblity to specify a language with the field.  When no
+RFC2231 adds the possibility to specify a language with the field.  When no
 language is specified, none is included in the encoding.  Valid language
 names are defined by RFC2130.  This module has only limited support for
 this feature.

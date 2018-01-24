@@ -1,4 +1,12 @@
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+
 package Mail::Box::FastScalar;
+
+use strict;
+use warnings;
+use integer;
 
 =chapter NAME
 
@@ -21,10 +29,6 @@ C<$obj->seek(1, 0)> to reset the object - VERY rare usage case
 $/ must be undef or string - "" and \scalar unimplemented
 
 =cut
-
-use strict;
-use warnings;
-use integer;
 
 sub new($) {
     my ($class, $ref) = @_;

@@ -1,8 +1,12 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Head::Complete;
 use base 'Mail::Message::Head';
+
+use strict;
+use warnings;
 
 use Mail::Box::Parser;
 use Mail::Message::Head::Partial;
@@ -182,7 +186,7 @@ sub add(@)
 
 =method count $name
 Count the number of fields with this $name.  Most fields will return 1:
-only one occurance in the header.  As example, the C<Received> fields
+only one occurrence in the header.  As example, the C<Received> fields
 are usually present more than once.
 =cut
 

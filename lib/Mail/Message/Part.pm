@@ -1,8 +1,12 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Part;
 use base 'Mail::Message';
+
+use strict;
+use warnings;
 
 use Scalar::Util    'weaken';
 use Carp;
@@ -28,7 +32,7 @@ Mail::Message::Part - a part of a message, but a message by itself
 =chapter DESCRIPTION
 
 A C<Mail::Message::Part> object contains a message which is included in
-the body of an other message.  For instance I<attachments> are I<parts>.
+the body of another message.  For instance I<attachments> are I<parts>.
 
 READ M<Mail::Message> FIRST.  A part is a special message: it has a
 reference to its parent message, and will usually not be sub-classed

@@ -1,8 +1,12 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Body::Nested;
 use base 'Mail::Message::Body';
+
+use strict;
+use warnings;
 
 use Mail::Message::Body::Lines;
 use Mail::Message::Part;
@@ -125,7 +129,7 @@ because that would damage the header of the encapsulated message
 =error You cannot use foreachLine on a nested
 M<foreachLine()> should be used on decoded message bodies only, because
 it would modify the header of the encapsulated message. which is
-clearly not acceptible.
+clearly not acceptable.
 
 =cut
 

@@ -1,3 +1,6 @@
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Head::ListGroup;
 use base 'Mail::Message::Head::FieldGroup';
@@ -346,7 +349,7 @@ The M<Mail::Message::Head::ListGroup> class can detect many different
 mailing lists, some of which are very popular and some of which are
 rare.
 
-Numerous fields in a header are addded when the message is passed
+Numerous fields in a header are added when the message is passed
 through a mailing list server.  Each list software has defined its own
 fields, sometimes woth conflicting definitions.  There are also two
 RFCs about mailing list: C<rfc2919> and C<rfc2369>.

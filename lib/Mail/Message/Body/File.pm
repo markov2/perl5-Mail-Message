@@ -1,8 +1,12 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Body::File;
 use base 'Mail::Message::Body';
+
+use strict;
+use warnings;
 
 use Mail::Box::Parser;
 use Mail::Message;

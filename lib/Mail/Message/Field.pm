@@ -1,8 +1,12 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Field;
 use base 'Mail::Reporter';
+
+use strict;
+use warnings;
 
 use Carp;
 use Mail::Address;
@@ -78,7 +82,7 @@ a C<0> is produced, to simplify calculations.
 Always true, to make it possible to say C<if($field)>.
 
 =overload cmp
-(string comparison) Compare the unfolded body of a field with an other
+(string comparison) Compare the unfolded body of a field with another
 field or a string, using the buildin C<cmp>.
 
 =overload <=>
@@ -204,7 +208,7 @@ sub string(;$)
 
 =method toDisclose
 Returns whether this field can be disclosed to other people, for instance
-when sending the message to an other party.  Returns a C<true> or C<false>
+when sending the message to another party.  Returns a C<true> or C<false>
 condition.
 See also M<Mail::Message::Head::Complete::printUndisclosed()>.
 =cut
@@ -320,9 +324,9 @@ sub body()
 }
 
 =method foldedBody [$body]
-Returns the body as a set of lines. In scalar context, this will be one line
-containing newlines.  Be warned about the newlines when you do
-pattern-matching on the result of thie method.
+Returns the body as a set of lines. In scalar context, this will be
+one line containing newlines.  Be warned about the newlines when you do
+pattern matching on the result of this method.
 
 The optional $body argument changes the field's body.  The folding of the
 argument must be correct.
@@ -563,7 +567,7 @@ runs automatically.
 
  Mail::Message::Field->toDate(localtime);
  Mail::Message::Field->toDate;      # same
- # returns someting like:
+ # returns something like:
  #     Wed, 28 Aug 2002 10:40:25 +0200
 
 =cut
@@ -947,7 +951,7 @@ contains the timezone difference to UTC, however one could decide to add
 this as comment.  Application must ignore this data because the C<Date>
 field is structured.
 
-The last field is unstructured.  The text between parantheses is an
+The last field is unstructured.  The text between parentheses is an
 integral part of the subject line.
 
 =section Getting a field
@@ -1095,7 +1099,7 @@ in case no address is known.
 =subsection Specifying field data
 
 Field data can be anything, strongly dependent on the type
-of field at hand. If you decide to contruct the fields very
+of field at hand. If you decide to construct the fields very
 carefully via some M<Mail::Message::Field::Full> extension (like via
 M<Mail::Message::Field::Addresses> objects), then you will have protection
 build-in.  However, you can bluntly create any M<Mail::Message::Field>

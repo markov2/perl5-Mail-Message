@@ -1,8 +1,12 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Body::Multipart;
 use base 'Mail::Message::Body';
+
+use strict;
+use warnings;
 
 use Mail::Message::Body::Lines;
 use Mail::Message::Part;
@@ -285,7 +289,7 @@ message part, but also to the headers and the part separators.
 =error You cannot use foreachLine on a multipart
 M<foreachLine()> should be used on decoded message bodies only, because
 it would attempt to modify part-headers and separators as well, which is
-clearly not acceptible.
+clearly not acceptable.
 
 =cut
 

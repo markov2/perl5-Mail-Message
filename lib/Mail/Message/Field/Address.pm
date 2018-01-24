@@ -1,11 +1,16 @@
-use strict;
-use warnings;
+# This code is part of distribution Mail-Message.  Meta-POD processed with
+# OODoc into POD and HTML manual-pages.  See README.md
+# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
 
 package Mail::Message::Field::Address;
 use base 'Mail::Identity';
 
+use strict;
+use warnings;
+
 use Mail::Message::Field::Addresses;
 use Mail::Message::Field::Full;
+
 my $format = 'Mail::Message::Field::Full';
 
 =chapter NAME
