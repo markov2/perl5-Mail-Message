@@ -145,8 +145,8 @@ sub init($$)
     $self->{MMFF_charset}  = $args->{charset}  if defined $args->{charset};
     $self->{MMFF_language} = $args->{language} if defined $args->{language};
 
-    $self->value(defined $value ? $value : '');
-    $self->addComponent($attr) unless $attr eq $name;
+    $self->value(defined $value ? "$value" : '');  # enforce stringification
+    $self->addComponent($attr) if $attr ne $name;
 
     $self;
 }
