@@ -69,8 +69,8 @@ use overload qq("") => 'string_unless_carp'
            , bool   => 'isEmpty';
 
 # To satisfy overload in static resolving.
-sub toString() { shift->load->toString }
-sub string()   { shift->load->string }
+sub toString() { my $load = shift->load; return $load->toString if (defined $load); }
+sub string()   { my $load = shift->load; return $load->string   if (defined $load); }
 
 sub string_unless_carp()
 {   my $self = shift;
