@@ -353,16 +353,16 @@ text.
 sub isText() { not shift->isBinary }
 
 =method dispositionFilename [$directory]
-Returns the name which can be used as filename to store the information
-in the indicated $directory. To get a filename, various fields are searched
-for C<filename> and C<name> attributes.  Without $directory, the name found
-will be returned.
+Various fields are searched for C<filename> and C<name> attributes.  Without
+$directory, the name found will be returned unmodified.
 
-Only the basename of the found name will be used, for security reasons:
-otherwise, it may be possible to access other directories than the
-one indicated.  If no name was found, or the name is already in use,
-then an unique name is generated.
+When a $directory is given, a filename is composed.  For security reasons,
+only the basename of the found name gets used and many potentially
+dangerous characters removed.  If no name was found, or when the found
+name is already in use, then an unique name is generated.
 
+Don't forget to read RFC6266 section 4.3 for the security aspects in your
+email application.
 =cut
 
 sub dispositionFilename(;$)
@@ -399,20 +399,24 @@ sub dispositionFilename(;$)
 
     my $dir      = shift;
     my $filename = '';
-    if(defined $base)
+    if(defined $base)   # RFC6266 section 4.3, very safe
     {   $filename = basename $base;
-        $filename =~ s/[^\w.-]//;
+        for($filename)
+        {   s/\s+/ /g;  s/ $//; s/^ //;
+            s/[^\w .-]//g;
+        }
     }
 
     unless(length $filename)
     {   my $ext    = ($self->mimeType->extensions)[0] || 'raw';
-        my $unique;
-        for($unique = 'part-0'; 1; $unique++)
-        {   my $out = File::Spec->catfile($dir, "$unique.$ext");
+        my $unique = 0;
+        for(; 1; $unique++)
+        {   my $out = File::Spec->catfile($dir, "part-$unique.$ext");
             open IN, '<', $out or last;  # does not exist: can use it
             close IN;
         }
-        $filename = "$unique.$ext";
+
+        $filename = "part-$unique.$ext";
     }
 
     File::Spec->catfile($dir, $filename);

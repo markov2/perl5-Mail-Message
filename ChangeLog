@@ -13,6 +13,8 @@ version 3.007:
 	Fixes:
 	- fix metadata [Mohammad S Anwar]
 	- enforce stringification on ::Field::Attribute->new(value) [Andy Beverley]
+	- dispositionFilename() accepts (some) blanks, strips more chars
+	  rt.cpan.org#125350 [Gary Funck]
 
 	Improvements:
 	- add pod tester
@@ -20,7 +22,7 @@ version 3.007:
 version 3.006: Wed 24 Jan 16:55:26 CET 2018
 
 	Improvements:
-	- spell corrections rt.cpan.org #123993 [Damyan Ivanov, debian]
+	- spell corrections rt.cpan.org#123993 [Damyan Ivanov, debian]
 	- add some 'use warnings'
 	- convert to GIT
 	- publish on GitHUB
