@@ -10,6 +10,9 @@ Limitations to be fixed:
 
 version 3.007:
 
+	Changes:
+	- nicer algorithm to generate disposition filenames.
+
 	Fixes:
 	- fix metadata [Mohammad S Anwar]
 	- enforce stringification on ::Field::Attribute->new(value) [Andy Beverley]

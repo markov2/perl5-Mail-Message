@@ -407,19 +407,16 @@ sub dispositionFilename(;$)
         }
     }
 
-    unless(length $filename)
-    {   my $ext    = ($self->mimeType->extensions)[0] || 'raw';
-        my $unique = 0;
-        for(; 1; $unique++)
-        {   my $out = File::Spec->catfile($dir, "part-$unique.$ext");
-            open IN, '<', $out or last;  # does not exist: can use it
-            close IN;
-        }
+	my ($filebase, $ext) = length $filename && $filename =~ m/(.*)\.([^.]+)/
+      ? ($1, $2) : (part => ($self->mimeType->extensions)[0] || 'raw');
 
-        $filename = "part-$unique.$ext";
+    my $fn = File::Spec->catfile($dir, "$filebase.$ext");
+
+    for(my $unique = 1; -e $fn; $unique++)
+    {   $fn = File::Spec->catfile($dir, "$filebase-$unique.$ext");
     }
 
-    File::Spec->catfile($dir, $filename);
+	$fn;
 }
 
 #------------------------------------------
