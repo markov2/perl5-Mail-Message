@@ -7,15 +7,6 @@ package Mail::Message;
 use strict;
 use warnings;
 
-use Mail::Message::Head::Complete;
-use Mail::Message::Body::Lines;
-use Mail::Message::Body::Multipart;
-
-use Mail::Address;
-use Carp;
-use Scalar::Util 'blessed';
-use IO::Lines;
-
 =chapter NAME
 
 Mail::Message::Construct - extends the functionality of a Mail::Message
@@ -29,6 +20,17 @@ Mail::Message::Construct - extends the functionality of a Mail::Message
 Complex functionality on M<Mail::Message> objects is implemented in
 different files which are autoloaded.  This file implements the
 functionality related to creating message replies.
+
+The following constructors are available:
+=over 4
+=item Mail::Message::Construct::Bounce
+=item Mail::Message::Construct::Build
+=item Mail::Message::Construct::Forward
+=item Mail::Message::Construct::Read
+=item Mail::Message::Construct::Rebuild
+=item Mail::Message::Construct::Reply
+=item Mail::Message::Construct::Text
+=back
 
 =chapter METHODS
 
