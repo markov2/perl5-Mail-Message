@@ -214,7 +214,7 @@ sub build(@)
         elsif($key =~ m/^[A-Z]/)
         {   push @headerlines, $key, $value }
         else
-        {   $class->log(WARNING => "Skipped unknown key $key in build");
+        {   $class->log(WARNING => "Skipped unknown key '$key' in build");
         }
 
         push @parts, grep defined, @data;

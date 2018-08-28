@@ -319,8 +319,9 @@ sub body()
     my $body = $self->unfoldedBody;
     return $body unless $self->isStructured;
 
-    $body =~ s/\s*\;.*//s;
-    $body;
+    my ($first) = $body =~ m/^((?:"[^"]*"|'[^']*'|[^;])*)/;
+	$first =~ s/\s+$//;
+	$first;
 }
 
 =method foldedBody [$body]
