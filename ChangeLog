@@ -8,7 +8,7 @@ Limitations to be fixed:
  - when lines are over 997 chars, then the transfer-encoding should
    automatically change from 'none' into 'quoted-printable' or 'base64'
 
-version 3.007:
+version 3.007: Mon  3 Sep 07:58:36 CEST 2018
 
 	Changes:
 	- nicer algorithm to generate disposition filenames.
@@ -18,6 +18,7 @@ version 3.007:
 	- enforce stringification on ::Field::Attribute->new(value) [Andy Beverley]
 	- dispositionFilename() accepts (some) blanks, strips more chars
 	  rt.cpan.org#125350 [Gary Funck]
+	- understand quotes in a field body for get() [Andy Beverley]
 
 	Improvements:
 	- add pod tester
