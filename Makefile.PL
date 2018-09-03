@@ -4,7 +4,7 @@ require 5.010;
 
 use IO::Handle;
 
-my $VERSION = '3.007';
+my $VERSION = '3.008';
 
 my @optional =
 ( 
@@ -175,7 +175,7 @@ RAWDIR          = ../public_html/mail-message/raw
 DISTDIR         = ../public_html/mail-message/source
 
 LICENSE         = perl
-EXTENDS			= ../User-Identity:../MIME-Types:../Object-Realize-Later:../MailTools:../../perl/MailBoxC:../../perl/MailBox4:../Mail-Transport
+EXTENDS			= ../User-Identity:../MIME-Types:../Object-Realize-Later:../MailTools:../Mail-Box-Parser-C:../Mail-Box:../Mail-Transport
 
 # for POD
 FIRST_YEAR      = 2001
