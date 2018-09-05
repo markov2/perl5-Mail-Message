@@ -10,6 +10,9 @@ Limitations to be fixed:
 
 version 3.008:
 
+	Fixes:
+	- test with windows path [cpantesters]
+
 version 3.007: Mon  3 Sep 07:58:36 CEST 2018
 
 	Changes:
