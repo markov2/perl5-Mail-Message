@@ -987,8 +987,8 @@ sub AUTOLOAD(@)
     no strict 'refs';
     return $self->$call(@_) if $self->can($call);  # now loaded
 
-    # Try parental AUTOLOAD
-    Mail::Reporter->$call(@_);
+	# AUTOLOAD inheritance is a pain
+	confess "Method $call() is not defined for a ", ref $self;
 }   
 
 #------------------------------------------

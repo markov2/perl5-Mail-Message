@@ -13,6 +13,9 @@ version 3.008:
 	Fixes:
 	- test with windows path [cpantesters]
 
+	Improvements:
+	- failing AUTOLOAD on ::Body gives unclear error
+
 version 3.007: Mon  3 Sep 07:58:36 CEST 2018
 
 	Changes:
