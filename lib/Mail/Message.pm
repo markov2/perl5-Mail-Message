@@ -1309,11 +1309,11 @@ sub readBody($$;$$)
         {   $bodytype = $nbody  }
 
         $body = $bodytype->new
-        ( message => $self
-        , checked => $self->{MM_trusted}
-        , charset => 'us-ascii'
-        , $self->logSettings
-        );
+          ( message => $self
+          , checked => $self->{MM_trusted}
+          , charset => 'us-ascii'
+          , $self->logSettings
+          );
 
         $body->contentInfoFrom($head);
     }
