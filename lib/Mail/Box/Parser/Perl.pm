@@ -202,7 +202,7 @@ sub _read_stripped_lines(;$$)
 
             foreach my $sep (@seps)
             {   next if substr($line, 0, length $sep) ne $sep;
-                next if $sep eq 'From ' && $line !~ m/ 19[789]\d| 20[012]\d/;
+                next if $sep eq 'From ' && $line !~ m/ 19[789][0-9]| 20[0-9][0-9]/;
 
                 $file->setpos($where);
                 $msgend = $file->tell;
