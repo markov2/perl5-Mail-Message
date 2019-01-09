@@ -70,6 +70,7 @@ sub removeFields(@)
 }
 
 =method removeFieldsExcept STRING|Regexp, ...
+
 Remove all fields from the header which are not equivalent to one of the
 specified STRINGs (case-insensitive) and which are not matching one of
 the REGular EXPressions.  Do not forget to add the 'i' modifier to the
@@ -102,8 +103,6 @@ sub removeFieldsExcept(@)
     $self->cleanupOrderedFields;
 }
 
-#------------------------------------------
-
 =method removeResentGroups
 
 Removes all header lines which are member of a I<resent group>, which
@@ -133,8 +132,6 @@ sub removeResentGroups()
     $found;
 }
 
-#------------------------------------------
-
 =method removeListGroup
 
 Removes all header lines which are used to administer mailing lists.
@@ -160,8 +157,6 @@ sub removeListGroup()
     $found;
 }
 
-#------------------------------------------
-
 =method removeSpamGroups
 
 Removes all header lines which were produced by spam detection and
@@ -186,8 +181,6 @@ sub removeSpamGroups()
     $self->modified(1) if $found;
     $found;
 }
-
-#------------------------------------------
 
 =method cleanupOrderedFields
 
@@ -246,7 +239,5 @@ store a the list administration lines for each message as well.
  }
 
 =cut
-
-#------------------------------------------
 
 1;
