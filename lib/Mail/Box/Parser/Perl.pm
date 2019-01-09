@@ -175,7 +175,7 @@ sub readSeparator()
 
     return () unless defined $line;
 
-    $line     =~ s/[\012\015\n]+$/\n/g;
+    $line     =~ s/[\012\015]+$/\n/;
     return ($start, $line)
         if substr($line, 0, length $sep) eq $sep;
 
@@ -185,7 +185,6 @@ sub readSeparator()
 
 sub _read_stripped_lines(;$$)
 {   my ($self, $exp_chars, $exp_lines) = @_;
-    $exp_lines  = -1 unless defined $exp_lines;
     my @seps    = @{$self->{MBPP_separators}};
 
     my $file    = $self->{MBPP_file};
@@ -202,6 +201,8 @@ sub _read_stripped_lines(;$$)
 
             foreach my $sep (@seps)
             {   next if substr($line, 0, length $sep) ne $sep;
+
+                # Some apps fail to escape lines starting with From
                 next if $sep eq 'From ' && $line !~ m/ 19[789][0-9]| 20[0-9][0-9]/;
 
                 $file->setpos($where);
@@ -213,8 +214,7 @@ sub _read_stripped_lines(;$$)
         }
 
         if(@$lines && $lines->[-1] =~ s/(\r?\n)\z//)
-        {   $file->seek(-length($1), 1);
-            pop @$lines if length($lines->[-1])==0;
+        {   pop @$lines if length($lines->[-1])==0;
         }
     }
     else # File without separators.

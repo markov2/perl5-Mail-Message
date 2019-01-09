@@ -320,7 +320,7 @@ sub read($$$$)
     my $boundary   = $self->boundary;
 
     $parser->pushSeparator("--$boundary");
-    my @msgopts    = ($self->logSettings);
+    my @msgopts    = $self->logSettings;
 
     my $te;
     $te = lc $1
