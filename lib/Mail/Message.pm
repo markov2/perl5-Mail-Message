@@ -17,7 +17,7 @@ use Mail::Message::Body::Multipart ();
 use Mail::Message::Body::Nested ();
 
 use Carp;
-use Scalar::Util   'weaken';
+use Scalar::Util   qw(weaken blessed);
 
 BEGIN {
     unless($ENV{HARNESS_ACTIVE}) {   # no tests during upgrade
@@ -1155,11 +1155,17 @@ my $email_simple_converter;
 sub coerce($@)
 {   my ($class, $message) = @_;
 
-    ref $message
+    blessed $message
         or die "coercion starts with some object";
 
-    return bless $message, $class
-        if $message->isa(__PACKAGE__);
+	return $message
+		if ref $message eq $class;
+
+    if($message->isa(__PACKAGE__)) {
+        $message->head->modified(1);
+        $message->body->modified(1);
+        return bless $message, $class;
+	}
 
     if($message->isa('MIME::Entity'))
     {   unless($mime_entity_converter)
