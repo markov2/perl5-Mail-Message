@@ -13,6 +13,7 @@ version 3.008:
 	Fixes:
 	- test with windows path [cpantesters]
 	- when a message gets coerced, its components should not be delayed [fany]
+	- date fields recognizing 2-digit years [Andrew Beverley]
 
 	Improvements:
 	- failing AUTOLOAD on ::Body gives unclear error
