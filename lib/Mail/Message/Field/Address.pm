@@ -160,8 +160,8 @@ sub string()
        # language => $self->language
 
     my @parts;
-    my $name    = $self->phrase;
-    push @parts, $format->createPhrase($name, @opts) if defined $name;
+    my $phrase  = $self->phrase;
+    push @parts, $format->createPhrase($phrase, @opts) if defined $phrase;
 
     my $address = $self->address;
     push @parts, @parts ? '<'.$address.'>' : $address;

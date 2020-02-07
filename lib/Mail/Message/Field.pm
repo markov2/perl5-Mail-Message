@@ -746,9 +746,15 @@ sub stringifyData($)
           my $group = Mail::Message::Field::AddrGroup->coerce($obj);
           push @addr, $group->string if $group;
       }
+      elsif($obj->isa('Mail::Message::Field'))
+      {
+          my $folded = join ' ', $obj->foldedBody;
+          $folded =~ s/^ //;
+          $folded =~ s/\n\z//;
+          push @addr, $folded;
+      }
       else
-      {    # any other object is stringified
-           push @addr, "$obj";
+      {   push @addr, "$obj";    # any other object is stringified
       }
    }
 

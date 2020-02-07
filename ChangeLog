@@ -10,6 +10,10 @@ Limitations to be fixed:
 
 version 3.009:
 
+	Fixes:
+	- avoid folding inside phrases.  Also, encode more characters.
+	  Reported by [Andrew Beverley]
+
 version 3.008: Mon 11 Feb 12:30:40 CET 2019
 
 	Fixes:
