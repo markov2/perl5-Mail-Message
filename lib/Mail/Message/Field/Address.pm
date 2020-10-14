@@ -123,7 +123,7 @@ one is taken at random.
 
 sub parse($)
 {   my $self   = shift;
-    my $parsed = Mail::Message::Field::Addresses->new('To' => shift);
+    my $parsed = Mail::Message::Field::Addresses->new(To => shift);
     defined $parsed ? ($parsed->addresses)[0] : ();
 }
 

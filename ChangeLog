@@ -10,6 +10,9 @@ Limitations to be fixed:
 
 version 3.010:
 
+	Fixes:
+	- username of address as quoted-string. [Andy Beverley]
+
 version 3.009: Fri  7 Feb 15:22:18 CET 2020
 
 	Fixes:

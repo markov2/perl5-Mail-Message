@@ -618,7 +618,7 @@ sub parse($) { shift }
 =ci_method consumePhrase STRING
 Take the STRING, and try to strip-off a valid phrase.  In the obsolete
 phrase syntax, any sequence of words is accepted as phrase (as long as
-certain special characters are not used).  RFC2882 is stricter: only
+certain special characters are not used).  RFC2822 is stricter: only
 one word or a quoted string is allowed.  As always, the obsolete
 syntax is accepted, and the new syntax is produced.
 

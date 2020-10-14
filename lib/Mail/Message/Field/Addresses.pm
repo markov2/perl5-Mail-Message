@@ -285,8 +285,16 @@ the first returned value is C<undef>.
 sub consumeAddress($@)
 {   my ($self, $string, @options) = @_;
 
-    my ($local, $shorter, $loccomment) = $self->consumeDotAtom($string);
-    $local =~ s/\s//g if defined $local;
+    my ($local, $shorter, $loccomment);
+    if($string =~ s/^\s*"((?:\\.|[^"])*)"\s*\@/@/)
+    {   # local part is quoted-string rfc2822
+        ($local, $shorter) = ($1, $string);
+        $local =~ s/\\"/"/g;
+    }
+    else
+    {   ($local, $shorter, $loccomment) = $self->consumeDotAtom($string);
+        $local =~ s/\s//g if defined $local;
+    }
 
     return (undef, $string)
         unless defined $local && $shorter =~ s/^\s*\@//;
