@@ -10,6 +10,10 @@ Limitations to be fixed:
 
 version 3.011:
 
+	Improvements:
+	- textAlternativeForHtml can now be configured to actually change
+	  left- and rightmargin [Tristan Miller]
+
 version 3.010: Wed 14 Oct 19:22:36 CEST 2020
 
 	Fixes:

@@ -32,18 +32,18 @@ M<HTML::FormatText> which are not installed by default together with
 Mail::Box.  See also M<Mail::Message::rebuild()> with rule
 C<text_alternative_for_html>.
 
+This module is a small wrapper around M<HTML::FormatText>.
+
 =chapter METHODS
 
 =c_method new %options
 
 =option  leftmargin INTEGER
 =default leftmargin C<3>
-
 The column of the left margin, passed to the formatter.
 
 =option  rightmargin INTEGER
 =default rightmargin C<72>
-
 The column of the right margin, passed to the formatter.
 
 =cut
@@ -54,9 +54,9 @@ sub init($)
     $self->SUPER::init($args);
 
     $self->{MMCH_formatter} = HTML::FormatText->new
-     ( leftmargin  => (defined $args->{leftmargin}  ? $args->{leftmargin}  : 3)
-     , rightmargin => (defined $args->{rightmargin} ? $args->{rightmargin} : 72)
-     );
+      ( leftmargin  => $args->{leftmargin}  //  3,
+      , rightmargin => $args->{rightmargin} // 72,
+      );
       
     $self;
 }

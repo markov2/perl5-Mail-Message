@@ -108,12 +108,12 @@ my @default_rules =
 
 sub rebuild(@)
 {   my ($self, %args) = @_;
- 
-    # Collect the rules to be run
+    my $keep  = delete $args{keep_message_id};
 
-    my @rules   = $args{rules} ? @{$args{rules}} : @default_rules;
-    unshift @rules, @{$args{extra_rules}} if $args{extra_rules};
-    unshift @rules, @{$args{extraRules}}  if $args{extraRules}; #old name
+    # Collect the rules to be run
+    my @rules = $args{rules} ? @{delete $args{rules}} : @default_rules;
+    unshift @rules, @{delete $args{extra_rules}} if $args{extra_rules};
+    unshift @rules, @{delete $args{extraRules}}  if $args{extraRules}; #old name
 
     foreach my $rule (@rules)
     {   next if ref $rule;
@@ -125,7 +125,7 @@ sub rebuild(@)
 
     # Start off with the message
 
-    my $rebuild = $self->recursiveRebuildPart($self, rules => \@rules)
+    my $rebuild = $self->recursiveRebuildPart($self, %args, rules => \@rules)
         or return;
 
     # Be sure we end-up with a message
@@ -138,7 +138,7 @@ sub rebuild(@)
         $rebuild = $clone;
     }
 
-    $args{keep_message_id} or $rebuild->takeMessageId;
+    $keep or $rebuild->takeMessageId;
     $rebuild;
 }
 
@@ -220,7 +220,7 @@ sub descendMultiparts($@)
 
     $rebuild->body($newbody);   # update Content-* lines
     $rebuild;
- }
+}
 
 sub descendNested($@)
 {   my ($self, $part, %args) = @_;
@@ -267,7 +267,7 @@ sub replaceDeletedParts($@)
 # The more complex rules
 
 sub removeHtmlAlternativeToText($@)
-{   my ($self, $part, %args) = @_;
+{   my ($self, $part) = @_;
     $part->body->mimeType eq 'text/html'
         or return $part;
 
@@ -286,7 +286,7 @@ sub removeHtmlAlternativeToText($@)
 }
 
 sub removeExtraAlternativeText($@)
-{   my ($self, $part, %args) = @_;
+{   my ($self, $part) = @_;
 
     my $container = $part->container;
     $container && $container->mimeType eq 'multipart/alternative'
@@ -303,7 +303,7 @@ sub textAlternativeForHtml($@)
 
     my $hft = 'Mail::Message::Convert::HtmlFormatText';
     unless(defined $has_hft)
-    {   eval "require Mail::Message::Convert::HtmlFormatText";
+    {   eval "require $hft";
         $has_hft = $hft->can('format');
     }
 
@@ -322,7 +322,7 @@ sub textAlternativeForHtml($@)
     # Create the plain part
 
     my $html_body  = $part->body;
-    my $plain_body = $hft->new->format($html_body);
+    my $plain_body = $hft->new(%args)->format($html_body);
 
     my $plain_part = Mail::Message::Part->new(container => undef);
     $plain_part->body($plain_body);
@@ -377,7 +377,8 @@ sub recursiveRebuildPart($@)
 
   RULES:
     foreach my $rule (@{$args{rules}})
-    {   my $rebuild = $self->$rule($part, %args)
+    {   my %params  = ( %args, %{$args{$rule} || {}} );
+        my $rebuild = $self->$rule($part, %params)
             or return undef;
 
         if($part != $rebuild)
@@ -487,8 +488,15 @@ Especially useful in combination with the C<flattenMultiparts> rule.
 Any C<text/html> part which is not accompanied by an alternative
 plain text part will have one added.  You must have a working
 M<Mail::Message::Convert::HtmlFormatText>, which means that
-M<HTML::TreeBuilder> and M<HTML::FormatText>  must be installed on
+M<HTML::TreeBuilder> and M<HTML::FormatText> must be installed on
 your system.
+
+=example using parameter with C<textAlternativeForHtml>
+
+  my $result = $msg->rebuild
+    ( extra_rules => [ 'textAlternativeForHtml' ]
+    , textAlternativeForHtml => { leftmargin => 0 }
+    );
 
 =item * removeExtraAlternativeText
 [2.110] When a multipart alternative is encountered, deletes all its parts

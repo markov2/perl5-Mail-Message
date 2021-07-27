@@ -96,7 +96,7 @@ else.
 =cut
 
 use overload
-    qq("") => sub { $_[0]->unfoldedBody }
+   qq("")  => sub { $_[0]->unfoldedBody }
  , '0+'    => sub { $_[0]->toInt || 0 }
  , bool    => sub {1}
  , cmp     => sub { $_[0]->unfoldedBody cmp "$_[1]" }
