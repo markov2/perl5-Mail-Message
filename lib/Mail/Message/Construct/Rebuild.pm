@@ -491,6 +491,10 @@ M<Mail::Message::Convert::HtmlFormatText>, which means that
 M<HTML::TreeBuilder> and M<HTML::FormatText> must be installed on
 your system.
 
+When you are planning to create an automatic html to plain text
+filter for your email, then have a look at
+F<https://github.com/logological/mimestrip>
+
 =example using parameter with C<textAlternativeForHtml>
 
   my $result = $msg->rebuild
