@@ -155,7 +155,7 @@ sub _is_good_end($)
     return 1 unless defined $line;
 
         substr($line, 0, length $sep) eq $sep
-    && ($sep ne 'From ' || $line =~ m/ (?:19[6-9]|20[0-2])[0-9]\b/ );
+    && ($sep ne 'From ' || $line =~ m/ (?:19[6-9]|20[0-3])[0-9]\b/ );
 }
 
 sub readSeparator()
@@ -214,7 +214,7 @@ sub _read_stripped_lines(;$$)
         }
 
         if(@$lines && $lines->[-1] =~ s/(\r?\n)\z//)
-        {   pop @$lines if length($lines->[-1])==0;
+        {   pop @$lines if @seps==1 && length($lines->[-1])==0;
         }
     }
     else # File without separators.
@@ -286,7 +286,7 @@ sub bodyAsFile($;$$)
 
     my ($end, $lines) = $self->_read_stripped_lines($exp_chars, $exp_lines);
 
-    $out->print($_) foreach @$lines;
+    $out->print($_) for @$lines;
     ($begin, $end, scalar @$lines);
 }
 
@@ -305,7 +305,7 @@ sub bodyDelayed(;$$)
     }
 
     my ($end, $lines) = $self->_read_stripped_lines($exp_chars, $exp_lines);
-    my $chars = sum(map {length} @$lines);
+    my $chars = sum(map length, @$lines);
     ($begin, $end, $chars, scalar @$lines);
 }
 
