@@ -144,7 +144,7 @@ sub attribute($;$)
     }
 
     delete $self->{MMFF_body};
-    $self->{MMFS_attrs}{$name} = $attr;
+    $self->{MMFS_attrs}{lc $name} = $attr;
 }
 
 =method attributes
