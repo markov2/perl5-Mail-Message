@@ -271,14 +271,16 @@ is $a1->domain, 'simplelists.com';
 # Bug reported by Andrew, 2022-02-10
 # https://github.com/markov2/perl5-Mail-Message/issues/2
 
+my $john ='John Smith with a long long long long phrase (via test list)';
 my $f = Mail::Message::Field::Address->new(
     address => 'andy@example.com',
-    phrase  => 'John Smith with a long long long long phrase (via test list)',
+    phrase  => $john,
 );
 ok defined $f, "Constructed address with quoted-print";
 
 is "$f", '=?us-ascii?q?John_Smith_with_a_long_long_long_long_phrase_(via_test_list)?= <andy@example.com>';
 
 my $new = Mail::Message::Field::Address->parse("$f");
+is $new->phrase, $john;
 
 done_testing;
