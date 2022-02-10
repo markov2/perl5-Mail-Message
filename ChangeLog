@@ -12,6 +12,8 @@ version 3.012:
 	Fixes:
 	- ::Field::Attributes should be stored case intensively
 	 rt.cpan.org#140894 [Yanyan Yang]
+	- ::Field::Full phrase with encoding qp parsing failed when
+	  the qp contains non-atext characters.
 
 	Improvements:
 	- extend date in mbox-separator to accept 203X as well.

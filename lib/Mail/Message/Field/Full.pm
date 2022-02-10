@@ -439,11 +439,12 @@ The RFCs only permit base64 (C<b > or C<B >) or quoted-printable
 
 sub _mime_word($$) { "$_[0]$_[1]?=" }
 sub _encode_b($)   { MIME::Base64::encode_base64(shift, '')  }
-sub _encode_q($)
+
+sub _encode_q($)   # RFC2045 section 6.7
 {   my $chunk = shift;
     $chunk =~ s#([\x00-\x1F=\x7F-\xFF])#sprintf "=%02X", ord $1#ge;
     $chunk =~ s#([_\?,"])#sprintf "=%02X", ord $1#ge;
-    $chunk =~ s/ /_/g;
+    $chunk =~ s/ /_/g;     # special case for =? ?= use
     $chunk;
 }
 
@@ -639,7 +640,7 @@ sub consumePhrase($)
     if($string =~ s/^\s*\" ((?:[^"\r\n\\]*|\\.)*) (?:\"|\s*$)//x )
     {   ($phrase = $1) =~ s/\\\"/"/g;
     }
-    elsif($string =~ s/^\s*([${atext}${atext_ill}\ \t.]+)//o )
+    elsif($string =~ s/^\s*((?:\=\?.*\?\=|[${atext}${atext_ill}\ \t.])+)//o )
     {   ($phrase = $1) =~ s/\s+$//;
         CORE::length($phrase) or undef $phrase;
     }
