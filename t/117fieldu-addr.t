@@ -278,7 +278,7 @@ my $f = Mail::Message::Field::Address->new(
 );
 ok defined $f, "Constructed address with quoted-print";
 
-is "$f", '=?us-ascii?q?John_Smith_with_a_long_long_long_long_phrase_(via_test_list)?= <andy@example.com>';
+is "$f", '=?us-ascii?q?John_Smith_with_a_long_long_long_long_phrase_=28via_test_lis?= =?us-ascii?q?t=29?= <andy@example.com>';
 
 my $new = Mail::Message::Field::Address->parse("$f");
 is $new->phrase, $john;
