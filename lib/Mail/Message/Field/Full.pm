@@ -640,7 +640,7 @@ sub consumePhrase($)
     if($string =~ s/^\s*\" ((?:[^"\r\n\\]*|\\.)*) (?:\"|\s*$)//x )
     {   ($phrase = $1) =~ s/\\\"/"/g;
     }
-    elsif($string =~ s/^\s*((?:\=\?.*\?\=|[${atext}${atext_ill}\ \t.])+)//o )
+    elsif($string =~ s/^\s*((?:\=\?.*?\?\=|[${atext}${atext_ill}\ \t.])+)//o )
     {   ($phrase = $1) =~ s/\s+$//;
         CORE::length($phrase) or undef $phrase;
     }
