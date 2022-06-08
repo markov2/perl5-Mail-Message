@@ -12,7 +12,7 @@ version 3.013:
 
 	Fixes:
 	- ::Field::Full consumePhrase() should take minimal encoded
-	  phrase [Jonas Knyffen]
+	  phrase [Jonas Ryssel]
 
 version 3.012: Fri 11 Feb 11:34:31 CET 2022
 
