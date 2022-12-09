@@ -16,9 +16,12 @@ use Test::More;
 
 
 BEGIN
-{   eval {require MIME::Entity};
+{   # MIME::Entity requires a VERSION in Mail::Internet, but
+    # MailTools is version-less in the devel environment hence
+    # MIME::Entity is "not found".
+    eval { require MIME::Entity };
     if($@)
-    {   plan skip_all => "requires MIME::Entity.";
+    {   plan skip_all => "requires MIME::Entity";
         exit 0;
     }
 
