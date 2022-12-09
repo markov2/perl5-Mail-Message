@@ -56,10 +56,10 @@ same.
 =cut
 
 use overload
-      '""' => 'string'
-    , bool => sub {1}
-    , cmp  => sub { lc($_[0]->address) eq lc($_[1]) }
-    ;
+    '""' => 'string'
+  , bool => sub {1}
+  , cmp  => sub { lc($_[0]->address) cmp lc($_[1]) }
+  ;
 
 #------------------------------------------
 
