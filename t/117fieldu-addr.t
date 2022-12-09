@@ -283,4 +283,12 @@ is "$f", '=?us-ascii?q?John_Smith_with_a_long_long_long_long_phrase_=28via_test_
 my $new = Mail::Message::Field::Address->parse("$f");
 is $new->phrase, $john;
 
+# Bug reported by Andy, 2022-12-08   But probably with running an
+# older version of the code.
+
+my $member_email = Mail::Message::Field::Addresses->new('dummy');
+$member_email->parse('andy@andybev..com');
+my ($member) = $member_email->addresses;
+is $member, 'andy@andybev..com', 'double dot';
+
 done_testing;

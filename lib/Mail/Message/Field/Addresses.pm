@@ -269,11 +269,11 @@ sub produceBody()
    @groups > 1 or return $groups[0]->string;
 
    my $plain
-    = $groups[0]->name eq '' && $groups[0]->addresses
-    ? (shift @groups)->string.','
-    : '';
+     = $groups[0]->name eq '' && $groups[0]->addresses
+     ? (shift @groups)->string.','
+     : '';
 
-   join ' ', $plain, map({$_->string} @groups);
+   join ' ', $plain, (map $_->string, @groups);
 }
 
 =method consumeAddress STRING, %options
@@ -296,11 +296,12 @@ sub consumeAddress($@)
         $local =~ s/\s//g if defined $local;
     }
 
-    return (undef, $string)
-        unless defined $local && $shorter =~ s/^\s*\@//;
+    defined $local && $shorter =~ s/^\s*\@//
+        or return (undef, $string);
   
     (my $domain, $shorter, my $domcomment) = $self->consumeDomain($shorter);
-    return (undef, $string) unless defined $domain;
+    defined $domain
+        or return (undef, $string);
 
     # loccomment and domcomment ignored
     my $email   = Mail::Message::Field::Address
