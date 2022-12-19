@@ -16,6 +16,9 @@ version 3.013:
 	- ::Field::Address overloaded cmp() used 'eq' where it should
 	  have been 'cmp'
 
+	Improvements:
+	- run regression-tests with MIME::Entity on devel system.
+
 version 3.012: Fri 11 Feb 11:34:31 CET 2022
 
 	Fixes:
