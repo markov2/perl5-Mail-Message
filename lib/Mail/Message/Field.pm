@@ -819,7 +819,7 @@ sub fold($$;$)
     my $wrap  = shift || $default_wrap_length;
     defined $line or $line = '';
 
-    $line    =~ s/\n\s/ /gms;            # Remove accidental folding
+    $line    =~ s/\n(\s)/$1/gms;            # Remove accidental folding
     return " \n" unless CORE::length($line);  # empty field
 
     my @folded;
@@ -857,9 +857,10 @@ Possible leading blanks on the first line are removed as well.
 sub unfold($)
 {   my $string = $_[1];
     for($string)
-    {   s/\r?\n\s?/ /gs;  # remove FWS
-        s/^ +//;
-        s/ +$//;
+    {   s/\r?\n(\s)/$1/gs;  # remove FWS
+        s/\r?\n/ /gs;
+        s/^\s+//;
+        s/\s+$//;
     }
     $string;
 }

@@ -10,6 +10,11 @@ Limitations to be fixed:
 
 version 3.013:
 
+	Changes:
+	- In header lines, leave the actual white-space related to FWS
+	  intact.  You may want to add s/\t/ / before you print a header.
+	  [Jacob Balazer]
+
 	Fixes:
 	- ::Field::Full consumePhrase() should take minimal encoded
 	  phrase [Jonas Ryssel]
