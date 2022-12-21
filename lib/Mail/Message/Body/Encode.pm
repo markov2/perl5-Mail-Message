@@ -148,7 +148,7 @@ sub encode(@)
             }
         }
         elsif(!$char_to)
-        {   $char_to = 'utf8';
+        {   $char_to = 'utf-8';
             $type_to->attribute(charset => $char_to);
         }
 
@@ -165,8 +165,8 @@ sub encode(@)
         {   # We cannot leave the body into the 'PERL' charset when transfer-
             # encoding is applied.
             $self->log(WARNING => "Transfer-Encoding `$trans_to' requires "
-              . "explicit charset, defaulted to utf8");
-            $char_to = 'utf8';
+              . "explicit charset, defaulted to utf-8");
+            $char_to = 'utf-8';
         }
     }
 
