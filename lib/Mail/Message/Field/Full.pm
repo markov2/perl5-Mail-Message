@@ -220,11 +220,13 @@ sub unfoldedBody($;$)
     }
 
     $body = $self->foldedBody;
-    $body =~ s/^ //;
 
-	# remove FWS, also required within quoted strings.
-    $body =~ s/\r?\n\s?/ /g;
-    $body =~ s/ +$//;
+    for($body)
+    {   s/\r?\n(\s)/$1/g;
+        s/\r?\n/ /g;
+        s/^\s+//;
+        s/\s+$//;
+    }
     $body;
 }
 
@@ -652,29 +654,38 @@ sub consumePhrase($)
 
 =ci_method consumeComment STRING
 Try to read a comment from the STRING.  When successful, the comment
-without encapsulation parenthesis is returned, together with the rest
+without encapsulating parenthesis is returned, together with the rest
 of the string.
 =cut
 
 sub consumeComment($)
 {   my ($thing, $string) = @_;
+    # Backslashes are officially not permitted in comments, but not everyone
+    # knows that.  Nested parens are supported.
 
     return (undef, $string)
-        unless $string =~ s/^\s*\(((?:[^)\\]+|\\.)*)\)//;
+        unless $string =~ s/^\s* \( ((?:\\.|[^)])*) (?:\)|$) //x;
+        # allow unterminated comments
 
     my $comment = $1;
+
+    # Continue consuming characters until we have balanced parens, for
+    # nested comments which are permitted.
     while(1)
     {   (my $count = $comment) =~ s/\\./xx/g;
+        last if +( $count =~ tr/(// ) == ( $count =~ tr/)// );
 
-        last if $count =~ tr/(//  ==  $count =~ tr/)//;
-
-        return (undef, $_[1])
-            unless $string =~ s/^((?:[^)\\]+|\\.)*)\)//;
+        last if $string !~ s/^((?:\\.|[^)])*) \)//x;  # cannot satisfy
 
         $comment .= ')'.$1;
     }
 
-    $comment =~ s/\\([()])/$1/g;
+    for($comment)
+    {   s/^\s+//;
+        s/\s+$//;
+        s/\\ ( [()] )/$1/gx; # Remove backslashes before nested comment.
+    }
+
     ($comment, $string);
 }
 

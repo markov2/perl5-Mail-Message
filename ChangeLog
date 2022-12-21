@@ -13,7 +13,10 @@ version 3.013:
 	Changes:
 	- In header lines, leave the actual white-space related to FWS
 	  intact.  You may want to add s/\t/ / before you print a header.
-	  [Jacob Balazer]
+	  GitHub#7 [Jacob Balazer]
+	- When comment has no closing ')', do consume the whole remaining
+	  line, not fail parsing.
+	  GitHub#6 [Jacob Balazer]
 
 	Fixes:
 	- ::Field::Full consumePhrase() should take minimal encoded

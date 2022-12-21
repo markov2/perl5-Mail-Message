@@ -171,9 +171,12 @@ sub attrPairs() { map +($_->name, $_->value), shift->attributes }
 sub parse($)
 {   my ($self, $string) = @_;
 
-    # remove FWS, even within quoted strings
-    $string =~ s/\r?\n\s?/ /gs;
-	$string =~ s/ +$//;
+    for($string)
+    {   # remove FWS, even within quoted strings
+        s/\r?\n(\s)/$1/gs;
+        s/\r?\n/ /gs;
+	    s/\s+$//;
+    }
 
     my $datum = '';
     while(length $string && substr($string, 0, 1) ne ';')
