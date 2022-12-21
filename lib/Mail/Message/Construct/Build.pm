@@ -408,7 +408,7 @@ What basically happens is this:
  my $body = Mail::Message::Body::Lines->new(file => '/etc/passwd');
  $body->type('video/mpeg3');
  $body->transferEncoding('base64');
- $body->diposition('attachment');
+ $body->disposition('attachment');
  my $msg  = Mail::Message->buildFromBody($body, $head);
  
 A safer way to construct the message is:
