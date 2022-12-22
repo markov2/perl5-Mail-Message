@@ -89,9 +89,9 @@ nested, this will be overruled.
 
 sub read($@)
 {   my ($class, $from, %args) = @_;
+
     my ($filename, $file);
     my $ref       = ref $from;
-
     if(!$ref)
     {   $filename = 'scalar';
         $file     = Mail::Box::FastScalar->new(\$from);
@@ -121,18 +121,19 @@ sub read($@)
         return undef;
     }
 
-    my $strip_status = exists $args{strip_status_fields}
-                     ? delete $args{strip_status_fields}
-                     : 1;
+    my $strip_status
+      = exists $args{strip_status_fields}
+      ? delete $args{strip_status_fields}
+      : 1;
 
     require Mail::Box::Parser::Perl;  # not parseable by C parser
 
     my $parser = Mail::Box::Parser::Perl->new
-     ( %args
-     , filename  => $filename
-     , file      => $file
-     , trusted   => 1
-     );
+      ( %args
+      , filename  => $filename
+      , file      => $file
+      , trusted   => 1
+      );
 
     my $self = $class->new(%args);
     $self->readFromParser($parser, $args{body_type});
@@ -141,8 +142,8 @@ sub read($@)
     $parser->stop;
 
     my $head = $self->head;
-    $head->set('Message-ID' => '<'.$self->messageId.'>')
-        unless $head->get('Message-ID');
+    $head->get('Message-ID')
+        or $head->set('Message-ID' => '<'.$self->messageId.'>');
 
     $head->delete('Status', 'X-Status') if $strip_status;
 
