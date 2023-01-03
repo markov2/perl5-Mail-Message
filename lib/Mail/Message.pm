@@ -1239,14 +1239,14 @@ sub readFromParser($;$)
 {   my ($self, $parser, $bodytype) = @_;
 
     my $head = $self->readHead($parser)
-            || Mail::Message::Head::Complete->new
-                 ( message     => $self
-                 , field_type  => $self->{MM_field_type}
-                 , $self->logSettings
-                 );
+     || Mail::Message::Head::Complete->new
+          ( message     => $self
+          , field_type  => $self->{MM_field_type}
+          , $self->logSettings
+          );
 
     my $body = $self->readBody($parser, $head, $bodytype)
-       or return;
+        or return;
 
     $self->head($head);
     $self->storeBody($body);
@@ -1278,21 +1278,17 @@ to create expectations about the message's length, but also to determine
 the mime-type and encodings of the body data.
 
 The $bodytype determines which kind of body will be made and defaults to
-the value specified by new(body_type).
+the value specified by M<new(body_type)>.
 $bodytype may be the name of a body class, or a reference
 to a routine which returns the body's class when passed the $head as only
 argument.
 =cut
 
-my $mpbody = 'Mail::Message::Body::Multipart';
-my $nbody  = 'Mail::Message::Body::Nested';
-my $lbody  = 'Mail::Message::Body::Lines';
-
 sub readBody($$;$$)
 {   my ($self, $parser, $head, $getbodytype) = @_;
 
     my $bodytype
-      = ! $getbodytype   ? ($self->{MM_body_type} || $lbody)
+      = ! $getbodytype   ? ($self->{MM_body_type} || 'Mail::Message::Body::Lines')
       : ref $getbodytype ? $getbodytype->($self, $head)
       :                    $getbodytype;
 
@@ -1310,9 +1306,11 @@ sub readBody($$;$$)
 
         # Be sure you have acceptable bodies for multiparts and nested.
         if(substr($type, 0, 10) eq 'multipart/' && !$bodytype->isMultipart)
-        {   $bodytype = $mpbody }
+        {   $bodytype = 'Mail::Message::Body::Multipart';
+        }
         elsif($type eq 'message/rfc822' && !$bodytype->isNested)
-        {   $bodytype = $nbody  }
+        {   $bodytype = 'Mail::Message::Body::Nested';
+        }
 
         $body = $bodytype->new
           ( message => $self
@@ -1336,7 +1334,7 @@ sub readBody($$;$$)
 =method storeBody $body
 Where the M<body()> method can be used to set and get a body, with all
 the necessary checks, this method is bluntly adding the specified body
-to the message.  No conversions, not checking.
+to the message.  No conversions, no checking.
 =cut
 
 sub storeBody($)

@@ -24,8 +24,6 @@ $body->boundary('part-separator');
 is($body->boundary, 'part-separator');
 is($body->mimeType, 'multipart/mixed', 'is multipart mixed');
 
-my $h1 = Mail::Message::Head::Complete->new;
-
 my $b1 = Mail::Message::Body::Lines->new
  ( data              => ["p1 l1\n", "p1 l2\n" ]
  , checked           => 1
@@ -38,11 +36,13 @@ is($b1->mimeType, 'text/html');
 is($b1->transferEncoding, '8bit');
 is($b1->disposition, 'none');
 
+my $h1 = Mail::Message::Head::Complete->new;
 my $p1 = Mail::Message->new(head => $h1);
+#$p1->print;
+
 is($b1->charset, 'PERL');
 my $b1b = $p1->body($b1);
 is($b1b->charset, 'utf-8');
-#$p1->print;
 
 is($p1->get('Content-Transfer-Encoding'), '8bit');
 ok(! defined $p1->get('Content-Disposition'));

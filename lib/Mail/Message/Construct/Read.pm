@@ -8,6 +8,7 @@ use strict;
 use warnings;
 
 use Mail::Box::FastScalar;
+use Mail::Box::Parser::Perl ();
 
 =chapter NAME
 
@@ -126,8 +127,7 @@ sub read($@)
       ? delete $args{strip_status_fields}
       : 1;
 
-    require Mail::Box::Parser::Perl;  # not parseable by C parser
-
+    # Not parseable by the C implementation
     my $parser = Mail::Box::Parser::Perl->new
       ( %args
       , filename  => $filename

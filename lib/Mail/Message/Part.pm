@@ -151,14 +151,14 @@ sub readFromParser($;$)
 {   my ($self, $parser, $bodytype) = @_;
 
     my $head = $self->readHead($parser)
-            || Mail::Message::Head::Complete->new
-                 ( message     => $self
-                 , field_type  => $self->{MM_field_type}
-                 , $self->logSettings
-                 );
+     || Mail::Message::Head::Complete->new
+          ( message     => $self
+          , field_type  => $self->{MM_field_type}
+          , $self->logSettings
+          );
 
     my $body = $self->readBody($parser, $head, $bodytype)
-            || Mail::Message::Body::Lines->new(data => []);
+     || Mail::Message::Body::Lines->new(data => []);
 
     $self->head($head);
     $self->storeBody($body->contentInfoFrom($head));

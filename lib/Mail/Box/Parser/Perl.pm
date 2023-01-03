@@ -218,8 +218,7 @@ sub _read_stripped_lines(;$$)
         }
     }
     else # File without separators.
-    {   $lines = ref $file eq 'Mail::Box::FastScalar'
-               ? $file->getlines : [ $file->getlines ];
+    {   $lines = ref $file eq 'Mail::Box::FastScalar' ? $file->getlines : [ $file->getlines ];
     }
 
     my $bodyend = $file->tell;
@@ -234,7 +233,6 @@ sub _read_stripped_lines(;$$)
             # conflicts with this assumption. [Markus Spann]
         }
     }
-#warn "($bodyend, $msgend, ".@$lines, ")\n";
 
     ($bodyend, $lines, $msgend);
 }

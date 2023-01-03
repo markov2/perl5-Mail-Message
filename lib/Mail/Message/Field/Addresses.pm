@@ -228,7 +228,7 @@ sub parse($)
             {   (my $word, $string) = $self->consumePhrase($string);
                 defined $word or last;
 
-                push @words, $word;
+                push @words, $word if length $word;
                 ($comment, $string) = $self->consumeComment($string);
 
                 if($string =~ s/^\s*\://s )
@@ -238,7 +238,7 @@ sub parse($)
                     next ADDRESS;
                 }
             }
-            my $phrase = join ' ', @words;
+            my $phrase = @words ? join ' ', @words : undef;
 
             my $angle;
             if($string =~ s/^\s*\<([^>]*)\>//s) { $angle = $1 }
