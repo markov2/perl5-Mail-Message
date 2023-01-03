@@ -202,11 +202,13 @@ sub parse($)
     my ($group, $email) = ('', undef);
     $string =~ s/\s+/ /gs;
 
+  ADDRESS:
     while(1)
     {   (my $comment, $string) = $self->consumeComment($string);
+        my $start_length = length $string;
 
-        if($string =~ s/^\s*\;//s ) { $group = ''; next }  # end group
-        if($string =~ s/^\s*\,//s ) { next }               # end address
+        if($string =~ s/^\s*\;//s ) { $group = ''; next ADDRESS }  # end group
+        if($string =~ s/^\s*\,//s ) { next ADDRESS}               # end address
 
         (my $email, $string) = $self->consumeAddress($string);
         if(defined $email)
@@ -217,25 +219,33 @@ sub parse($)
         else
         {   # Pattern not plain address
             my $real_phrase = $string =~ m/^\s*\"/;
-            (my $phrase, $string) = $self->consumePhrase($string);
+            my @words;
 
-            if(defined $phrase)
-            {   ($comment, $string) = $self->consumeComment($string);
+            # In rfc2822 obs-phrase, we can have more than one word with
+            # comments inbetween.
+         WORD:
+            while(1)
+            {   (my $word, $string) = $self->consumePhrase($string);
+                defined $word or last;
+
+                push @words, $word;
+                ($comment, $string) = $self->consumeComment($string);
 
                 if($string =~ s/^\s*\://s )
-                {   $group = $phrase;
+                {   $group = $word;
                     # even empty groups must appear
-                    $self->addGroup(name=>$group) unless $self->group($group);
-                    next;
+                    $self->addGroup(name => $group) unless $self->group($group);
+                    next ADDRESS;
                 }
             }
+            my $phrase = join ' ', @words;
 
             my $angle;
             if($string =~ s/^\s*\<([^>]*)\>//s) { $angle = $1 }
             elsif($real_phrase)
             {   $self->log(ERROR => "Ignore unrelated phrase `$1'")
                     if $string =~ s/^\s*\"(.*?)\r?\n//;
-                next;
+                next ADDRESS;
             }
             elsif(defined $phrase)
             {   ($angle = $phrase) =~ s/\s+/./g;
@@ -254,10 +264,12 @@ sub parse($)
 
         $self->addAddress($email, group => $group) if defined $email;
         return 1 if $string =~ m/^\s*$/s;
+
+        # Do not get stuck on illegal characters
+        last if $start_length == length $string;
    }
 
-   $self->log(WARNING => 'Illegal part in address field '.$self->Name.
-        ": $string\n");
+   $self->log(WARNING => 'Illegal part in address field '.$self->Name. ": $string\n");
 
    0;
 }
