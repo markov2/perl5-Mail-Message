@@ -25,11 +25,11 @@ is($body->boundary, 'part-separator');
 is($body->mimeType, 'multipart/mixed', 'is multipart mixed');
 
 my $b1 = Mail::Message::Body::Lines->new
- ( data              => ["p1 l1\n", "p1 l2\n" ]
- , checked           => 1
- , mime_type         => 'text/html'
- , transfer_encoding => '8bit'
- );
+  ( data              => ["p1 l1\n", "p1 l2\n" ]
+  , checked           => 1
+  , mime_type         => 'text/html'
+  , transfer_encoding => '8bit'
+  );
 
 ok($b1, 'body 1');
 is($b1->mimeType, 'text/html');
@@ -40,9 +40,9 @@ my $h1 = Mail::Message::Head::Complete->new;
 my $p1 = Mail::Message->new(head => $h1);
 #$p1->print;
 
-is($b1->charset, 'PERL');
+is $b1->charset, 'PERL';
 my $b1b = $p1->body($b1);
-is($b1b->charset, 'utf-8');
+is $b1b->charset, 'us-ascii';
 
 is($p1->get('Content-Transfer-Encoding'), '8bit');
 ok(! defined $p1->get('Content-Disposition'));
@@ -50,18 +50,18 @@ ok(! defined $p1->get('Content-Disposition'));
 my $h2 = Mail::Message::Head::Complete->new;
 
 my $b2 = Mail::Message::Body::Lines->new
- ( data              => ["p2 l1\n", "p2 l2\n", "p2 l3\n", "p2 l4\n" ]
- , mime_type         => 'text/plain'
- , checked           => 1
- , transfer_encoding => '8bit'
- );
+  ( data              => ["p2 l1\n", "p2 l2\n", "p2 l3\n", "p2 l4\n" ]
+  , mime_type         => 'text/plain'
+  , checked           => 1
+  , transfer_encoding => '8bit'
+  );
 
 ok($b2, 'body 2');
 
 my $p2 = Mail::Message->new(head => $h2);
-is($b2->charset, 'PERL');
+is $b2->charset, 'PERL';
 my $b2b = $p2->body($b2);
-is($b2b->charset, 'utf-8');
+is $b2b->charset, 'us-ascii';
 
 # Empty multipart
 
@@ -82,7 +82,7 @@ $newbody->print($g);
 
 compare_message_prints($fakeout."\n", <<'EXPECTED', 'print with attachment');
 --part-separator
-Content-Type: text/html; charset="utf-8"
+Content-Type: text/html; charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
 p1 l1
@@ -101,14 +101,14 @@ $fakeout = '';
 $newerbody->print($g);
 compare_message_prints($fakeout."\n", <<'EXPECTED', 'print with two attachments');
 --part-separator
-Content-Type: text/html; charset="utf-8"
+Content-Type: text/html; charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
 p1 l1
 p1 l2
 
 --part-separator
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
 p2 l1
@@ -142,14 +142,14 @@ preamb1
 preamb2
 
 --part-separator
-Content-Type: text/html; charset="utf-8"
+Content-Type: text/html; charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
 p1 l1
 p1 l2
 
 --part-separator
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
 p2 l1
@@ -183,14 +183,14 @@ preamb1
 preamb2
 
 --part-separator
-Content-Type: text/html; charset="utf-8"
+Content-Type: text/html; charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
 p1 l1
 p1 l2
 
 --part-separator
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
 p2 l1
@@ -240,7 +240,7 @@ From: me
 To: you
 Date: now
 Message-Id: <simple>
-Content-Type: text/html; charset="utf-8"
+Content-Type: text/html; charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 MIME-Version: 1.0
 

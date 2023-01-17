@@ -1296,7 +1296,7 @@ sub readBody($$;$$)
     if($bodytype->isDelayed)
     {   $body = $bodytype->new
           ( message => $self
-          , charset => 'us-ascii'
+          , charset => undef     # we do not know, autodetect after transfer decode
           , $self->logSettings
           );
     }
@@ -1315,7 +1315,7 @@ sub readBody($$;$$)
         $body = $bodytype->new
           ( message => $self
           , checked => $self->{MM_trusted}
-          , charset => 'us-ascii'
+          , charset => undef
           , $self->logSettings
           );
 

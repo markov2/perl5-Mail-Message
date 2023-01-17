@@ -72,9 +72,8 @@ sub init($$)
     {   require Mail::Message::Field::Address;
         my $mi   = Mail::Message::Field::Address->coerce($address);
 
-        $self->log(ERROR =>
-                "Cannot convert \"$address\" into an address object"), return
-            unless defined $mi;
+        defined $mi
+            or $self->log(ERROR => "Cannot convert \"$address\" into an address object"), return;
 
         $address = $mi;
     }

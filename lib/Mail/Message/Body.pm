@@ -126,18 +126,17 @@ got, and then call M<encode()> for what you need.
 The information about encodings must be taken from the specified BODY,
 unless specified differently.
 
-=option  charset CHARSET|'PERL'
-=default charset C<'PERL'> or <undef>
+=option  charset CHARSET|'PERL'|<undef>
+=default charset 'PERL'
 Defines the character-set which is used in the data.  Only useful in
 combination with a C<mime_type> which refers to C<text> in any shape,
 which does not contain an explicit charset already.  This field is
 case-insensitive.
 
-When a known CHARSET is provided and the mime type says "text", then the
-data is expected to be bytes in that particular encoding (see M<Encode>).
-When 'PERL' is given, then then the data is in Perl's internal encoding
-(either latin1 or utf8, you shouldn't know!) More details in
-L</Character encoding PERL>
+When a known CHARSET is provided and the mime-type says "text", then the
+data is expected to be raw octets in that particular encoding (see M<Encode>).
+When 'PERL' is given, then then the data is in Perl's internal encoding;
+either cp1252 or utf8.  More details in L</Character encoding PERL>
 
 =option  checked BOOLEAN
 =default checked <false>
@@ -328,8 +327,8 @@ sub init($)
 
     # Set the content info
 
-    my ($transfer, $disp, $charset, $descr, $cid) = @$args{
-       qw/transfer_encoding disposition charset description content_id/ }; 
+    my ($transfer, $disp, $descr, $cid) = @$args{
+       qw/transfer_encoding disposition description content_id/ };
 
     if(defined $filename)
     {   $disp //= Mail::Message::Field->new
@@ -360,6 +359,12 @@ sub init($)
 
     $mime ||= 'text/plain';
     $mime = $self->type($mime);
+
+    my $default_charset = exists $args->{charset} ? $args->{charset} : 'PERL';
+    $mime->attribute(charset => $default_charset)
+        if $default_charset
+        && $mime =~ m!^text/!i
+        && !$mime->attribute('charset');
 
     $self->transferEncoding($transfer) if defined $transfer;
     $self->disposition($disp)          if defined $disp;
@@ -398,7 +403,7 @@ object may be the object where this is called on, but may also be a new
 body of any type.
 
  my $dec = $body->decoded;
- 
+
 is equivalent with
 
  my $dec = $body->encode
@@ -448,7 +453,7 @@ sub eol(;$)
     if(@$lines)
     {   # sometimes texts lack \n on last line
         $lines->[-1] .= "\n";
-       
+
 
            if($eol eq 'CR')   {s/[\015\012]+$/\015/     for @$lines}
         elsif($eol eq 'LF')   {s/[\015\012]+$/\012/     for @$lines}
@@ -592,7 +597,7 @@ sub charset() { shift->type->attribute('charset') }
 =method transferEncoding [STRING|$field]
 Returns the transfer-encoding of the data within this body as
 M<Mail::Message::Field> (which stringifies to its content).  If it
-needs to be changed, call the M<encode()> or M<decoded()> method.
+needs to be changed, call the M<encode()> or M<ecoded()> method.
 When no encoding is present, the field contains the text C<none>.
 
 The optional STRING or $field enforces a new encoding to be set, without the
@@ -987,7 +992,7 @@ sub AUTOLOAD(@)
 
 	# AUTOLOAD inheritance is a pain
 	confess "Method $call() is not defined for a ", ref $self;
-}   
+}
 
 #------------------------------------------
 
@@ -998,7 +1003,7 @@ sub AUTOLOAD(@)
 A body can be contained in a message, but may also live without a message.
 In both cases it stores data, and the same questions can be asked: what
 type of data it is, how many bytes and lines, what encoding is used.  Any
-body can be encoded and decoded, returning a new body object.  However, 
+body can be encoded and decoded, returning a new body object.  However,
 bodies which are part of a message will always be in a shape that they can
 be written to a file or send to somewhere: they will be encoded if needed.
 
@@ -1013,7 +1018,7 @@ be written to a file or send to somewhere: they will be encoded if needed.
 Now encoded refers to the body of the C<$message> which is the content of
 C<$body> in a shape that it can be transmitted.  Usually C<base64> encoding
 is used.
-  
+
 =section Body class implementation
 
 The body of a message can be stored in many ways.  Roughly, the
@@ -1085,9 +1090,9 @@ be in a shape that the data can be transported via SMTP.
 However, when you want to process the body data in simple Perl (or when
 you construct the body data from normal Perl strings), you need to be
 aware of Perl's internal representation of strings. That can either be
-latin1 or utf8 (not real UTF-8, but something alike, see the perlunicode
-manual page)  So, before you start using the data from an incoming message,
-do
+cp1252 (extended latin1) or utf8 (not real UTF-8, but something alike,
+see the perlunicode manual page)  So, before you start using the data
+from an incoming message, do
 
     my $body  = $msg->decoded;
     my @lines = $body->lines;
@@ -1104,7 +1109,48 @@ character-set explicitly.
    my $msg  = Mail::Message->buildFromBody($body);
    $msg->body($body);
    $msg->attach($body);   # etc
-   # these all will convert the charset=PERL into real utf-8
+   # these all will convert the charset=PERL into real utf-8,
+   # cp1252 or us-ascii, which depends on the characters found.
+
+=subsection Autodetection of character-set
+
+This "Body" object represents data as part of an existing message, or
+to become part of a message.  The body can be in two states:
+
+=over 4
+=item 1. ready to be processed textually, using Perl's string operations
+=item 2. raw bytes read or to be written
+=back
+
+In the first case, the body content has no transfer encoding on it
+(C<none>), and the character-set is C<PERL>.  In the second version,
+the body may have transfer encoding and has an (IANA listed) charset
+on it (defaults to C<us-ascii>)
+
+Using M<encode()> (maybe via M<decode()>), you can convert bodies from one
+state into a different one.  In one go, you can change the transfer-encoding,
+the character-set, or whether it is in PERL string format or raw (in bytes).
+
+[3.013] A serious problem is created when a conversion is needed, while the input
+or output character-set is not explicitly known.  The email RFCs state that
+the default is C<us-ascii>.  However, in the real world it can be anything.
+Therefore, in such situations autodetection kicks in.
+
+=over 4
+=item 1.
+When a Body is read (using M<Mail::Message::read()> and friends), the
+character-set may stay undefined until transfer-decoding has been applicied.
+At that moment, (configurable auto-detection) is applied;
+=item 2.
+When a Body is created witin the program, without specific character-set,
+it will use 'PERL';
+=item 3.
+When a Body is written, the requested character-set is not specified, and the
+current character-set is C<PERL>, then auto-dectection is used.  This may
+result in C<us-ascii>, C<cp1252> and C<utf-8>;
+=item 4.
+In all other cases, the character-set is known so "easy".
+=back
 
 =cut
 
