@@ -11,7 +11,7 @@ use Mail::Message::Body::Lines;
 use Mail::Message::Body::Multipart;
 use Mail::Message::Head::Complete;
 
-use Test::More tests => 34;
+use Test::More tests => 37;
 use IO::Scalar;
 
 my $body = Mail::Message::Body::Multipart->new
@@ -247,6 +247,16 @@ MIME-Version: 1.0
 p1 l1
 p1 l2
 EXPECTED
+
+### check partnumbers in nested toplevel
+my $nested = Mail::Message->buildFromBody(
+   Mail::Message::Body::Nested->new(nested => $message->clone),
+   From => 'me', To => 'you', Date => 'now', 'Message-Id' => '<simple>');
+$pn = $nested->partNumber;
+defined $pn or $pn = 'undef';
+is($pn, 'undef', 'partnr of top nested is undef');
+is(($nested->parts)[0]->partNumber, '1', 'nested partNumber 1');
+is(($nested->parts)[1]->partNumber, '2', 'nested partNumber 2');
 
 #
 # Check copying.

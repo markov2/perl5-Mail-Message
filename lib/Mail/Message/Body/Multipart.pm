@@ -568,7 +568,8 @@ sub partNumberOf($)
     {   $self->log(ERROR => 'multipart is not connected');
         return 'ERROR';
     }
-    my $base  = $msg->isa('Mail::Message::Part') ? $msg->partNumber.'.' : '';
+    my $base  = $msg->isa('Mail::Message::Part') ? $msg->partNumber : undef;
+    $base = defined $base ? "$base." : '';
     foreach my $partnr (0..@parts)
     {   return $base.($partnr+1)
             if $parts[$partnr] == $part;
