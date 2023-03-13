@@ -119,7 +119,7 @@ sub print(;$)
 
 sub partNumberOf($)
 {   my ($self, $part) = @_;
-    $self->message->partNumber;
+    $self->message->partNumber || '1';
 }
 
 =method foreachLine(CODE)

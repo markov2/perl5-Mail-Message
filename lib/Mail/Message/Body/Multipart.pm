@@ -562,13 +562,15 @@ sub part($) { shift->{MMBM_parts}[shift] }
 
 sub partNumberOf($)
 {   my ($self, $part) = @_;
-    my @parts = $self->parts('ACTIVE');
     my $msg   = $self->message;
     unless($msg)
     {   $self->log(ERROR => 'multipart is not connected');
         return 'ERROR';
     }
+
     my $base  = $msg->isa('Mail::Message::Part') ? $msg->partNumber.'.' : '';
+
+    my @parts = $self->parts('ACTIVE');
     foreach my $partnr (0..@parts)
     {   return $base.($partnr+1)
             if $parts[$partnr] == $part;
