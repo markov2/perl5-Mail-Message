@@ -11,7 +11,7 @@ use Mail::Message::Body::Lines;
 use Mail::Message::Body::Multipart;
 use Mail::Message::Head::Complete;
 
-use Test::More tests => 34;
+use Test::More tests => 37;
 use IO::Scalar;
 
 my $body = Mail::Message::Body::Multipart->new
@@ -256,3 +256,15 @@ my $m3 = $message->clone;
 ok($m3);
 ok($m3 != $message);
 cmp_ok($m3->parts , "==",  $message->parts);
+
+# Issue GitHub#13
+
+### check partnumbers in nested toplevel
+my $nested = Mail::Message->buildFromBody(
+   Mail::Message::Body::Nested->new(nested => $message->clone),
+   From => 'me', To => 'you', Date => 'now', 'Message-Id' => '<simple>');
+$pn = $nested->partNumber;
+defined $pn or $pn = 'undef';
+is($pn, 'undef', 'partnr of top nested is undef');
+is(($nested->parts)[0]->partNumber, '1.1', 'nested partNumber 1');
+is(($nested->parts)[1]->partNumber, '1.2', 'nested partNumber 2');
