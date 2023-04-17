@@ -53,7 +53,7 @@ my %prereq =
  , Test::More     => 0.47
  , Time::Zone     => 0
  , URI            => 1.23
- , User::Identity => 1.01
+ , User::Identity => 1.02
  );
 
 foreach my $module (sort keys %prereq)
