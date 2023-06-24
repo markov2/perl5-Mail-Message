@@ -38,6 +38,11 @@ header fields defined by the RFC882, where a part of a multipart has
 only a few.  But because we do not keep track whether all fields are
 presented, a C<Mail::Message::Part> is used anyway.
 
+B<WARNING:> Since 2023, at least outlook started to interpret RFC6533
+incorrectly.  Bodies of type 'message/rfc822' can only be 'nested', but
+when they (illegally) have Content-Transfer-Encoding, they can now behave
+like normal message parts (the same as a pdf or image).
+
 =chapter METHODS
 
 =c_method new %options
@@ -180,6 +185,7 @@ sub moveLocation($)
     $self;
 }
 
+#-------------------------
 =section Access to the payload
 
 =method nested

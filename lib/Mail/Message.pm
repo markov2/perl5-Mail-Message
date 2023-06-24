@@ -1308,8 +1308,10 @@ sub readBody($$;$$)
         if(substr($type, 0, 10) eq 'multipart/' && !$bodytype->isMultipart)
         {   $bodytype = 'Mail::Message::Body::Multipart';
         }
-        elsif($type eq 'message/rfc822' && !$bodytype->isNested)
-        {   $bodytype = 'Mail::Message::Body::Nested';
+        elsif($type eq 'message/rfc822')
+        {   my $enc = $head->get('Content-Transfer-Encoding') || 'none';
+            $bodytype = 'Mail::Message::Body::Nested'
+                if lc($enc) eq 'none' && ! $bodytype->isNested;
         }
 
         $body = $bodytype->new
