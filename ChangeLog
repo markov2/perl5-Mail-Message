@@ -42,7 +42,7 @@ version 3.013:
 	- New release of User::Identity
 	- When the message/rfc822 and has Content-Transfer-Encoding, then do
 	  not parse it as "nested" but as normal part.
-	  github issue #17 [Todd Richmond
+	  github issue #17 [Todd Richmond]
 
 version 3.012: Fri 11 Feb 11:34:31 CET 2022
 
