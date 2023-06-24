@@ -92,6 +92,7 @@ t/300body-file.t
 t/301body-string.t
 t/302body-lines.t
 t/303body-multip.t
+t/304body-postlude.t
 t/310encode-base64.t
 t/311encode-eight.t
 t/312encode-quoted.t

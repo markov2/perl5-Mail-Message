@@ -30,6 +30,9 @@ version 3.013:
 	- ::Field::Address overloaded cmp() used 'eq' where it should
 	  have been 'cmp'
 	- partNumber when the multipart parent is a nested [Geoffrey Bennett]
+	- ::Body::Multipart, even when there is only a single \n after the
+	  trailing boundery, then there is a epilogue.
+	  github issue #16 [Jacob Balazer]
 
 	Improvements:
 	- run regression-tests with MIME::Entity on devel system.

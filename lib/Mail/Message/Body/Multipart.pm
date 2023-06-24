@@ -346,9 +346,16 @@ sub read($$$$)
 
     # Get the parts.
 
-    my @parts;
+    my ($has_epilogue, @parts);
     while(my $sep = $parser->readSeparator)
-    {   last if $sep eq "--$boundary--\n";
+    {   if($sep =~ m/--\Q$boundary\E--[ \t]*\n?/)
+        {   # Per RFC 2046, a CRLF after the close-delimiter marks the presence
+            # of an epilogue.  Preserve the epilogue, even if empty, so that the
+            # printed multipart body will also have the CRLF.
+            # This, however, is complicated w.r.t. mbox folders.
+            $has_epilogue = $sep =~ /\n/;
+            last;
+        }
 
         my $part = Mail::Message::Part->new
          ( @msgopts
@@ -373,7 +380,7 @@ sub read($$$$)
             :                      $begin;
     $self->fileLocation($begin, $end);
 
-   $epilogue->nrLines
+    $has_epilogue || $epilogue->nrLines
         or undef $epilogue;
 
     $self->{MMBM_epilogue} = $epilogue
