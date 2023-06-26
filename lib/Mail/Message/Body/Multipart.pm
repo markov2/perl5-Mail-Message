@@ -348,7 +348,7 @@ sub read($$$$)
 
     my ($has_epilogue, @parts);
     while(my $sep = $parser->readSeparator)
-    {   if($sep =~ m/--\Q$boundary\E--[ \t]*\n?/)
+    {   if($sep =~ m/^--\Q$boundary\E--[ \t]*\n?/)
         {   # Per RFC 2046, a CRLF after the close-delimiter marks the presence
             # of an epilogue.  Preserve the epilogue, even if empty, so that the
             # printed multipart body will also have the CRLF.

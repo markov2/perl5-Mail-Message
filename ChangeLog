@@ -10,6 +10,10 @@ Limitations to be fixed:
 
 version 3.014:
 
+	Fixes:
+	- epilogue starter test needs ^ anchor
+	  github issue #16 [Jacob Balazer]
+
 version 3.013: Sat 24 Jun 17:25:11 CEST 2023
 
 	Changes:
