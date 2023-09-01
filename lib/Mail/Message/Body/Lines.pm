@@ -74,6 +74,7 @@ sub _data_from_glob(@)
 
 sub _data_from_lines(@)
 {   my ($self, $lines)  = @_;
+
     $lines = [ split /^/, $lines->[0] ]    # body passed in one string.
         if @$lines==1;
 

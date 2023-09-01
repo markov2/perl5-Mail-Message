@@ -120,4 +120,5 @@ t/500parser-field.t
 t/501parser-readmp.t
 t/502parser-nested.t
 t/503parser-unnested.t
+t/504parser-preamble.t
 xt/99pod.t
