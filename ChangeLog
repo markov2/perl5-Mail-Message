@@ -16,6 +16,8 @@ version 3.014:
 	- existing preamble should keep at least one empty string to
 	  indicate its existence.
 	  github issue #18 [Jacob Balazer]
+	- clean error when field names are too long w.r.t. the fold
+	  wrap.  Found by [Raphaël Gertz]
 
 version 3.013: Sat 24 Jun 17:25:11 CEST 2023
 
