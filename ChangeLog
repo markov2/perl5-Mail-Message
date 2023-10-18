@@ -10,6 +10,11 @@ Limitations to be fixed:
 
 version 3.014:
 
+	Changes:
+	- handle utf8 in address phrases, according to RFC5335 (since
+	  2008 experimental)  May show some changes in your regression
+	  tests.  [Andy Beverley]
+
 	Fixes:
 	- epilogue starter test needs ^ anchor
 	  github issue #16 [Jacob Balazer]
