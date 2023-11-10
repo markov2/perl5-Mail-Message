@@ -683,11 +683,6 @@ or transfer agents, and therefore mutulate or extinguish your message.
 
 =cut
 
-#=notice Empty field: $name
-#Empty fields are not allowed, however sometimes found in messages constructed
-#by broken applications.  You probably want to ignore this message unless you
-#wrote this broken application yourself.
-
 sub consume($;$)
 {   my $self = shift;
     my ($name, $body) = defined $_[1] ? @_ : split(/\s*\:\s*/, (shift), 2);
@@ -700,7 +695,7 @@ sub consume($;$)
     #
 
     if(ref $body)                 # Objects or array
-    {   my $flat = $self->stringifyData($body) or return ();
+    {   my $flat = $self->stringifyData($body) // return ();
         $body = $self->fold($name, $flat);
     }
     elsif($body !~ s/\n+$/\n/g)   # Added by user...
@@ -710,9 +705,6 @@ sub consume($;$)
     {   # correct erroneous wrap-seperators (dos files under UNIX)
         $body =~ s/[\012\015]+/\n/g;
         $body =~ s/^[ \t]*/ /;  # start with one blank, folding kept unchanged
-
-        $self->log(NOTICE => "Empty field: $name")
-           if $body eq " \n";
     }
 
     ($name, $body);

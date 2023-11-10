@@ -10,6 +10,9 @@ Limitations to be fixed:
 
 version 3.015:
 
+	Fixes:
+	- accept empty fields without complaint. [Andy Beverley]
+
 version 3.014: Wed 18 Oct 12:16:55 CEST 2023
 
 	Changes:
