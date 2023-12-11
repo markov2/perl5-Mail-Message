@@ -180,7 +180,10 @@ sub nrLines()
     }
 
     if(my $epilogue = $self->epilogue)
-    {   $nr += $epilogue->nrLines;
+    {   # nrLines should match mbox counts, which is a bit
+        # unclear w.r.t. the \n after a multipart separator
+        # line.
+        $nr += $epilogue->nrLines -1;
     }
 
     $nr;
