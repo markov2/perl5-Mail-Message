@@ -459,22 +459,18 @@ returned.  The attribute is still encoded.
 
 sub attribute($;$)
 {   my ($self, $attr) = (shift, shift);
-    my $body  = $self->unfoldedBody;
 
-    unless(@_)
-    {   # only get a value
-        if($body =~ m/\b$attr\s*\=\s*
-                      ( "( (?> [^\\"]+|\\. )* )"
-                      | ([^";\s]*)
-                      )/xi)
-        {   (my $val = $+) =~ s/\\(.)/$1/g;
-            return $val;
-        }
-        return undef;
-    }
+	# Although each attribute can appear only once, some (intentionally)
+	# broken messages do repeat them.  See github issue 20.  Apple Mail and
+	# Outlook will take the last of the repeated in such case, so we do that
+	# as well.
+	my %attrs = $self->attributes;
+	@_ or return $attrs{$attr};
 
     # set the value
     my $value = shift;
+    my $body  = $self->unfoldedBody;
+
     unless(defined $value)  # remove attribute
     {   for($body)
         {      s/\b$attr\s*=\s*"(?>[^\\"]|\\.)*"//i

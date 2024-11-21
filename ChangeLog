@@ -10,6 +10,10 @@ Limitations to be fixed:
 
 version 3.016:
 
+	Fixes:
+	- when (illegally) the same attribute is passed, then return the last.
+	  github issue 20 [Todd Richmond]
+
 version 3.015: Mon 11 Dec 09:58:17 CET 2023
 
 	Fixes:
