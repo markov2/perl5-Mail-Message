@@ -597,7 +597,7 @@ sub charset() { shift->type->attribute('charset') }
 =method transferEncoding [STRING|$field]
 Returns the transfer-encoding of the data within this body as
 M<Mail::Message::Field> (which stringifies to its content).  If it
-needs to be changed, call the M<encode()> or M<ecoded()> method.
+needs to be changed, call the M<encode()> or M<encoded()> method.
 When no encoding is present, the field contains the text C<none>.
 
 The optional STRING or $field enforces a new encoding to be set, without the
@@ -1127,7 +1127,7 @@ In the first case, the body content has no transfer encoding on it
 the body may have transfer encoding and has an (IANA listed) charset
 on it (defaults to C<us-ascii>)
 
-Using M<encode()> (maybe via M<decode()>), you can convert bodies from one
+Using M<encode()> (maybe via M<decoded()>), you can convert bodies from one
 state into a different one.  In one go, you can change the transfer-encoding,
 the character-set, or whether it is in PERL string format or raw (in bytes).
 
