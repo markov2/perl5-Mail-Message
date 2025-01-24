@@ -25,6 +25,13 @@ Complex functionality on M<Mail::Message> objects is implemented in
 different files which are autoloaded.  This file implements the
 functionality related to bouncing messages off to other destinations.
 
+B<Be warned:> bouncing messages was very common practice in the past,
+but does not play well together with SPF spam protection.  Unless you
+bounce messages which originate from inside your own infrastructure,
+you may get the message rejected by the spam-filters of the receivers.
+The way around it, is to implement ARC... which the MailBox suite did
+not try (yet).
+
 =chapter METHODS
 
 =section Constructing a message
