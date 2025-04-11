@@ -180,6 +180,10 @@ upon some further action of the user.
 The C<filename> attribute specifies a name to which is suggested to the
 reader of the message when it is extracted.
 
+[3.017] RFC9078 adds type C<reaction>.  This part content is restricted
+to a single line of emoji's.  For this kind, you need to pass the FIELD
+here, as well as mime-type C<text/plain>.
+
 =option  content_id STRING
 =default content_id undef
 
@@ -651,6 +655,10 @@ was specified.
 
 The argument can be a STRING (which is converted into a field), or a
 fully prepared header field.
+
+[3.017] RFC9078 adds type C<reaction>.  This part content is restricted
+to a single line of emoji's.
+
 =cut
 
 sub disposition(;$)
