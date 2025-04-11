@@ -128,8 +128,7 @@ sub init($)
 
         $self->{MMBM_parts}
             = @parts ? \@parts
-            : !$args->{parts} && $based->isMultipart
-                     ? [ $based->parts('ACTIVE') ]
+            : !$args->{parts} && $based->isMultipart ? [ $based->parts('ACTIVE') ]
             :          [];
 
         $self->{MMBM_epilogue}

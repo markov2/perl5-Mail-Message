@@ -164,6 +164,10 @@ Informal information about the body content.  The data relates to the
 C<Content-Description> field.  Specify a STRING which will become the
 field content, or a real FIELD.
 
+=option  language    STRING|ARRAY|LIST|FIELD
+[3.017] RFC3282 C<Content-Language> field, containing a comma separated
+list of language codes.
+
 =option  disposition STRING|FIELD
 =default disposition undef
 How this message can be decomposed.  The data relates to the
@@ -187,13 +191,13 @@ here, as well as mime-type C<text/plain>.
 =option  content_id STRING
 =default content_id undef
 
-In multipart/related MIME content, the content_id is required to
-allow access to the related content via a cid:<...> descriptor of
-an inline disposition.
+In C<multipart/related> MIME content, the C<content_id> is required to
+allow access to the related content via a C<< cid:<...> >> descriptor
+of an inline disposition.
 
 A C<Content-ID> is supposed to be globally unique.  As such, it
-is common to append '@computer.domain' to the end of some unique
-string.  As other content in the multipart/related container also
+is common to append C<@computer.domain'> to the end of some unique
+string.  As other content in the C<multipart/related> container also
 needs to know what this C<Content-ID> is, this should be left to
 the imagination of the person making the content (for now).
 
@@ -331,8 +335,8 @@ sub init($)
 
     # Set the content info
 
-    my ($transfer, $disp, $descr, $cid) = @$args{
-       qw/transfer_encoding disposition description content_id/ };
+    my ($transfer, $disp, $descr, $cid, $lang) = @$args{
+       qw/transfer_encoding disposition description content_id language/ };
 
     if(defined $filename)
     {   $disp //= Mail::Message::Field->new
@@ -351,6 +355,7 @@ sub init($)
         $transfer //= $based->transferEncoding;
         $disp     //= $based->disposition;
         $descr    //= $based->description;
+        $lang     //= $based->language;
         $cid      //= $based->contentId;
 
         $self->{MMB_checked}
@@ -373,6 +378,7 @@ sub init($)
     $self->transferEncoding($transfer) if defined $transfer;
     $self->disposition($disp)          if defined $disp;
     $self->description($descr)         if defined $descr;
+    $self->language($lang)             if defined $lang;
     $self->contentId($cid)             if defined $cid;
     $self->type($mime);
 
@@ -667,8 +673,27 @@ sub disposition(;$)
 
     my $disp = defined $_[0] ? shift : 'none';
 
-    $self->{MMB_disposition} = ref $disp ? $disp->clone
+    $self->{MMB_disposition} = blessed $disp ? $disp->clone
       : Mail::Message::Field->new('Content-Disposition' => $disp);
+}
+
+=method language [@langs|\@langs|$langs|$field]
+[3.017] Returns (optionally after setting) the C<Content-Language> header,
+as specified in RFC3282.  Returns the field with a comma separated list of
+languages as body.
+=cut
+
+sub language(@)
+{	my $self = shift;
+	return $self->{MMB_lang} if !@_ && $self->{MMB_lang};
+
+	my $langs
+	  = @_ > 1        ? (join ', ', @_)
+	  : blessed $_[0] ? $_[0]
+	  : ref $_[0] eq 'ARRAY' ? (join ', ', @{$_[0]}) : $_[0];
+
+	$self->{MMB_lang} = blessed $langs ? $langs->clone
+	  : Mail::Message::Field->new('Content-Language' => $langs);
 }
 
 =method contentId [STRING|$field]
@@ -886,6 +911,7 @@ sub contentInfoTo($)
     $head->set($self->transferEncoding);
     $head->set($self->disposition);
     $head->set($self->description);
+    $head->set($self->language);
     $head->set($self->contentId);
     $self;
 }
@@ -899,15 +925,16 @@ sub contentInfoFrom($)
 
     $self->type($head->get('Content-Type', 0));
 
-    my ($te, $disp, $desc, $cid)
+    my ($te, $disp, $desc, $cid, $lang)
       = map { my $x = $head->get("Content-$_") || '';
               s/^\s+//,s/\s+$// for $x;
               length $x ? $x : undef
-            } qw/Transfer-Encoding Disposition Description ID/;
+            } qw/Transfer-Encoding Disposition Description ID Language/;
 
     $self->transferEncoding($te);
     $self->disposition($disp);
     $self->description($desc);
+    $self->language($lang);
     $self->contentId($cid);
 
     delete $self->{MMB_mime};
