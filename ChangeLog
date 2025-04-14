@@ -15,6 +15,7 @@ version 3.017:
 	- warn against bounce.
 	- Content-Disposition "reaction", RFC9078
 	- Content-Language support, RFC3282
+	- refer to IANA list of transfer encodings, RFC4289
 
 version 3.016: Wed 27 Nov 10:53:40 CET 2024
 

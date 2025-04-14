@@ -29,7 +29,12 @@ M<Mail::Message::encode()> methods:
  my $decoded_body = $message->decoded;
  my $encoded_body = $message->encode(transfer => 'base64');
 
-The following coders/decoders are currently available:
+Rules for transfer encodings are specified in RFC4289.  The full list
+of permissible content transfer encodings can be found at
+F<https://www.iana.org/assignments/transfer-encodings/transfer-encodings.xhtml>
+
+The following coders/decoders are currently supported (April 2025, the full
+list at IANA):
 
 =over 4
 
