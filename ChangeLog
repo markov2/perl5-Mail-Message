@@ -23,6 +23,7 @@ version 3.016: Wed 27 Nov 10:53:40 CET 2024
 	  in a single header line, then the last is returned.  Just like
 	  Apple and Outlook do.  Originally returned the first.
 	  github issue 20 [Todd Richmond]
+	- Require Perl 5.16 (2012), for some language features. [cpantesters]
 
 version 3.015: Mon 11 Dec 09:58:17 CET 2023
 
