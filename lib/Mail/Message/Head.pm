@@ -33,6 +33,10 @@ Mail::Message::Head - the header of one message
 C<Mail::Message::Head> MIME headers are part of M<Mail::Message> messages,
 which are grouped in M<Mail::Box> folders.
 
+A long list of standard MIME header fields with definitions can be found
+in RFC4021 (F<https://www.rfc-editor.org/rfc/rfc4021.html>) and its
+updates RFC5322 and RFC6854.
+
 B<ATTENTION!!!> most functionality about e-mail headers is described
 in M<Mail::Message::Head::Complete>, which is a matured header object.
 Other kinds of headers will be translated to that type when time comes.

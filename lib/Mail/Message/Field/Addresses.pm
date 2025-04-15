@@ -51,6 +51,10 @@ messages.
 When you try to create constructs which are not allowed for a certain
 kind of field, you will be warned.
 
+RFC5322 did allow address groups for "To" and "Cc", but not to be used
+in (amongst other) "From" and "Sender" fields.  This restriction got
+lifted by RFC6854 (2013).  F<https://www.rfc-editor.org/rfc/rfc6854>
+
 =chapter METHODS
 
 =c_method new
@@ -134,9 +138,7 @@ using the %options.  The group is returned.
 
 sub addGroup(@)
 {   my $self  = shift;
-    my $group = @_ == 1 ? shift
-              : Mail::Message::Field::AddrGroup->new(@_);
-
+    my $group = @_ == 1 ? shift : Mail::Message::Field::AddrGroup->new(@_);
     push @{$self->{MMFF_groups}}, $group;
     $group;
 }

@@ -16,6 +16,7 @@ version 3.017:
 	- Content-Disposition "reaction", RFC9078
 	- Content-Language support, RFC3282
 	- refer to IANA list of transfer encodings, RFC4289
+	- refer to RFC6854 for use of address groups in From and Sender.
 
 version 3.016: Wed 27 Nov 10:53:40 CET 2024
 
