@@ -62,6 +62,11 @@ wrapping from RFC2231.  If you do not need the latter two, then the
 M<Mail::Message::Field::Fast> and M<Mail::Message::Field::Flex>
 are enough for your application.
 
+RFC5322 (F<https://www.rfc-editor.org/rfc/rfc5322.html>) describes a
+long list of obsolete syntax for structured header fields.  This mainly
+refers to disallowing white-spaces and folding on many inconvenient
+locations.  This matches MailBox's natural behavior.
+
 =chapter OVERLOADED
 
 =overload stringification
