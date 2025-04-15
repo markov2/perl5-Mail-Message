@@ -36,6 +36,18 @@ The body (content) of a message can be stored in various ways.  In this
 manual-page you find the description of extra functionality you have
 when a message contains attachments (parts).
 
+The number of multipart alternatives is growing.  A full list is maintained
+by IANA af F<http://www.iana.org/assignments/media-types/media-types.xhtml#multipart>
+
+=over 4
+=item * multipart/mixed
+=item * multipart/alternative
+=item * multipart/related
+=item * multipart/report, RFC6522
+=item * multipart/signed, RFC1847
+=item * multipart/multilingual, RFC8255 (unused)
+=back
+
 =chapter METHODS
 
 =c_method new %options
