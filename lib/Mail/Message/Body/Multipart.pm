@@ -45,6 +45,7 @@ by IANA af F<http://www.iana.org/assignments/media-types/media-types.xhtml#multi
 =item * multipart/related
 =item * multipart/report, RFC6522
 =item * multipart/signed, RFC1847
+=item * multipart/encrypted
 =item * multipart/multilingual, RFC8255 (unused)
 =back
 

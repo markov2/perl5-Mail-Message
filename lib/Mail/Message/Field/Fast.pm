@@ -8,6 +8,8 @@ use base 'Mail::Message::Field';
 use strict;
 use warnings;
 
+use Scalar::Util  qw/blessed/;
+
 =chapter NAME
 
 Mail::Message::Field::Fast - one line of a message header

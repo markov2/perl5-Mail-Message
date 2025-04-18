@@ -492,8 +492,6 @@ sub attribute($;$)
     $value;
 }
 
-#------------------------------------------
-
 =method attributes
 Returns a list of key-value pairs, where the values are not yet decoded.
 Keys may appear more than once.
@@ -519,8 +517,6 @@ sub attributes()
     @attrs;
 }
 
-#------------------------------------------
-
 =method toInt
 
 Returns the value which is related to this field as integer.  A check is
@@ -542,8 +538,6 @@ sub toInt()
 
     return undef;
 }
-
-#------------------------------------------
 
 =ci_method toDate [$time]
 
@@ -596,10 +590,7 @@ sub _tz_offset($)
    sprintf( ($diff < 0 ? " -%02d%02d" : " +%02d%02d"), $hours, $minutes);
 }
 
-#------------------------------------------
-
 =method addresses
-
 Returns a list of M<Mail::Address> objects, which represent the
 e-mail addresses found in this header line.
 
@@ -612,10 +603,7 @@ e-mail addresses found in this header line.
 
 sub addresses() { Mail::Address->parse(shift->unfoldedBody) }
 
-#------------------------------------------
-
 =method study
-
 Study the header field in detail: turn on the full parsing and detailed
 understanding of the content of the fields.  M<Mail::Message::Field::Fast>
 and M<Mail::Message::Field::Fast> objects will be transformed into any
@@ -706,13 +694,9 @@ sub consume($;$)
     ($name, $body);
 }
 
-#------------------------------------------
-
 =method stringifyData STRING|ARRAY|$objects
-
 This method implements the translation of user supplied objects into
 ascii fields.  The process is explained in L</Specifying field data>.
-
 =cut
 
 sub stringifyData($)
@@ -749,10 +733,7 @@ sub stringifyData($)
    @addr ? join(', ',@addr) : undef;
 }
 
-#------------------------------------------
-
 =method setWrapLength [$length]
-
 Force the wrapping of this field to the specified $length characters. The
 wrapping is performed with M<fold()> and the results stored within
 the field object.
@@ -771,14 +752,10 @@ sub setWrapLength(;$)
     $self;
 }
 
-#------------------------------------------
-
 =method defaultWrapLength [$length]
-
 Any field from any header for any message will have this default wrapping.
 This is maintained in one global variable.  Without a specified $length,
 the current value is returned.  The default is 78.
-
 =cut
 
 sub defaultWrapLength(;$)
@@ -786,10 +763,7 @@ sub defaultWrapLength(;$)
     @_ ? ($default_wrap_length = shift) : $default_wrap_length;
 }
 
-#------------------------------------------
-
 =ci_method fold $name, $body, [$maxchars]
-
 Make the header field with $name fold into multiple lines.
 Wrapping is performed by inserting newlines before a blanks in the
 $body, such that no line exceeds the $maxchars and each line is as long

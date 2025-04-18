@@ -13,7 +13,7 @@ use Mail::Message::Body::Lines;
 use Mail::Message::Body::File;
 
 use Carp;
-use Scalar::Util     qw/weaken refaddr/;
+use Scalar::Util     qw/weaken refaddr blessed/;
 use File::Basename   qw/basename/;
 
 use MIME::Types;
@@ -692,7 +692,8 @@ sub language(@)
 	  : blessed $_[0] ? $_[0]
 	  : ref $_[0] eq 'ARRAY' ? (join ', ', @{$_[0]}) : $_[0];
 
-	$self->{MMB_lang} = blessed $langs ? $langs->clone
+	$self->{MMB_lang} = ! defined $langs || ! length $langs ? undef
+	  : blessed $langs ? $langs->clone
 	  : Mail::Message::Field->new('Content-Language' => $langs);
 }
 

@@ -251,10 +251,12 @@ value is added.  READ THE IMPORTANT WARNING IN M<removeField()>
 my @skip_none = qw/content-transfer-encoding content-disposition
                    content-description content-id/;
 
-my %skip_none = map { ($_ => 1) } @skip_none;
+my %skip_none = map +($_ => 1), @skip_none;
 
 sub set(@)
 {   my $self = shift;
+    @_!=1 || defined $_[0] or return;
+
     my $type = $self->{MMH_field_type} || 'Mail::Message::Field::Fast';
     $self->{MMH_modified}++;
 
