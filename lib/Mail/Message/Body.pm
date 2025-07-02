@@ -383,8 +383,6 @@ sub init($)
     $self->contentId($cid)             if defined $cid;
     $self->type($mime);
 
-    $self->{MMB_eol}   = $args->{eol} || 'NATIVE';
-
     # Set message where the body belongs to.
 
     $self->message($args->{message})

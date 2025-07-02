@@ -100,6 +100,7 @@ t/313encode-seven.t
 t/314encode-charset.t
 t/315encode-body.t
 t/316encode-charset.t
+t/317encode-eol.t
 t/320bodyconv-textaf.t
 t/321bodyconv-html.t
 t/322bodyconv-htmlps.t

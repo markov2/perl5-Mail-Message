@@ -25,11 +25,6 @@ Version 3.12 is wrong, so you should install a newer version
 if you want smart html conversions.
 REASON
 
-, [ Time::HiRes => '1.51', reason => <<'REASON' ]
-When installed, unique message-ids will be created using gettimeofday.
-Otherwise, generated message-ids will not be thread/fork safe.
-REASON
-
 , [ HTML::FormatText => '2.01', reason => <<'REASON' ]
 Plug-in which converts HTML to Postscript or plain text.
 REASON
@@ -52,6 +47,7 @@ my %prereq =
  , Sys::Hostname  => 0
  , Test::More     => 0.47
  , Time::Zone     => 0
+ , Time::HiRes    => 1.51
  , URI            => 1.23
  , User::Identity => 1.02
  );

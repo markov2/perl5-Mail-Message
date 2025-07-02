@@ -13,6 +13,7 @@ use Carp;
 use MIME::Types    ();
 use File::Basename 'basename';
 use Encode         qw/find_encoding from_to encode_utf8/;
+use List::Util     qw/first/;
 
 use Mail::Message::Field        ();
 use Mail::Message::Field::Full  ();
@@ -424,34 +425,33 @@ translated to contain the specified line endings.
 =warning Unknown line terminator $eol ignored
 =cut
 
+my $native_eol = $^O =~ m/^win/i ? 'CRLF' : $^O =~ m/^mac/i ? 'CR' : 'LF';
+
 sub eol(;$)
 {   my $self = shift;
-    return $self->{MMB_eol} unless @_;
+	my $old_eol = $self->{MMBE_eol} ||= $native_eol;
+    @_ or return $old_eol;
 
     my $eol  = shift;
-    if($eol eq 'NATIVE')
-    {   $eol = $^O =~ m/^win/i ? 'CRLF'
-             : $^O =~ m/^mac/i ? 'CR'
-             :                   'LF';
-    }
+	$eol     = $native_eol if $eol eq 'NATIVE';
 
-    return $self if $eol eq $self->{MMB_eol} && $self->checked;
+	$eol ne $old_eol || !$self->checked
+    	or return $self;
+
     my $lines = $self->lines;
-    if(@$lines)
-    {   # sometimes texts lack \n on last line
-        $lines->[-1] .= "\n";
+	
+	my $wrong
+      = $eol eq 'CRLF' ? first { !/\015\012$/ } @$lines
+      : $eol eq 'CR'   ? first { !/\015$/ } @$lines
+      : $eol eq 'LF'   ? first { /\015\012$|\015$/ } @$lines
+      : ($self->log(WARNING => "Unknown line terminator $eol ignored"), 1);
 
+	$wrong
+		or return $self;
 
-           if($eol eq 'CR')   {s/[\015\012]+$/\015/     for @$lines}
-        elsif($eol eq 'LF')   {s/[\015\012]+$/\012/     for @$lines}
-        elsif($eol eq 'CRLF') {s/[\015\012]+$/\015\012/ for @$lines}
-        else
-        {   $self->log(WARNING => "Unknown line terminator $eol ignored");
-            return $self->eol('NATIVE');
-        }
-    }
-
-    (ref $self)->new(based_on => $self, eol => $eol, data => $lines);
+	my $expect = $eol eq 'CRLF' ? "\015\012" : $eol eq 'CR' ? "\015" : "\012";
+	my @new    = map s/[\015\012]+$/$expect/r, @$lines;
+    (ref $self)->new(based_on => $self, eol => $eol, data => \@new);
 }
 
 =method unify $body
