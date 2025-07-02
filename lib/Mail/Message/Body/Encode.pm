@@ -331,7 +331,8 @@ sub charsetDetect(%)
     #XXX Use the fact that cp1252 does not define (0x81, 0x8d, 0x8f, 0x90, 0x9d) ?
     return 'utf-8'
         if $text =~ m/[\0xC0-\xDF][\x80-\xBF]/   # 110xxxxx, 10xxxxxx
-        && $text !~ m/[\0xC0-\xFF]([^\0x80-\xBF]|$)/;
+        && $text !~ m/[\0xC0-\xFF][^\0x80-\xBF]/
+        && $text !~ m/[\0xC0-\xFF]\z/;
 
     # Produce 'us-ascii' when it suffices: it is the RFC compliant
     # default charset.

@@ -13,6 +13,7 @@ version 3.018:
 	Fixes:
 	- at message construction, do not detect charset for binaries.
 	  Big performance improvement GitHub#21
+	- charset detection upto 45% faster.  GitHub#22
 
 version 3.017: Fri 18 Apr 18:29:10 CEST 2025
 
