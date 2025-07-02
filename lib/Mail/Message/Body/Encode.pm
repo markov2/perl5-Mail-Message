@@ -74,7 +74,29 @@ NOT IMPLEMENTED YET
 =back
 
 =chapter METHODS
+=cut
 
+#------------------
+=section Attributes
+
+=method charsetDetectAlgorithm [CODE|undef|METHOD]
+[3.013] When a body object does not specify its character-set, but that
+detail is required, then it gets autodetected.  The default algorithm is
+implemented in M<charsetDetect()>.  You may change this default algorithm,
+or pass option C<charset_detect> for each call to M<encode()>.
+
+When you call this method with an explicit C<undef>, you reset the default.
+(Without parameter) the current algorithm (CODE or method name) is
+returned.
+=cut
+
+sub charsetDetectAlgorithm(;$)
+{   my $self = shift;
+    $self->{MMBE_det} = shift if @_;
+    $self->{MMBE_det} || 'charsetDetect';
+}
+
+#------------------
 =section Constructing a body
 
 =method encode %options
@@ -285,23 +307,6 @@ sub encode(@)
     $encoded;
 }
 
-=c_method charsetDetectAlgorithm [CODE|undef|METHOD]
-[3.013] When a body object does not specify its character-set, but that
-detail is required, then it gets autodetected.  The default algorithm is
-implemented in M<charsetDetect()>.  You may change this default algorithm,
-or pass option C<charset_detect> for each call to M<encode()>.
-
-When you call this method with an explicit C<undef>, you reset the default.
-(Without parameter) the current algorithm (CODE or method name) is
-returned.
-=cut
-
-sub charsetDetectAlgorithm(;$)
-{   my $self = shift;
-    $self->{MMBE_det} = shift if @_;
-    $self->{MMBE_det} || 'charsetDetect';
-}
-
 =method charsetDetect %options
 [3.013] This is tricky.  It is hard to detect whether the body originates from the
 program, or from an external source.  And what about a database database?
@@ -339,7 +344,6 @@ sub charsetDetect(%)
     $text =~ m/[\x80-\xFF]/ ? 'cp1252' : 'us-ascii';
 }
 
-
 =method check
 
 Check the content of the body not to include illegal characters.  Which
@@ -371,8 +375,6 @@ sub check()
     $checked->checked(1);
     $checked;
 }
-
-#------------------------------------------
 
 =method encoded %options
 
@@ -410,7 +412,47 @@ sub encoded(%)
       : $self->encode(transfer_encoding => $enc, charset => $charset);
 }
 
-#------------------------------------------
+=method eol ['CR'|'LF'|'CRLF'|'NATIVE']
+Returns the character (or characters) which are used to separate lines
+within this body.  When a kind of separator is specified, the body is
+translated to contain the specified line endings.
+
+=example
+ my $body = $msg->decoded->eol('NATIVE');
+ my $char = $msg->decoded->eol;
+
+=warning Unknown line terminator $eol ignored
+=cut
+
+sub eol(;$)
+{   my $self = shift;
+    return $self->{MMB_eol} unless @_;
+
+    my $eol  = shift;
+    if($eol eq 'NATIVE')
+    {   $eol = $^O =~ m/^win/i ? 'CRLF'
+             : $^O =~ m/^mac/i ? 'CR'
+             :                   'LF';
+    }
+
+    return $self if $eol eq $self->{MMB_eol} && $self->checked;
+    my $lines = $self->lines;
+    if(@$lines)
+    {   # sometimes texts lack \n on last line
+        $lines->[-1] .= "\n";
+
+
+           if($eol eq 'CR')   {s/[\015\012]+$/\015/     for @$lines}
+        elsif($eol eq 'LF')   {s/[\015\012]+$/\012/     for @$lines}
+        elsif($eol eq 'CRLF') {s/[\015\012]+$/\015\012/ for @$lines}
+        else
+        {   $self->log(WARNING => "Unknown line terminator $eol ignored");
+            return $self->eol('NATIVE');
+        }
+    }
+
+    (ref $self)->new(based_on => $self, eol => $eol, data => $lines);
+}
 
 =method unify $body
 

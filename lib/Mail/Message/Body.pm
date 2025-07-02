@@ -436,48 +436,6 @@ sub decoded(@)
     $self->encode(charset => 'PERL', transfer_encoding => 'none', @_);
 }
 
-=method eol ['CR'|'LF'|'CRLF'|'NATIVE']
-Returns the character (or characters) which are used to separate lines
-within this body.  When a kind of separator is specified, the body is
-translated to contain the specified line endings.
-
-=example
- my $body = $msg->decoded->eol('NATIVE');
- my $char = $msg->decoded->eol;
-
-=warning Unknown line terminator $eol ignored
-=cut
-
-sub eol(;$)
-{   my $self = shift;
-    return $self->{MMB_eol} unless @_;
-
-    my $eol  = shift;
-    if($eol eq 'NATIVE')
-    {   $eol = $^O =~ m/^win/i ? 'CRLF'
-             : $^O =~ m/^mac/i ? 'CR'
-             :                   'LF';
-    }
-
-    return $self if $eol eq $self->{MMB_eol} && $self->checked;
-    my $lines = $self->lines;
-    if(@$lines)
-    {   # sometimes texts lack \n on last line
-        $lines->[-1] .= "\n";
-
-
-           if($eol eq 'CR')   {s/[\015\012]+$/\015/     for @$lines}
-        elsif($eol eq 'LF')   {s/[\015\012]+$/\012/     for @$lines}
-        elsif($eol eq 'CRLF') {s/[\015\012]+$/\015\012/ for @$lines}
-        else
-        {   $self->log(WARNING => "Unknown line terminator $eol ignored");
-            return $self->eol('NATIVE');
-        }
-    }
-
-    (ref $self)->new(based_on => $self, eol => $eol, data => $lines);
-}
-
 #------------------------------------------
 
 =section The body
