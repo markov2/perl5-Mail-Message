@@ -191,7 +191,7 @@ sub init($)
 Create a copy of this message.  Returned is a C<Mail::Message> object.
 The head and body, the log and trace levels are taken.  Labels are
 copied with the message, but the delete and modified flags are not.
- 
+
 BE WARNED: the clone of any kind of message (or a message part)
 will B<always> be a C<Mail::Message> object.  For example, a
 M<Mail::Box::Message>'s clone is detached from the folder of its original.

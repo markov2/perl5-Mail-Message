@@ -165,6 +165,7 @@ C<Content-Description> field.  Specify a STRING which will become the
 field content, or a real FIELD.
 
 =option  language    STRING|ARRAY|LIST|FIELD
+=default language    undef
 [3.017] RFC3282 C<Content-Language> field, containing a comma separated
 list of language codes.
 
@@ -568,10 +569,9 @@ sub type(;$)
     return $self->{MMB_type} if !@_ && defined $self->{MMB_type};
 
     delete $self->{MMB_mime};
-    my $type =  shift // 'text/plain';
+    my $type = shift // 'text/plain';
 
-    $self->{MMB_type} = ref $type ? $type->clone
-      : Mail::Message::Field->new('Content-Type' => $type);
+    $self->{MMB_type} = ref $type ? $type->clone : Mail::Message::Field->new('Content-Type' => $type);
 }
 
 =method mimeType
@@ -589,12 +589,7 @@ sub mimeType()
 
     my $field = $self->{MMB_type};
     my $body  = defined $field ? $field->body : '';
-
-    return $self->{MMB_mime} = $mime_plain
-       unless length $body;
-
-    $self->{MMB_mime}
-       = $mime_types->type($body) || MIME::Type->new(type => $body);
+    $self->{MMB_mime} = length $body ? ($mime_types->type($body) || MIME::Type->new(type => $body)) : $mime_plain;
 }
 
 =method charset

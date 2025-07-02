@@ -387,9 +387,13 @@ See M<charsetDetectAlgorithm()>.
 
 sub encoded(%)
 {   my ($self, %args) = @_;
+    my $mime    = $self->mimeType;
 
-    $mime_types ||= MIME::Types->new;
-    my $mime    = $mime_types->type($self->type->body);
+	if($mime->isBinary)
+    {   return $self->transferEncoding eq 'none'
+          ? $self->encode(transfer_encoding => $mime->encoding)
+          : $self->check;
+    }
 
     my $charset = my $old_charset = $self->charset || '';
     if(!$charset || $charset eq 'PERL')
@@ -398,17 +402,11 @@ sub encoded(%)
     }
 
     my $enc_was = $self->transferEncoding;
-    my $enc     = $enc_was;
-    $enc        = defined $mime ? $mime->encoding : 'base64'
-        if $enc eq 'none';
+	my $enc     = $enc_was eq 'none' ? $mime->encoding : $enc_was;
 
-    # we could (expensively) try to autodetect character-set used,
-    # but everything is a subset of utf-8.
-    my $new_charset = (!$mime || $mime !~ m!^text/!i) ? '' : $charset;
-
-      ($enc_was ne 'none' && $old_charset eq $new_charset)
-    ? $self->check
-    : $self->encode(transfer_encoding => $enc, charset => $new_charset);
+    $enc_was eq $enc && $old_charset eq $charset
+      ? $self->check
+      : $self->encode(transfer_encoding => $enc, charset => $charset);
 }
 
 #------------------------------------------
