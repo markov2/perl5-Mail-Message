@@ -202,8 +202,8 @@ sub descendMultiparts($@)
     foreach my $part ($body->parts)
     {   my $new = $self->recursiveRebuildPart($part, %args);
         if(!defined $new)  { $changed++ }
-	elsif($new==$part) { push @newparts, $part }
-	else               { push @newparts, $new; $changed++ }
+        elsif($new==$part) { push @newparts, $part }
+        else               { push @newparts, $new; $changed++ }
     }
 
     $changed or return $part;

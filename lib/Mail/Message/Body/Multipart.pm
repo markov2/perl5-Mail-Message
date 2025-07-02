@@ -549,7 +549,7 @@ returns true, the part is incorporated in the return list.
  }
 
 =error Unknown criterium $what to select parts.
-Valid choices fdr part selections are C<ALL>, C<ACTIVE>, C<DELETED>,
+Valid choices for part selections are C<ALL>, C<ACTIVE>, C<DELETED>,
 C<RECURSE> or a code reference.  However, some other argument was passed.
 
 =cut
@@ -561,11 +561,11 @@ sub parts(;$)
     my $what  = shift;
     my @parts = @{$self->{MMBM_parts}};
 
-      $what eq 'RECURSE' ? (map {$_->parts('RECURSE')} @parts)
+      $what eq 'RECURSE' ? (map $_->parts('RECURSE'), @parts)
     : $what eq 'ALL'     ? @parts
-    : $what eq 'DELETED' ? (grep {$_->isDeleted} @parts)
-    : $what eq 'ACTIVE'  ? (grep {not $_->isDeleted} @parts)
-    : ref $what eq 'CODE'? (grep {$what->($_)} @parts)
+    : $what eq 'DELETED' ? (grep $_->isDeleted, @parts)
+    : $what eq 'ACTIVE'  ? (grep !$_->isDeleted, @parts)
+    : ref $what eq 'CODE'? (grep $what->($_), @parts)
     : ($self->log(ERROR => "Unknown criterium $what to select parts."), return ());
 }
 

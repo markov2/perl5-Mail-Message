@@ -534,7 +534,7 @@ sub printUndisclosed($)
 {   my ($self, $fh) = @_;
 
     $_->print($fh)
-       foreach grep {$_->toDisclose} $self->orderedFields;
+       foreach grep $_->toDisclose, $self->orderedFields;
 
     if(ref $fh eq 'GLOB') { print $fh "\n" }
     else                  { $fh->print("\n") }
@@ -562,7 +562,7 @@ sub printSelected($@)
 
         my $found;
         foreach my $pattern (@_)
-        {   $found = ref $pattern?($Name =~ $pattern):($name eq lc $pattern);
+        {   $found = ref $pattern ? ($Name =~ $pattern) : ($name eq lc $pattern);
             last if $found;
         }
 
