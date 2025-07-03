@@ -512,15 +512,10 @@ only the public headers.
 =cut
 
 sub print(;$)
-{   my $self  = shift;
-    my $fh    = shift || select;
-
-    $_->print($fh)
-        foreach $self->orderedFields;
-
-    if(ref $fh eq 'GLOB') { print $fh "\n" }
-    else                  { $fh->print("\n") }
-
+{   my $self = shift;
+    my $fh   = shift || select;
+    $_->print($fh) for $self->orderedFields;
+    $fh->print("\n");
     $self;
 }
 
@@ -532,13 +527,8 @@ C<Bcc> and C<Resent-Bcc> lines are included.
 
 sub printUndisclosed($)
 {   my ($self, $fh) = @_;
-
-    $_->print($fh)
-       foreach grep $_->toDisclose, $self->orderedFields;
-
-    if(ref $fh eq 'GLOB') { print $fh "\n" }
-    else                  { $fh->print("\n") }
-
+    $_->print($fh) for grep $_->toDisclose, $self->orderedFields;
+    $fh->print("\n");
     $self;
 }
 
@@ -566,9 +556,8 @@ sub printSelected($@)
             last if $found;
         }
 
-           if(!$found)           { ; }
-        elsif(ref $fh eq 'GLOB') { print $fh "\n" }
-        else                     { $fh->print("\n") }
+        if(!$found) { ; }
+        else        { $fh->print("\n") }
     }
 
     $self;
@@ -579,11 +568,11 @@ Returns the whole header as one scalar (in scalar context) or list
 of lines (list context).  Triggers completion.
 =cut
 
-sub toString() {shift->string}
+sub toString() { shift->string }
 sub string()
 {   my $self  = shift;
 
-    my @lines = map {$_->string} $self->orderedFields;
+    my @lines = map $_->string, $self->orderedFields;
     push @lines, "\n";
 
     wantarray ? @lines : join('', @lines);

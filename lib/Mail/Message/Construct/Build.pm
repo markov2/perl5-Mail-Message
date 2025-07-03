@@ -93,11 +93,8 @@ than one file at once: 'file' and 'files' option are equivalent.
  my $in = IO::File->new('/etc/passwd', 'r');
 
  file  => 'picture.jpg'                   # filename
- file  => \*MYINPUTFILE                   # file handle
- file  => $in                             # any IO::Handle
- files => [ 'picture.jpg', \*MYINPUTFILE, $in ]
-
- open my $in, '<:raw', '/etc/passwd';    # alternative for IO::File
+ file  => $fh                             # file-handle
+ files => [ 'picture.jpg', $fh ]
 
 =option  files ARRAY-OF-FILE
 =default files C<[ ]>

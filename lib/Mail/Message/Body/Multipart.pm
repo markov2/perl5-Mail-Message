@@ -269,24 +269,13 @@ sub print(;$)
         $count++;
     }
 
-    if(ref $out eq 'GLOB')
-    {   foreach my $part ($self->parts('ACTIVE'))
-        {   print $out "\n" if $count++;
-            print $out "--$boundary\n";
-            $part->print($out);
-        }
-        print $out "\n" if $count++;
-        print $out "--$boundary--";
+    foreach my $part ($self->parts('ACTIVE'))
+    {   $out->print("\n") if $count++;
+        $out->print("--$boundary\n");
+        $part->print($out);
     }
-    else
-    {   foreach my $part ($self->parts('ACTIVE'))
-        {   $out->print("\n") if $count++;
-            $out->print("--$boundary\n");
-            $part->print($out);
-        }
-        $out->print("\n") if $count++;
-        $out->print("--$boundary--");
-    }
+    $out->print("\n") if $count++;
+    $out->print("--$boundary--");
 
     if(my $epilogue = $self->epilogue)
     {   $out->print("\n");

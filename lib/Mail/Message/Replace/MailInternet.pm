@@ -12,6 +12,7 @@ use Mail::Box::FastScalar;
 use Mail::Box::Parser::Perl;
 use Mail::Message::Body::Lines;
 
+use IO::Handle ();
 use File::Spec;
 
 =chapter NAME
@@ -123,10 +124,6 @@ sub processRawData($$$)
     {   $filename = 'array of lines';
         $lines    = $data;
     }
-    elsif(ref $data eq 'GLOB')
-    {   $filename = 'file (GLOB)';
-        $lines    = [ <$data> ];
-    }
     elsif(ref $data && $data->isa('IO::Handle'))
     {   $filename = 'file ('.ref($data).')';
         $lines    = [ $data->getlines ];
@@ -136,7 +133,7 @@ sub processRawData($$$)
         return undef;
     }
 
-    return unless @$lines;
+    @$lines or return;
 
     my $buffer = join '', @$lines;
     my $file   = Mail::Box::FastScalar->new(\$buffer);
@@ -153,7 +150,7 @@ sub processRawData($$$)
 
         my $head = $self->{MM_head_type}->new
           ( MailFrom   => $self->{MI_mail_from}
-          , Modify => $self->{MI_modify}
+          , Modify     => $self->{MI_modify}
           , FoldLength => $self->{MI_wrap}
           );
         $head->read($parser);
@@ -187,7 +184,6 @@ Remove all data from this object.  Very dangerous!
 sub empty() { shift->DESTROY }
 
 #--------------------------
-
 =section Attributes
 
 =method MailFrom [STRING]
@@ -287,12 +283,8 @@ sub reply(@)
     my $home       = $ENV{HOME} || File::Spec->curdir;
     my $headtemp   = File::Spec->catfile($home, '.mailhdr');
 
-    if(open HEAD, '<:raw', $headtemp)
-    {    my $parser = Mail::Box::Parser::Perl->new
-           ( filename  => $headtemp
-           , file      => \*HEAD
-           , trusted   => 1
-           );
+    if(open my $head, '<:raw', $headtemp)
+    {    my $parser = Mail::Box::Parser::Perl->new(filename => $headtemp, file => $head, trusted => 1);
          $reply_head->read($parser);
          $parser->close;
     }
@@ -307,9 +299,9 @@ sub reply(@)
     my $head  = $self->head;
 
     $reply_head->add($_->clone)
-        foreach map { $head->get($_) } @$keep;
+        for map $head->get($_), @$keep;
 
-    $reply_head->reset($_) foreach @$exclude;
+    $reply_head->reset($_) for @$exclude;
 
     ref($self)->coerce($reply);
 }
@@ -321,8 +313,7 @@ contains the signature, which defaults to C<$ENV{HOME}/.signature>.
 
 sub add_signature(;$)
 {   my $self     = shift;
-    my $filename = shift
-       || File::Spec->catfile($ENV{HOME} || File::Spec->curdir, '.signature');
+    my $filename = shift || File::Spec->catfile($ENV{HOME} || File::Spec->curdir, '.signature');
     $self->sign(File => $filename);
 }
 
@@ -350,7 +341,7 @@ sub sign(@)
     {   $sig = Mail::Message::Body->new(data => $sig);
     }
 
-    return unless defined $sig;
+    defined $sig or return;
  
     my $body = $self->decoded->stripSignature;
     my $set  = $body->concatenate($body, "-- \n", $sig);

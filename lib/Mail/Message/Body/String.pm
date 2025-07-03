@@ -49,16 +49,11 @@ sub _data_from_filename(@)
 {   my ($self, $filename) = @_;
 
     delete $self->{MMBS_nrlines};
+    open my $in, '<:raw', $filename
+        or $self->log(ERROR => "Unable to read file $filename for message body scalar: $!"), return;
 
-    local *IN;
-    unless(open IN, '<', $filename)
-    {   $self->log(ERROR =>
-            "Unable to read file $filename for message body scalar: $!");
-        return;
-    }
-
-    my @lines = <IN>;
-    close IN;
+    my @lines = $in->getlines;
+    $in->close;
 
     $self->{MMBS_nrlines} = @lines;
     $self->{MMBS_scalar}  = join '', @lines;
@@ -77,14 +72,6 @@ sub _data_from_filehandle(@)
          $self->{MMBS_nrlines} = @lines;
          $self->{MMBS_scalar}  = join '', @lines;
     }
-    $self;
-}
-
-sub _data_from_glob(@)
-{   my ($self, $fh) = @_;
-    my @lines = <$fh>;
-    $self->{MMBS_nrlines} = @lines;
-    $self->{MMBS_scalar}  = join '', @lines;
     $self;
 }
 
@@ -123,8 +110,7 @@ sub file() { Mail::Box::FastScalar->new(\shift->{MMBS_scalar}) }
 sub print(;$)
 {   my $self = shift;
     my $fh   = shift || select;
-    if(ref $fh eq 'GLOB') { print $fh $self->{MMBS_scalar} }
-    else                  { $fh->print($self->{MMBS_scalar}) }
+    $fh->print($self->{MMBS_scalar});
     $self;
 }
 

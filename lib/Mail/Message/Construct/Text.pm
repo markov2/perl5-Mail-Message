@@ -130,7 +130,7 @@ sub printStructure(;$$)
     my $deleted = $self->label('deleted') ? ', deleted' : '';
 
     my $text    = "$indent$type$subject ($size bytes$deleted)\n";
-    ref $fh eq 'GLOB' ? (print $fh $text) : $fh->print($text);
+    $fh->print($text);
 
     my $body    = $self->body;
     my @parts

@@ -50,27 +50,16 @@ large body), but for the indicated reason, this file cannot be created.
 sub _data_from_filename(@)
 {   my ($self, $filename) = @_;
 
-    local $_;
-    local (*IN, *OUT);
-
-    unless(open IN, '<:raw', $filename)
-    {   $self->log(ERROR =>
-            "Unable to read file $filename for message body file: $!");
-        return;
-    }
+    open my $in, '<:raw', $filename
+        or $self->log(ERROR => "Unable to read file $filename for message body file: $!"), return;
 
     my $file   = $self->tempFilename;
-    unless(open OUT, '>:raw', $file)
-    {   $self->log(ERROR => "Cannot write to temporary body file $file: $!");
-        return;
-    }
+    open my $out, '>:raw', $file
+        or $self->log(ERROR => "Cannot write to temporary body file $file: $!"), return;
 
     my $nrlines = 0;
-    while(<IN>) { print OUT; $nrlines++ }
-
-    close OUT;
-    close IN;
-
+    local $_;
+    while(<$in>) { $out->print($_); $nrlines++ }
     $self->{MMBF_nrlines} = $nrlines;
     $self;
 }
@@ -80,59 +69,27 @@ sub _data_from_filehandle(@)
     my $file    = $self->tempFilename;
     my $nrlines = 0;
 
-    local *OUT;
-
-    unless(open OUT, '>:raw', $file)
-    {   $self->log(ERROR => "Cannot write to temporary body file $file: $!");
-        return;
-    }
-
-    while(my $l = $fh->getline)
-    {   print OUT $l;
-        $nrlines++;
-    }
-    close OUT;
-
-    $self->{MMBF_nrlines} = $nrlines;
-    $self;
-}
-
-sub _data_from_glob(@)
-{   my ($self, $fh) = @_;
-    my $file    = $self->tempFilename;
-    my $nrlines = 0;
+    open my $out, '>:raw', $file
+        or $self->log(ERROR => "Cannot write to temporary body file $file: $!"), return;
 
     local $_;
-    local *OUT;
-
-    unless(open OUT, '>:raw', $file)
-    {   $self->log(ERROR => "Cannot write to temporary body file $file: $!");
-        return;
-    }
-
     while(<$fh>)
-    {   print OUT;
+    {   $out->print($_);
         $nrlines++;
     }
-    close OUT;
 
     $self->{MMBF_nrlines} = $nrlines;
     $self;
 }
 
 sub _data_from_lines(@)
-{   my ($self, $lines)  = @_;
+{   my ($self, $lines) = @_;
     my $file = $self->tempFilename;
 
-    local *OUT;
+    open my $out, '>:raw', $file
+        or $self->log(ERROR => "Cannot write to $file: $!"), return;
 
-    unless(open OUT, '>:raw', $file)
-    {   $self->log(ERROR => "Cannot write to $file: $!");
-        return;
-    }
-
-    print OUT @$lines;
-    close OUT;
+    $out->print(@$lines);
 
     $self->{MMBF_nrlines} = @$lines;
     $self;
@@ -142,7 +99,7 @@ sub clone()
 {   my $self  = shift;
     my $clone = ref($self)->new(based_on => $self);
 
-    copy($self->tempFilename, $clone->tempFilename)
+    copy $self->tempFilename, $clone->tempFilename
        or return;
 
     $clone->{MMBF_nrlines} = $self->{MMBF_nrlines};
@@ -159,14 +116,11 @@ sub nrLines()
     my $file    = $self->tempFilename;
     my $nrlines = 0;
 
-    local $_;
-    local *IN;
-
-    open IN, '<:raw', $file
+    open my $in, '<:raw', $file
         or die "Cannot read from $file: $!\n";
 
-    $nrlines++ while <IN>;
-    close IN;
+    local $_;
+    $nrlines++ while <$in>;
 
     $self->{MMBF_nrlines} = $nrlines;
 }
@@ -177,7 +131,7 @@ sub size()
 {   my $self = shift;
 
     return $self->{MMBF_size}
-       if exists $self->{MMBF_size};
+        if exists $self->{MMBF_size};
 
     my $size = eval { -s $self->tempFilename };
 
@@ -189,34 +143,22 @@ sub size()
 
 sub string()
 {   my $self = shift;
-
     my $file = $self->tempFilename;
-
-    local *IN;
-
-    open IN, '<:raw', $file
+    open my $in, '<:raw', $file
         or die "Cannot read from $file: $!\n";
 
-    my $return = join '', <IN>;
-    close IN;
-
-    $return;
+    join '', $in->getlines;
 }
 
 sub lines()
 {   my $self = shift;
-
     my $file = $self->tempFilename;
 
-    local *IN;
-    open IN, '<:raw', $file
+    open my $in, '<:raw', $file
         or die "Cannot read from $file: $!\n";
 
-    my @r = <IN>;
-    close IN;
-
-    $self->{MMBF_nrlines} = @r;
-    wantarray ? @r: \@r;
+    my $r = $self->{MMBF_nrlines} = [ $in->getlines ];
+    wantarray ? @$r: $r;
 }
 
 sub file()
@@ -229,15 +171,11 @@ sub print(;$)
     my $fh   = shift || select;
     my $file = $self->tempFilename;
 
-    local $_;
-    local *IN;
-
-    open IN, '<:raw', $file
+    open my $in, '<:raw', $file
         or croak "Cannot read from $file: $!\n";
 
-    if(ref $fh eq 'GLOB') {print $fh $_ while <IN>}
-    else                  {$fh->print($_) while <IN>}
-    close IN;
+    $fh->print($_) while <$in>;
+    $in->close;
 
     $self;
 }
@@ -246,13 +184,11 @@ sub read($$;$@)
 {   my ($self, $parser, $head, $bodytype) = splice @_, 0, 4;
     my $file = $self->tempFilename;
 
-    local *OUT;
-
-    open OUT, '>:raw', $file
+    open my $out, '>:raw', $file
         or die "Cannot write to $file: $!.\n";
 
-    (my $begin, my $end, $self->{MMBF_nrlines}) = $parser->bodyAsFile(\*OUT,@_);
-    close OUT;
+    (my $begin, my $end, $self->{MMBF_nrlines}) = $parser->bodyAsFile($out, @_);
+    $out->close;
 
     $self->fileLocation($begin, $end);
     $self;
@@ -263,7 +199,6 @@ sub read($$;$@)
 sub endsOnNewline() { shift->size==0 }
 
 #------------------------------------------
-
 =section Internals
 
 =method tempFilename [$filename]
@@ -279,7 +214,6 @@ sub tempFilename(;$)
 }
 
 #------------------------------------------
-
 =section Error handling
 
 =section Cleanup
@@ -290,7 +224,5 @@ not required anymore.
 =cut
 
 sub DESTROY { unlink shift->tempFilename }
-
-#------------------------------------------
 
 1;

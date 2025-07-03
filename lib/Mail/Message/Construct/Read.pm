@@ -7,6 +7,7 @@ package Mail::Message;
 use strict;
 use warnings;
 
+use IO::Handle ();
 use Mail::Box::FastScalar;
 use Mail::Box::Parser::Perl ();
 
@@ -104,12 +105,6 @@ sub read($@)
     elsif($ref eq 'ARRAY')
     {   $filename = 'array of lines';
         my $buffer= join '', @$from;
-        $file     = Mail::Box::FastScalar->new(\$buffer);
-    }
-    elsif($ref eq 'GLOB')
-    {   $filename = 'file (GLOB)';
-        local $/;
-        my $buffer= <$from>;
         $file     = Mail::Box::FastScalar->new(\$buffer);
     }
     elsif($ref && $from->isa('IO::Handle'))

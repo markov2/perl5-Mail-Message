@@ -275,21 +275,19 @@ my $body_count = 0;  # to be able to compare bodies for equivalence.
 sub new(@)
 {   my $class = shift;
 
-    return $class->SUPER::new(@_)
-         unless $class eq __PACKAGE__;
+    $class eq __PACKAGE__
+        or return $class->SUPER::new(@_);
 
     my %args  = @_;
 
-      exists $args{file}
-    ? Mail::Message::Body::File->new(@_)
-    : Mail::Message::Body::Lines->new(@_);
+    exists $args{file}
+      ? Mail::Message::Body::File->new(@_)
+      : Mail::Message::Body::Lines->new(@_);
 }
 
 # All body implementations shall implement all of the following!!
-
 sub _data_from_filename(@)   {shift->notImplemented}
 sub _data_from_filehandle(@) {shift->notImplemented}
-sub _data_from_glob(@)       {shift->notImplemented}
 sub _data_from_lines(@)      {shift->notImplemented}
 
 sub init($)
@@ -310,12 +308,12 @@ sub init($)
             $mime ||= $mime_types->mimeTypeOf($filename)
                   || (-T $file ? 'text/plain' : 'application/octet-stream');
         }
-        elsif(ref $file eq 'GLOB')
-        {   $self->_data_from_glob($file) or return }
         elsif($file->isa('IO::Handle'))
-        {   $self->_data_from_filehandle($file) or return }
+        {   $self->_data_from_filehandle($file) or return;
+        }
         else
-        {   croak "message body: illegal datatype `".ref($file)."' for file option" }
+        {   croak "message body: illegal datatype `".ref($file)."' for file option";
+        }
     }
     elsif(defined(my $data = $args->{data}))
     {
@@ -327,7 +325,8 @@ sub init($)
         {   $self->_data_from_lines($data) or return;
         }
         else
-        {   croak "message body: illegal datatype `".ref($data)."' for data option" }
+        {   croak "message body: illegal datatype `".ref($data)."' for data option";
+        }
     }
     elsif(! $self->isMultipart && ! $self->isNested)
     {   # Neither 'file' nor 'data', so empty body.
@@ -359,8 +358,7 @@ sub init($)
         $lang     //= $based->language;
         $cid      //= $based->contentId;
 
-        $self->{MMB_checked}
-          = defined $args->{checked} ? $args->{checked} : $based->checked;
+        $self->{MMB_checked} = defined $args->{checked} ? $args->{checked} : $based->checked;
     }
     else
     {   $transfer = $args->{transfer_encoding};
@@ -488,7 +486,6 @@ sub partNumberOf($)
 }
 
 #------------------------------------------
-
 =section About the payload
 
 =method type [STRING|$field]
@@ -760,8 +757,8 @@ sub file(;$) {shift->notImplemented}
 
 =method print [$fh]
 Print the body to the specified $fh (defaults to the selected handle).
-The handle may be a GLOB, an M<IO::File> object, or... any object with a
-C<print()> method will do.  Nothing useful is returned.
+an M<IO::File> object or... any object with a C<print()> method will do.
+Nothing useful is returned.
 =cut
 
 sub print(;$) {shift->notImplemented}
@@ -800,9 +797,9 @@ sub write(@)
     my $filename = $args{filename};
     die "No filename for write() body" unless defined $filename;
 
-    open OUT, '>', $filename or return;
-    $self->print(\*OUT);
-    close OUT or return undef;
+    open my $out, '>', $filename or return;
+    $self->print($out);
+    $out->close or return undef;
     $self;
 }
 
@@ -908,7 +905,7 @@ M<isModified()>.
 
 sub modified(;$)
 {  my $self = shift;
-   return $self->isModified unless @_;  # compat 2.036
+   @_ or return $self->isModified;  # compat 2.036
    $self->{MMB_modified} = shift;
 }
 
@@ -926,7 +923,7 @@ this body.  The end is the offset of the first byte of the next message.
 
 sub fileLocation(;@)
 {   my $self = shift;
-    return @$self{ qw/MMB_begin MMB_end/ } unless @_;
+    @_ or return @$self{ qw/MMB_begin MMB_end/ };
     @$self{ qw/MMB_begin MMB_end/ } = @_;
 }
 
@@ -961,9 +958,8 @@ delayed compilation of additional modules does not help, an error
 will be produced.
 =cut
 
-my @in_encode = qw/check encode encoded eol isBinary isText unify
-                   dispositionFilename/;
-my %in_module = map { ($_ => 'encode') } @in_encode;
+my @in_encode = qw/check encode encoded eol isBinary isText unify dispositionFilename/;
+my %in_module = map +($_ => 'encode'), @in_encode;
 
 sub AUTOLOAD(@)
 {   my $self  = shift;
@@ -971,8 +967,8 @@ sub AUTOLOAD(@)
     (my $call = $AUTOLOAD) =~ s/.*\:\://g;
 
     my $mod = $in_module{$call} || 'construct';
-    if($mod eq 'encode'){ require Mail::Message::Body::Encode    }
-    else                { require Mail::Message::Body::Construct }
+    if($mod eq 'encode') { require Mail::Message::Body::Encode    }
+    else                 { require Mail::Message::Body::Construct }
 
     no strict 'refs';
     return $self->$call(@_) if $self->can($call);  # now loaded

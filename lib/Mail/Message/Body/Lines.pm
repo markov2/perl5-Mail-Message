@@ -45,31 +45,18 @@ but it is impossible to read that file to retrieve the lines within.
 sub _data_from_filename(@)
 {   my ($self, $filename) = @_;
 
-    local *IN;
+    open my $in, '<:raw', $filename
+        or $self->log(ERROR => "Unable to read file $filename for message body lines: $!"), return;
 
-    unless(open IN, '<', $filename)
-    {   $self->log(ERROR =>
-             "Unable to read file $filename for message body lines: $!");
-        return;
-    }
-
-    $self->{MMBL_array} = [ <IN> ];
-
-    close IN;
+    $self->{MMBL_array} = [ $in->getlines ];
+    $in->close;
     $self;
 }
 
 sub _data_from_filehandle(@)
 {   my ($self, $fh) = @_;
-    $self->{MMBL_array} =
-       ref $fh eq 'Mail::Box::FastScalar' ? $fh->getlines : [ $fh->getlines ];
+    $self->{MMBL_array} = ref $fh eq 'Mail::Box::FastScalar' ? $fh->getlines : [ $fh->getlines ];
     $self
-}
-
-sub _data_from_glob(@)
-{   my ($self, $fh) = @_;
-    $self->{MMBL_array} = [ <$fh> ];
-    $self;
 }
 
 sub _data_from_lines(@)
@@ -82,18 +69,13 @@ sub _data_from_lines(@)
     $self;
 }
 
-#------------------------------------------
-
 sub clone()
 {   my $self  = shift;
     ref($self)->new(data => [ $self->lines ], based_on => $self);
 }
 
-#------------------------------------------
-
 sub nrLines() { scalar @{shift->{MMBL_array}} }
 
-#------------------------------------------
 # Optimized to be computed only once.
 
 sub size()
@@ -101,33 +83,19 @@ sub size()
     return $self->{MMBL_size} if exists $self->{MMBL_size};
 
     my $size = 0;
-    $size += length $_ foreach @{$self->{MMBL_array}};
+    $size += length $_ for @{$self->{MMBL_array}};
     $self->{MMBL_size} = $size;
 }
 
-#------------------------------------------
-
 sub string() { join '', @{shift->{MMBL_array}} }
-
-#------------------------------------------
-
 sub lines() { wantarray ? @{shift->{MMBL_array}} : shift->{MMBL_array} }
-
-#------------------------------------------
-
 sub file() { IO::Lines->new(shift->{MMBL_array}) }
-
-#------------------------------------------
 
 sub print(;$)
 {   my $self = shift;
-    my $fh   = shift || select;
-    if(ref $fh eq 'GLOB') { print $fh @{$self->{MMBL_array}}   }
-    else                  { $fh->print(@{$self->{MMBL_array}}) }
+    (shift || select)->print(@{$self->{MMBL_array}});
     $self;
 }
-
-#------------------------------------------
 
 sub read($$;$@)
 {   my ($self, $parser, $head, $bodytype) = splice @_, 0, 4;
@@ -139,13 +107,9 @@ sub read($$;$@)
     $self;
 }
 
-#------------------------------------------
-
 sub endsOnNewline()
 {   my $last = shift->{MMBL_array}[-1];
     !defined $last || $last =~ m/\n$/;
 }
-
-#------------------------------------------
 
 1;

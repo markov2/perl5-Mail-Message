@@ -170,8 +170,7 @@ sub foldedBody($)
 sub print(;$)
 {   my $self = shift;
     my $fh   = shift || select;
-    if(ref $fh eq 'GLOB') { print $fh $self->[0].':'.$self->[1]   }
-    else                  { $fh->print($self->[0].':'.$self->[1]) }
+    $fh->print($self->[0].':'.$self->[1]);
     $self;
 }
 

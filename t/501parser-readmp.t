@@ -9,9 +9,8 @@ use warnings;
 use Mail::Message;
 use Mail::Message::Test;
 
-use Test::More tests => 66;
+use Test::More;
 use IO::File;
-
 
 #
 # From scalar
@@ -82,36 +81,6 @@ ok($msg3->messageId);
 ok($msg3->get('message-id'));
 
 #
-# From file glob
-#
-
-open OUT, '>', 'tmp' or die $!;
-print OUT $scalar;
-close OUT;
-
-open IN, '<', 'tmp' or die $!;
-my $msg4 = Mail::Message->read(\*IN);
-close IN;
-
-ok(defined $msg4);
-is(ref $msg4, 'Mail::Message');
-ok(defined $msg4->head);
-isa_ok($msg4->head, 'Mail::Message::Head');
-
-my $body4 = $msg4->body;
-ok(defined $body4);
-isa_ok($body4, 'Mail::Message::Body');
-ok(!$body4->isDelayed);
-
-cmp_ok(@$body4, "==", 2);
-is($body4->[0], "body1\n");
-is($body4->[1], "body2\n");
-is($msg4->subject, 'hello world');
-ok($msg4->messageId);
-ok($msg4->get('message-id'));
-
-
-#
 # From file handle
 #
 
@@ -142,3 +111,5 @@ ok($msg5->messageId);
 ok($msg5->get('message-id'));
 
 unlink 'tmp';
+
+done_testing;

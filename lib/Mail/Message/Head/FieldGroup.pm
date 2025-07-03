@@ -79,10 +79,10 @@ sub init($$)
       = $args->{head} || Mail::Message::Head::Partial->new;
 
     $self->add($_)                            # add specified object fields
-        foreach @{$args->{fields}};
+        for @{$args->{fields}};
 
     $self->add($_, delete $args->{$_})        # add key-value paired fields
-        foreach grep m/^[A-Z]/, keys %$args;
+        for grep m/^[A-Z]/, keys %$args;
 
     $self->{MMHF_version}  = $args->{version}  if defined $args->{version};
     $self->{MMHF_software} = $args->{software} if defined $args->{software};
@@ -92,37 +92,26 @@ sub init($$)
     $self;
 }
 
-#------------------------------------------
-
 =ci_method implementedTypes
 Returns a list of strings containing all possible return values for
 M<type()>.
-
 =cut
 
 sub implementedTypes() { shift->notImplemented }
 
-#------------------------------------------
-
 =method from $head|$message
-
 Create a group of fields based on the specified $message or message $head.
 This may return one or more of the objects, which depends on the
 type of group.  Mailing list fields are all stored in one object,
 where resent and spam groups can appear more than once.
-
 =cut
 
 sub from($) { shift->notImplemented }
 
-#------------------------------------------
-
 =method clone
-
 Make a copy of this object.  The collected fieldnames are copied and the
 list type information.  No deep copy is made for the header: this is
 only copied as reference.
-
 =cut
 
 sub clone()
@@ -133,18 +122,13 @@ sub clone()
 }
 
 #------------------------------------------
-
 =section The header
 
 =method head
-
 Returns the header object, which includes these fields.
-
 =cut
 
 sub head() { shift->{MMHF_head} }
-
-#------------------------------------------
 
 =method attach $head
 Add a group of fields to a message $head.  The fields will be cloned(!)
@@ -165,26 +149,19 @@ sub attach($)
     $self;
 }
 
-#------------------------------------------
-
 =method delete
-
 Remove all the header lines which are combined in this fields group,
 from the header.
-
 =cut
 
 sub delete()
-{   my $self   = shift;
-    my $head   = $self->head;
-    $head->removeField($_) foreach $self->fields;
+{   my $self = shift;
+    my $head = $self->head;
+    $head->removeField($_) for $self->fields;
     $self;
 }
 
-#------------------------------------------
-
 =method add <$field, $value> | $object
-
 Add a field to the header, using the field group.  When the field group
 is already attached to a real message header, it will appear in that
 one as well as being registered in this set.  If no header is defined,
@@ -211,11 +188,8 @@ sub add(@)
     $self;
 }
 
-#------------------------------------------
-
 =method fields
 Return the fields which are defined for this group.
-
 =cut
 
 sub fields()
@@ -224,20 +198,14 @@ sub fields()
     map { $head->get($_) } $self->fieldNames;
 }
 
-#------------------------------------------
-
 =method fieldNames
 Return the names of the fields which are used in this group.
-
 =cut
 
 sub fieldNames() { @{shift->{MMHF_fns}} }
 
-#------------------------------------------
-
 =method addFields [$fieldnames]
 Add some $fieldnames to the set.
-
 =cut
 
 sub addFields(@)
@@ -254,32 +222,24 @@ sub addFields(@)
 
 =method version 
 Returns the version number of the software used to produce the fields.
-Some kinds of software do leave such a trace, other cases will return
-C<undef>
-
+Some kinds of software do leave such a trace, other cases will return C<undef>
 =cut
 
 sub version() { shift->{MMHF_version} }
-
-#------------------------------------------
 
 =method software
 Returns the name of the software as is defined in the headers.  The may
 be slightly different from the return value of M<type()>, but usually
 not too different.
-
 =cut
 
 sub software() { shift->{MMHF_software} }
-
-#------------------------------------------
 
 =method type
 Returns an abstract name for the field group; which software is
 controlling it.  C<undef> is returned in case the type is not known.
 Valid names are group type dependent: see the applicable manual
 pages.  A list of all types can be retrieved with M<implementedTypes()>.
-
 =cut
 
 sub type() { shift->{MMHF_type} }
@@ -298,8 +258,6 @@ sub detected($$$)
 {   my $self = shift;
     @$self{ qw/MMHF_type MMHF_software MMHF_version/ } = @_;
 }
-
-#------------------------------------------
 
 =method collectFields [$name]
 
@@ -323,24 +281,20 @@ or too many fields are included.
 sub collectFields(;$) { shift->notImplemented }
 
 #------------------------------------------
-
 =section Error handling
 
 =method print [$fh]
 
-Print the group to the specified $fh or GLOB.  This is probably only
-useful for debugging purposed.  The output defaults to the selected file
-handle.
+Print the group to the specified $fh.  This is probably only useful for
+debugging purposed.  The output defaults to the selected file handle.
 
 =cut
 
 sub print(;$)
 {   my $self = shift;
     my $out  = shift || select;
-    $_->print($out) foreach $self->fields;
+    $_->print($out) for $self->fields;
 }
-
-#------------------------------------------
 
 =method details
 
@@ -364,7 +318,5 @@ sub details()
     my $fields   = scalar $self->fields;
     "$type $release, $fields fields";
 }
-
-#------------------------------------------
 
 1;

@@ -17,6 +17,10 @@ version 3.018:
 	- setting eol() on a body was not lazy enough, and mutulated caller.
 	  GitHub#23
 
+	Improvements:
+	- remove support for bareword file-handles/GLOB for users.
+	- do not use bareword file-handles anymore.
+
 version 3.017: Fri 18 Apr 18:29:10 CEST 2025
 
 	Improvements:
