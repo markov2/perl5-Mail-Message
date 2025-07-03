@@ -1369,18 +1369,13 @@ sub takeMessageId(;$)
     my $msgid = (@_ ? shift : $self->get('Message-ID')) || '';
 
     if($msgid =~ m/\<([^>]*)\>/s)
-    {   $msgid = $1;
-        $msgid =~ s/\s//gs;
+    {   $msgid = $1 =~ s/\s//grs;
     }
  
-    $msgid = $self->head->createMessageId
-        unless length $msgid;
-
-    $self->{MM_message_id} = $msgid;
+    $self->{MM_message_id} = $msgid || $self->head->createMessageId;
 }
 
 #------------------------------------------
-
 =section Error handling
 
 =ci_method shortSize [$value]

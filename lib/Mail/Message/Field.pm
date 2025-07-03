@@ -317,11 +317,10 @@ Whether the field is structured is defined by M<isStructured()>.
 sub body()
 {   my $self = shift;
     my $body = $self->unfoldedBody;
-    return $body unless $self->isStructured;
+    $self->isStructured or return $body;
 
     my ($first) = $body =~ m/^((?:"[^"]*"|'[^']*'|[^;])*)/;
-	$first =~ s/\s+$//;
-	$first;
+	$first =~ s/\s+$//r;
 }
 
 =method foldedBody [$body]
@@ -388,17 +387,10 @@ sub stripCFWS($)
     }
 
     # beautify and unfold at the same time
-    for($r)
-    {  s/\s+/ /gs;
-       s/\s+$//;
-       s/^\s+//;
-    }
-
-    $r;
+    $r =~ s/\s+/ /grs =~ s/\s+$//r =~ s/^\s+//r;
 }
 
 #------------------------------------------
-
 =section Access to the content
 
 =method comment [STRING]
@@ -415,7 +407,7 @@ it is preferred to use M<attribute()> on them.
 
 sub comment(;$)
 {   my $self = shift;
-    return undef unless $self->isStructured;
+    $self->isStructured or return undef;
 
     my $body = $self->unfoldedBody;
 
@@ -480,7 +472,7 @@ sub attribute($;$)
         return undef;
     }
 
-    (my $quoted = $value) =~ s/(["\\])/\\$1/g;
+    my $quoted = $value =~ s/(["\\])/\\$1/gr;
 
     for($body)
     {       s/\b$attr\s*=\s*"(?>[^\\"]|\\.){0,1000}"/$attr="$quoted"/i
@@ -518,29 +510,25 @@ sub attributes()
 }
 
 =method toInt
-
 Returns the value which is related to this field as integer.  A check is
 performed whether this is right.
 
 =warning Field content is not numerical: $content
-
 The numeric value of a field is requested (for instance the C<Lines> or
 C<Content-Length> fields should be numerical), however the data contains
 weird characters.
-
 =cut
 
 sub toInt()
 {   my $self = shift;
-    return $1 if $self->body =~ m/^\s*(\d+)\s*$/;
+    $self->body =~ m/^\s*(\d+)\s*$/
+        and return $1;
 
     $self->log(WARNING => "Field content is not numerical: ". $self->toString);
-
-    return undef;
+    undef;
 }
 
 =ci_method toDate [$time]
-
 Convert a timestamp into an rfc2822 compliant date format.  This differs
 from the default output of C<localtime> in scalar context.  Without
 argument, the C<localtime> is used to get the current time. $time can
@@ -573,21 +561,18 @@ sub toDate(@)
     my $time   = strftime $format, @time;
 
     # for C libs which do not (GNU compliantly) support %z
-    $time =~ s/ (\%z|[A-Za-z ]+)$/_tz_offset($1)/e;
-
-    $time; 
+    $time =~ s/ (\%z|[A-Za-z ]+)$/_tz_offset($1)/re;
 }
 
 sub _tz_offset($)
 {  my $zone = shift;
    require Time::Zone;
 
-   my $diff = $zone eq '%z' ? Time::Zone::tz_local_offset()
-           :                  Time::Zone::tz_offset($zone);
+   my $diff = $zone eq '%z' ? Time::Zone::tz_local_offset() : Time::Zone::tz_offset($zone);
    my $minutes = int((abs($diff)+0.01) / 60);     # float rounding errors
    my $hours   = int(($minutes+0.01) / 60);
    $minutes   -= $hours * 60;
-   sprintf( ($diff < 0 ? " -%02d%02d" : " +%02d%02d"), $hours, $minutes);
+   sprintf +($diff < 0 ? " -%02d%02d" : " +%02d%02d"), $hours, $minutes;
 }
 
 =method addresses
@@ -595,7 +580,6 @@ Returns a list of M<Mail::Address> objects, which represent the
 e-mail addresses found in this header line.
 
 =example
-
  my @addr = $message->head->get('to')->addresses;
  my @addr = $message->to;
 
@@ -646,11 +630,9 @@ sub dateToTimestamp($)
 
 
 #------------------------------------------
-
 =section Internals
 
 =method consume $line | <$name,<$body|$objects>>
-
 Accepts a whole field $line, or a pair with the field's $name and $body. In
 the latter case, the $body data may be specified as array of $objects which
 are stringified.  Returned is a nicely formatted pair of two strings: the
@@ -671,8 +653,8 @@ sub consume($;$)
 {   my $self = shift;
     my ($name, $body) = defined $_[1] ? @_ : split(/\s*\:\s*/, (shift), 2);
 
-    Mail::Reporter->log(WARNING => "Illegal character in field name $name")
-       if $name =~ m/[^\041-\071\073-\176]/;
+    $name !~ m/[^\041-\071\073-\176]/
+        or Mail::Reporter->log(WARNING => "Illegal character in field name $name");
 
     #
     # Compose the body.
@@ -703,31 +685,28 @@ sub stringifyData($)
 {  my ($self, $arg) = (shift, shift);
    my @addr;
    foreach my $obj (ref $arg eq 'ARRAY' ? @$arg : ($arg))
-   {  next unless defined $obj;
+   {   defined $obj or next;
 
-      if(!ref $obj)                  { push @addr, $obj; next }
-      if($obj->isa('Mail::Address')) { push @addr, $obj->format; next }
+       if(!ref $obj)                  { push @addr, $obj; next }
+       if($obj->isa('Mail::Address')) { push @addr, $obj->format; next }
 
-      if($obj->isa('Mail::Identity') || $obj->isa('User::Identity'))
-      {   require Mail::Message::Field::Address;
-          push @addr, Mail::Message::Field::Address->coerce($obj)->string;
-      }
-      elsif($obj->isa('User::Identity::Collection::Emails'))
-      {   my @roles = $obj->roles or next;
-          require Mail::Message::Field::AddrGroup;
-          my $group = Mail::Message::Field::AddrGroup->coerce($obj);
-          push @addr, $group->string if $group;
-      }
-      elsif($obj->isa('Mail::Message::Field'))
-      {
-          my $folded = join ' ', $obj->foldedBody;
-          $folded =~ s/^ //;
-          $folded =~ s/\n\z//;
-          push @addr, $folded;
-      }
-      else
-      {   push @addr, "$obj";    # any other object is stringified
-      }
+       if($obj->isa('Mail::Identity') || $obj->isa('User::Identity'))
+       {   require Mail::Message::Field::Address;
+           push @addr, Mail::Message::Field::Address->coerce($obj)->string;
+       }
+       elsif($obj->isa('User::Identity::Collection::Emails'))
+       {   my @roles = $obj->roles or next;
+           require Mail::Message::Field::AddrGroup;
+           my $group = Mail::Message::Field::AddrGroup->coerce($obj);
+           push @addr, $group->string if $group;
+       }
+       elsif($obj->isa('Mail::Message::Field'))
+       {   my $folded = join ' ', $obj->foldedBody;
+           push @addr, $folded =~ s/^ //r =~ s/\n\z//r;
+       }
+       else
+       {   push @addr, "$obj";    # any other object is stringified
+       }
    }
 
    @addr ? join(', ',@addr) : undef;
@@ -746,7 +725,7 @@ the field object.
 sub setWrapLength(;$)
 {   my $self = shift;
 
-    $self->foldedBody(scalar $self->fold($self->Name, $self->unfoldedBody, @_))
+    $self->foldedBody(scalar $self->fold($self->Name, $self->unfoldedBody, $_[0]))
         if @_;
 
     $self;
@@ -782,14 +761,14 @@ sub fold($$;$)
     my $name  = shift;
     my $line  = shift;
     my $wrap  = shift || $default_wrap_length;
-    defined $line or $line = '';
+    $line   //= '';
 
     $line    =~ s/\n(\s)/$1/gms;            # Remove accidental folding
-    return " \n" unless CORE::length($line);  # empty field
+    CORE::length($line) or return " \n";    # empty field
 
     my $lname = CORE::length($name);
     $lname <= $wrap -5  # Cannot find a real limit in the spec
-       or $thing->log(ERROR => "Field name too long (max ".($wrap-5)."), in '$name'");
+        or $thing->log(ERROR => "Field name too long (max ".($wrap-5)."), in '$name'");
 
     my @folded;
     while(1)
@@ -820,7 +799,6 @@ sub fold($$;$)
 The reverse action of M<fold()>: all lines which form the body of a field
 are joined into one by removing all line terminators (even the last).
 Possible leading blanks on the first line are removed as well.
-
 =cut
 
 sub unfold($)
@@ -835,7 +813,6 @@ sub unfold($)
 }
 
 #------------------------------------------
-
 =section Error handling
 
 =chapter DETAILS

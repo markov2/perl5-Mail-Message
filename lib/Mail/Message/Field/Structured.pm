@@ -233,7 +233,7 @@ sub produceBody()
 
     join '; '
        , (defined $datum ? $datum : '')
-       , map {$_->string} @{$attrs}{sort keys %$attrs};
+       , map $_->string, @{$attrs}{sort keys %$attrs};
 }
 
 =method datum [$value]

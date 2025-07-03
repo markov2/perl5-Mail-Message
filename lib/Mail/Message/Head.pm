@@ -80,7 +80,7 @@ sub string_unless_carp()
 {   my $self = shift;
     return $self->toString unless (caller)[0] eq 'Carp';
 
-    (my $class = ref $self) =~ s/^Mail::Message/MM/;
+    my $class = ref $self =~ s/^Mail::Message/MM/r;
     "$class object";
 }
 

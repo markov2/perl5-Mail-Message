@@ -77,7 +77,7 @@ our %locations =
 sub AUTOLOAD(@)
 {   my $self  = shift;
     our $AUTOLOAD;
-    (my $call = $AUTOLOAD) =~ s/.*\:\://g;
+    my $call = $AUTOLOAD =~ s/.*\:\://gr;
 
     if(my $mod = $locations{$call})
     {   eval "require Mail::Message::Construct::$mod";

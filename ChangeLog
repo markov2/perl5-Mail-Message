@@ -20,6 +20,7 @@ version 3.018:
 	Improvements:
 	- remove support for bareword file-handles/GLOB for users.
 	- do not use bareword file-handles anymore.
+	- use s///r
 
 version 3.017: Fri 18 Apr 18:29:10 CEST 2025
 

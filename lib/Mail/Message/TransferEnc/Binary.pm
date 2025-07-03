@@ -29,14 +29,10 @@ totally no encoding.
 
 sub name() { 'binary' }
 
-#------------------------------------------
-
 sub check($@)
 {   my ($self, $body, %args) = @_;
     $body;
 }
-
-#------------------------------------------
 
 sub decode($@)
 {   my ($self, $body, %args) = @_;
@@ -44,11 +40,8 @@ sub decode($@)
     $body;
 }
 
-#------------------------------------------
-
 sub encode($@)
 {   my ($self, $body, %args) = @_;
-
     my @lines;
 
     my $changes = 0;
@@ -65,12 +58,10 @@ sub encode($@)
     my $bodytype = $args{result_type} || ref($self->load);
 
     $bodytype->new
-     ( based_on          => $self
-     , transfer_encoding => 'none'
-     , data              => \@lines
-     );
+      ( based_on          => $self
+      , transfer_encoding => 'none'
+      , data              => \@lines
+      );
 }
-
-#------------------------------------------
 
 1;

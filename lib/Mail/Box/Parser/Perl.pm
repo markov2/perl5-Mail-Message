@@ -106,8 +106,7 @@ sub readHeader()
         my ($name, $body) = split /\s*\:\s*/, $line, 2;
 
         unless(defined $body)
-        {   $self->log(WARNING =>
-                "Unexpected end of header in ".$self->filename.":\n $line");
+        {   $self->log(WARNING => "Unexpected end of header in ".$self->filename.":\n $line");
 
             if(@ret && $self->fixHeaderErrors)
             {   $ret[-1][1] .= ' '.$line;  # glue err line to previous field
@@ -120,7 +119,7 @@ sub readHeader()
             }
         }
 
-        $body = "\n" unless length $body;
+        length $body or $body = "\n";
 
         # Collect folded lines
         while($line = $file->getline)
@@ -162,22 +161,23 @@ sub readSeparator()
 {   my $self = shift;
 
     my $sep   = $self->{MBPP_separators}[0];
-    return () unless defined $sep;
+    defined $sep or return ();
 
     my $file  = $self->{MBPP_file};
     my $start = $file->tell;
 
     my $line  = $file->getline;
     while(defined $line && $line =~ $empty)
-    {   $start   = $file->tell;
-        $line    = $file->getline;
+    {   $start = $file->tell;
+        $line  = $file->getline;
     }
 
-    return () unless defined $line;
+    defined $line or return ();
 
     $line     =~ s/[\012\015]+$/\n/;
-    return ($start, $line)
-        if substr($line, 0, length $sep) eq $sep;
+
+    substr($line, 0, length $sep) eq $sep
+        and return ($start, $line);
 
     $file->seek($start, 0);
     ();
@@ -196,11 +196,10 @@ sub _read_stripped_lines(;$$)
        LINE:
         while(1)
         {   my $where = $file->getpos;
-            my $line  = $file->getline
-                or last LINE;
+            my $line  = $file->getline or last LINE;
 
             foreach my $sep (@seps)
-            {   next if substr($line, 0, length $sep) ne $sep;
+            {   substr($line, 0, length $sep) eq $sep or next;
 
                 # Some apps fail to escape lines starting with From
                 next if $sep eq 'From ' && $line !~ m/ 19[789][0-9]| 20[0-9][0-9]/;

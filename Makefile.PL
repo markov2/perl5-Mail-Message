@@ -32,6 +32,10 @@ REASON
 , [ Net::Domain => 0, reason => <<'REASON' ]
 Better detection of full hostname.
 REASON
+
+, [ Mail::Transport => '3.006', reason => <<'REASON' ]
+Old Mail::Transport used GLOBs, which are not supported anymore.
+REASON
 );
 
 my %prereq =

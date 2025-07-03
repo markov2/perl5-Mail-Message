@@ -40,22 +40,16 @@ at all.
 
 sub name() { '8bit' }
 
-#------------------------------------------
-
 sub check($@)
 {   my ($self, $body, %args) = @_;
     $body;
 }
-
-#------------------------------------------
 
 sub decode($@)
 {   my ($self, $body, %args) = @_;
     $body->transferEncoding('none');
     $body;
 }
-
-#------------------------------------------
 
 sub encode($@)
 {   my ($self, $body, %args) = @_;
@@ -82,10 +76,10 @@ sub encode($@)
     my $bodytype = $args{result_type} || ref $body;
 
     $bodytype->new
-     ( based_on          => $body
-     , transfer_encoding => '8bit'
-     , data              => \@lines
-     );
+      ( based_on          => $body
+      , transfer_encoding => '8bit'
+      , data              => \@lines
+      );
 }
 
 #------------------------------------------

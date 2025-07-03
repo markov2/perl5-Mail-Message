@@ -78,7 +78,7 @@ sub init($)
 
     $self->{MMFF_groups}   = [];
 
-    ( my $def = lc $args->{name} ) =~ s/^resent\-//;
+    my $def = lc $args->{name} =~ s/^resent\-//r;
     $self->{MMFF_defaults} = $accepted{$def} || $address_list;
 
     my ($body, @body);
@@ -88,7 +88,7 @@ sub init($)
     }
 
     if(@body > 1 || ref $body[0])
-    {   $self->addAddress($_) foreach @body;
+    {   $self->addAddress($_) for @body;
         delete $args->{body};
     }
 
@@ -318,9 +318,7 @@ sub consumeAddress($@)
         or return (undef, $string);
 
     # loccomment and domcomment ignored
-    my $email   = Mail::Message::Field::Address
-        ->new(username => $local, domain => $domain, @options);
-
+    my $email   = Mail::Message::Field::Address->new(username => $local, domain => $domain, @options);
     ($email, $shorter);
 }
 
@@ -341,7 +339,6 @@ sub consumeDomain($)
 }
 
 #------------------------------------------
-
 =section Error handling
 =cut
 

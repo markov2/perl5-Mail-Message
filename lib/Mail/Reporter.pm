@@ -89,7 +89,6 @@ sub init($)
 }
 
 #------------------------------------------
-
 =section Error handling
 
 =ci_method defaultTrace [$level]|[$loglevel, $tracelevel]|[$level, $callback]
@@ -167,15 +166,12 @@ sub defaultTrace(;$$)
 
 __PACKAGE__->defaultTrace('WARNINGS');
 
-#------------------------------------------
 
 =method trace [$level]
-
 Change the trace $level of the object. When no arguments are specified, the
 current level is returned only.  It will be returned in one scalar which
 contains both the number which is internally used to represent the level,
 and the string which represents it.  See M<logPriority()>.
-
 =cut
 
 sub trace(;$$)
@@ -191,7 +187,6 @@ sub trace(;$$)
     $self->{MR_trace} = $prio;
 }
 
-#------------------------------------------
 
 =ci_method log [$level, [$strings]]
 
@@ -268,10 +263,7 @@ $thing->{MR_trace} or confess;
 }
 
 
-#------------------------------------------
-
 =method report [$level]
-
 Get logged reports, as list of strings.  If a $level is specified, the log
 for that level is returned.
 
@@ -312,13 +304,11 @@ sub report(;$)
     for(my $prio = 1; $prio < @$reports; $prio++)
     {   next unless $reports->[$prio];
         my $level = $levelname[$prio];
-        push @reports, map { [ $level, $_ ] } @{$reports->[$prio]};
+        push @reports, map +[ $level, $_ ], @{$reports->[$prio]};
     }
 
     @reports;
 }
-
-#-------------------------------------------
 
 =method addReport $object
 Add the report from other $object to the report of this object. This is
@@ -338,10 +328,7 @@ sub addReport($)
     $self;
 }
     
-#-------------------------------------------
-
 =method reportAll [$level]
-
 Report all messages which were produced by this object and all the objects
 which are maintained by this object.  This will return a list of triplets,
 each containing a reference to the object which caught the report, the
@@ -368,10 +355,7 @@ sub reportAll(;$)
     map { [ $self, @$_ ] } $self->report(@_);
 }
 
-#-------------------------------------------
-
 =method errors
-
 Equivalent to
 
  $folder->report('ERRORS')
@@ -380,10 +364,7 @@ Equivalent to
 
 sub errors(@)   {shift->report('ERRORS')}
 
-#-------------------------------------------
-
 =method warnings
-
 Equivalent to
 
  $folder->report('WARNINGS')
@@ -392,21 +373,16 @@ Equivalent to
 
 sub warnings(@) {shift->report('WARNINGS')}
 
-#-------------------------------------------
-
 =method notImplemented
-
 A special case of M<log()>, which logs a C<INTERNAL>-error
 and then croaks.  This is used by extension writers.
 
 =error Package $package does not implement $method.
-
 Fatal error: the specific package (or one of its superclasses) does not
 implement this method where it should. This message means that some other
 related classes do implement this method however the class at hand does
 not.  Probably you should investigate this and probably inform the author
 of the package.
-
 =cut
 
 sub notImplemented(@)
@@ -418,10 +394,7 @@ sub notImplemented(@)
     confess "Please warn the author, this shouldn't happen.";
 }
 
-#------------------------------------------
-
 =ci_method logPriority $level
-
 One error level (log or trace) has more than one representation: a
 numeric value and one or more strings.  For instance, C<4>, C<'WARNING'>,
 and C<'WARNINGS'> are all the same.  You can specify any of these,
@@ -447,17 +420,12 @@ sub logPriority($)
     dualvar $level, $levelname[$level];
 }
 
-#-------------------------------------------
-
 =method logSettings
-
 Returns a list of C<(key => value)> pairs which can be used to initiate
 a new object with the same log-settings as this one.
 
 =examples
-
  $head->new($folder->logSettings);
-
 =cut
 
 sub logSettings()
@@ -465,38 +433,28 @@ sub logSettings()
    (log => $self->{MR_log}, trace => $self->{MR_trace});
 }
 
-#-------------------------------------------
-
 =method AUTOLOAD
-
 By default, produce a nice warning if the sub-classes cannot resolve
 a method.
-
 =cut
 
 sub AUTOLOAD(@)
 {   my $thing   = shift;
     our $AUTOLOAD;
-    my $class   = ref $thing || $thing;
-    (my $method = $AUTOLOAD) =~ s/^.*\:\://;
+    my $class  = ref $thing || $thing;
+    my $method = $AUTOLOAD =~ s/^.*\:\://r;
 
     $Carp::MaxArgLen=20;
     confess "Method $method() is not defined for a $class.\n";
 }
 
 #-------------------------------------------
-
 =section Cleanup
-=cut
-
-#-------------------------------------------
 
 =method DESTROY
-
 Cleanup the object.
-
 =cut
 
-sub DESTROY {shift}
+sub DESTROY { shift }
 
 1;

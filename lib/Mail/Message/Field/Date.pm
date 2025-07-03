@@ -82,7 +82,6 @@ sub produceBody() { shift->{MMFD_date} }
 sub date() { shift->{MMFD_date} }
 
 #------------------------------------------
-
 =section Access to the content
 
 =method addAttribute ...
@@ -123,7 +122,6 @@ sub time()
 }
 
 #------------------------------------------
-
 =section Error handling
 =cut
 

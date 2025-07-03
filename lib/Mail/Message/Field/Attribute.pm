@@ -190,6 +190,7 @@ what is coming in if you can.
 
 sub addComponent($)
 {   my ($self, $component) = @_;
+    defined $component or return;
     delete $self->{MMFF_value};
 
     my ($name, $value) = split /\=/, $component, 2;
@@ -221,23 +222,18 @@ defined C<undef> is returned, which should be interpreted as "ANY"
 sub language() { shift->{MMFF_language} }
 
 =method string
-Returns the parameter as reference to an array of lines.  When only one line
-is returned, it may be short enough to fit on the same line with other
-components of the header field.
+When called in LIST context, the lines are returned to be post-processed
+one after the other.  In SCALAR context, this returns the formatted
+attribute list.
 =cut
 
 sub string()
 {   my $self = shift;
     my $cont = $self->{MMFF_cont} || $self->encode;
-    return @$cont if wantarray;
-    return [] unless @$cont;
-
-    local $" = "; ";
-    "; @$cont";
+    wantarray? @$cont : (join '; ', '', @$cont);
 }
 
 #------------------------------------------
-
 =section Attribute encoding
 
 =method encode
@@ -338,7 +334,6 @@ sub decode()
 }
 
 #------------------------------------------
-
 =section Internals
 
 =method mergeComponent $attribute
@@ -354,9 +349,7 @@ sub mergeComponent($)
     my $cont  = $self->{MMFF_cont}
         or croak "ERROR: Too late to merge: value already changed.";
 
-    defined $_ && $self->addComponent($_)
-        foreach @{$comp->{MMFF_cont}};
-
+    $self->addComponent($_) for @{$comp->{MMFF_cont}};
     $self;
 }
 

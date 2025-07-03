@@ -63,16 +63,13 @@ sub init($)
 }
 
 #------------------------------------------
-
 =section Converting
 
 =method textToHtml $lines
-
 Translate one or more $lines from text into HTML.  Each line is taken one
 after the other, and only simple things are translated.  C<textToHtml>
 is able to convert large plain texts in a descent fashion.  In scalar
 context, the resulting lines are returned as one.
-
 =cut
 
 sub textToHtml(@)
@@ -86,14 +83,10 @@ sub textToHtml(@)
     wantarray ? @lines : join('', @lines);
 }
 
-#------------------------------------------
-
 =method fieldToHtml $field, [$subject]
-
 Reformat one header line field to HTML.  The $field's name
 is printed in bold, followed by the formatted field content,
 which is produced by M<fieldContentsToHtml()>.
-
 =cut
 
 sub fieldToHtml($;$)
@@ -102,19 +95,14 @@ sub fieldToHtml($;$)
     .': </strong>' . $self->fieldContentsToHtml($field,$subject);
 }
 
-#------------------------------------------
-
 =method headToHtmlTable $head, [$table_params]
-
 Produce a display of the M<selectedFields()> of the header in a
 table shape.  The optional $table_params are added as parameters to the
 produced TABLE tag.  In list context, the separate lines are returned.
 In scalar context, everything is returned as one.
 
 =examples
-
  print $html->headToHtmlTable($head, 'width="50%"');
-
 =cut
 
 sub headToHtmlTable($;$)
@@ -127,7 +115,7 @@ sub headToHtmlTable($;$)
 
         use Mail::Message::Construct;
         $subject = Mail::Message::Construct->replySubject($s)
-            if defined $subject;
+            if defined $s;
     }
 
     my @lines = "<table $tp>\n";
@@ -142,10 +130,7 @@ sub headToHtmlTable($;$)
     wantarray ? @lines : join('',@lines);
 }
 
-#------------------------------------------
-
 =method headToHtmlHead $head, $meta
-
 Translate the selected header lines (fields) to an html page header.  Each
 selected field will get its own meta line with the same name as the line.
 Furthermore, the C<Subject> field will become the C<title>,
@@ -175,7 +160,7 @@ splice them before the last element in the returned list.
 sub headToHtmlHead($@)
 {   my ($self, $head) = (shift,shift);
     my %meta;
-    while(@_) {my $k = shift; $meta{lc $k} = shift }
+    while(@_) { my $k = shift; $meta{lc $k} = shift }
 
     my $title = delete $meta{title} || $head->get('subject') || '<no subject>';
 
@@ -191,8 +176,7 @@ sub headToHtmlHead($@)
         $author  = @addr ? $addr[0]->format : undef;
     }
 
-    push @lines, '<meta name="Author" content="'
-               . $self->textToHtml($author) . "\"$self->{MMCH_tail}\n"
+    push @lines, '<meta name="Author" content="' . $self->textToHtml($author) . "\"$self->{MMCH_tail}\n"
         if defined $author;
 
     foreach my $f (map {lc} keys %meta)
@@ -213,15 +197,11 @@ sub headToHtmlHead($@)
     wantarray ? @lines : join('',@lines);
 }
     
-#------------------------------------------
-
 =method fieldContentsToHtml $field, [$subject]
-
 Format one field from the header to HTML.  When the header line usually
 contains e-mail addresses, the line is scanned and valid addresses
 are linked with an C<mailto:> anchor.  The $subject can be specified to
 be included in that link.
-
 =cut
 
 my $atom          = qr/[^()<>@,;:\\".\[\]\s[:cntrl:]]+/;
@@ -238,7 +218,5 @@ sub fieldContentsToHtml($;$)
 
     $body . ($comment ? '; '.$self->textToHtml($comment) : '');
 }
-
-#------------------------------------------
 
 1;

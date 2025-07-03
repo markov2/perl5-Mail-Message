@@ -98,8 +98,7 @@ sub from($)
 {   my ($class, $from) = @_;
     my $head = $from->isa('Mail::Message::Head') ? $from : $from->head;
     my $self = $class->new(head => $head);
-
-    return () unless $self->collectFields;
+    $self->collectFields or return ();
 
     my ($type, $software, $version, $field);
     if(my $communigate = $head->get('X-ListServer'))
@@ -122,8 +121,7 @@ sub from($)
     {   ($software, $version) = $listar =~ m/^(.*?)\s+(v[\w.]+)/;
         $type    = 'Listar';
     }
-    elsif(defined($field = $head->get('List-Software'))
-          && $field =~ m/listbox/i)
+    elsif(defined($field = $head->get('List-Software')) && $field =~ m/listbox/i)
     {   ($software, $version) = $field =~ m/^(\S*)\s*(v[\d.]+)\s*$/;
         $type    = 'Listbox';
     }
@@ -133,8 +131,7 @@ sub from($)
             m!\( (LISTSERV-TCP/IP) \s+ release \s+ (\S+) \)!xs;
         $type = 'Listserv';
     }
-    elsif(defined($field = $head->get('X-Mailing-List'))
-          && $field =~ m[archive/latest])
+    elsif(defined($field = $head->get('X-Mailing-List')) && $field =~ m[archive/latest])
     {   $type    = 'Smartlist' }
     elsif(defined($field = $head->get('Mailing-List')) && $field =~ m/yahoo/i )
     {   $type    = 'YahooGroups' }
@@ -144,15 +141,13 @@ sub from($)
     {   ($software, $version) = $fml =~ m/^\s*(\S+)\s*\[\S*\s*([^\]]*?)\s*\]/;
         $type    = 'FML';
     }
-    elsif(defined($field = $head->get('List-Subscribe')
-                        || $head->get('List-Unsubscribe'))
-          && $field =~ m/sympa/i)
+    elsif(defined($field = $head->get('List-Subscribe') || $head->get('List-Unsubscribe')) && $field =~ m/sympa/i)
     {   $type    = 'Sympa' }
     elsif(first { m/majordom/i } $head->get('Received'))
     {   # Majordomo is hard to recognize
         $type    = "Majordomo";
     }
-    elsif($field = $head->get('List-ID') && $field =~ m/listbox\.com/i)
+    elsif(defined($field = $head->get('List-ID')) && $field =~ m/listbox\.com/i)
     {   $type    = "Listbox" }
 
     $self->detected($type, $software, $version);
@@ -162,11 +157,9 @@ sub from($)
 #------------------------------------------
 
 =method rfc
-
 When the mailing list software follows the guidelines of one of the dedicated
 RFCs, then this will be returned otherwise C<undef>.  The return values can
 be C<rfc2919>, C<rfc2369>, or C<undef>.
-
 =cut
 
 sub rfc()
@@ -174,18 +167,14 @@ sub rfc()
    return $self->{MMHL_rfc} if defined $self->{MMHL_rfc};
 
    my $head = $self->head;
-     defined $head->get('List-Post') ? 'rfc2369'
-   : defined $head->get('List-Id')   ? 'rfc2919'
-   :                                    undef;
+       defined $head->get('List-Post') ? 'rfc2369'
+     : defined $head->get('List-Id')   ? 'rfc2919'
+     :                                    undef;
 }
 
-#------------------------------------------
-
 =method address
-
 Returns a M<Mail::Message::Field::Address> object (or C<undef>) which
 defines the posting address of the mailing list.
-
 =cut
 
 sub address()
@@ -203,8 +192,7 @@ sub address()
     elsif($type eq 'Listserv')
     {   $address = $head->get('Sender') }
 
-    $address ||= $head->get('List-Post') || $head->get('Reply-To')
-             || $head->get('Sender');
+    $address ||= $head->get('List-Post') || $head->get('Reply-To') || $head->get('Sender');
     $address = $address->study if ref $address;
 
        if(!defined $address) { ; }
@@ -217,15 +205,12 @@ sub address()
         $address     = ($address->addresses)[0];
         my $username = defined $address ? $address->username : '';
         if($username =~ s/^owner-|-(owner|bounce|admin)$//i)
-        {   $address = Mail::Message::Field::Address->new
-               (username => $username, domain => $address->domain);
+        {   $address = Mail::Message::Field::Address->new(username => $username, domain => $address->domain);
         }
     }
     elsif($address->isa('Mail::Message::Field::URIs'))
     {   my $uri  = first { $_->scheme eq 'mailto' } $address->URIs;
-        $address = defined $uri
-                 ? Mail::Message::Field::Address->new(address => $uri->to)
-                 : undef;
+        $address = defined $uri ? Mail::Message::Field::Address->new(address => $uri->to) : undef;
     }
     else  # Don't understand life anymore :-(
     {   undef $address;
@@ -234,24 +219,19 @@ sub address()
     $self->{MMHL_address} = $address;
 }
 
-#------------------------------------------
-
 =method listname
-
 Returns the name of the mailing list, which is usually a part of the
 e-mail address which is used to post the messages to.
-
 =cut
 
 sub listname()
 {   my $self = shift;
-    return $self->{MMHL_listname} if exists $self->{MMHL_listname};
+    exists $self->{MMHL_listname} and return $self->{MMHL_listname};
 
     my $head = $self->head;
 
     # Some lists have a field with the name only
-    my $list = $head->get('List-ID') || $head->get('X-List')
-            || $head->get('X-ML-Name');
+    my $list = $head->get('List-ID') || $head->get('X-List') || $head->get('X-ML-Name');
 
     my $listname;
     if(defined $list)
@@ -265,7 +245,6 @@ sub listname()
 }
 
 #------------------------------------------
-
 =section Access to the header
 
 =ci_method isListGroupFieldName $name
@@ -283,11 +262,9 @@ my $list_field_names
 sub isListGroupFieldName($) { $_[1] =~ $list_field_names }
 
 #------------------------------------------
-
 =section Internals
 
 =method collectFields
-
 Scan the header for fields which are usually contained in mailing list
 software.  This method is automatically called when a list group is
 constructed M<from()> an existing header or message.
@@ -298,18 +275,16 @@ a mailing list message.
 
 Please warn the author of MailBox if you see that to few
 or too many fields are included.
-
 =cut
 
 sub collectFields()
 {   my $self = shift;
-    my @names = map { $_->name } $self->head->grepNames($list_field_names);
+    my @names = map $_->name, $self->head->grepNames($list_field_names);
     $self->addFields(@names);
     @names;
 }
 
 #------------------------------------------
-
 =section Error handling
 
 =method details

@@ -43,14 +43,13 @@ skipped.
 
  my $content  = $msg->decoded;
  my $reply    = $content->foreachLine( sub { '> '.$_ } );
- my $rev      = $content->foreachLine( sub {reverse} );
+ my $rev      = $content->foreachLine( sub { reverse } );
 
  sub filled() { length $_ > 1 ? $_ : undef }
  my $nonempty = $content->foreachLine( \&filled );
 
- my $wrong    = $content->foreachLine( sub {s/a/A/} );  # WRONG!!!
- my $right    = $content->foreachLine(
-        sub {(my $x=$_) =~ s/a/A/; $x} );
+ my $WRONG    = $content->foreachLine( sub { s/a/A/ } );
+ my $right    = $content->foreachLine( sub { s/a/A/r });
 
 =cut
 

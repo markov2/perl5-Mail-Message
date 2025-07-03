@@ -710,7 +710,7 @@ sub string_unless_carp()
 {   my $self  = shift;
     return $self->string unless (caller)[0] eq 'Carp';
 
-    (my $class = ref $self) =~ s/^Mail::Message/MM/;
+    my $class = ref $self =~ s/^Mail::Message/MM/r;
     "$class object";
 }
 
@@ -964,7 +964,7 @@ my %in_module = map +($_ => 'encode'), @in_encode;
 sub AUTOLOAD(@)
 {   my $self  = shift;
     our $AUTOLOAD;
-    (my $call = $AUTOLOAD) =~ s/.*\:\://g;
+    my $call = $AUTOLOAD =~ s/.*\:\://gr;
 
     my $mod = $in_module{$call} || 'construct';
     if($mod eq 'encode') { require Mail::Message::Body::Encode    }

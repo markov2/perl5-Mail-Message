@@ -101,16 +101,14 @@ sub add($$)
 }
 
 =method replace $tag, $line, [$index]
-
 Replace the field named $tag. from place $index (by default the first) by
 the $line.  When $tag is C<undef>, it will be extracted from the $line first.
 This calls M<Mail::Message::Head::Complete::reset()> on the message's head.
-
 =cut
 
 sub replace($$;$)
 {   my ($self, $tag, $line, $index) = @_;
-    $line =~ s/^([^:]+)\:\s*// && ($tag = $1) unless defined $tag;
+    $tag //= $line =~ s/^([^:]+)\:\s*// ? $1 : 'MISSING';
 
     my $field  = Mail::Message::Field::Fast->new($tag, $line);
     my @fields = $self->get($tag);
@@ -120,6 +118,7 @@ sub replace($$;$)
     $field;
 }
 
+#------------------
 =section Access to the header
 
 =method get $name, [$index]
@@ -131,12 +130,14 @@ appear more than once in a header.
 
 sub get($;$)
 {   my $head = shift->head;
-    my @ret  = map { $head->get(@_) } @_;
+    my @ret  = map $head->get(@_), @_;
 
-    if(wantarray) { return @ret ? map({$_->unfoldedBody} @ret) : () }
-    else          { return @ret ? $ret[0]->unfoldedBody : undef }
+       wantarray ? (map $_->unfoldedBody, @ret)
+     : @ret      ? $ret[0]->unfoldedBody
+     : undef;
 }
 
+#------------------
 =section Simulating Mail::Header
 
 =method modify [BOOLEAN]
@@ -175,7 +176,7 @@ returns.
 sub fold(;$)
 {   my $self = shift;
     my $wrap = @_ ? shift : $self->fold_length;
-    $_->setWrapLength($wrap) foreach $self->orderedFields;
+    $_->setWrapLength($wrap) for $self->orderedFields;
     $self;
 }
 
@@ -186,7 +187,7 @@ Remove the folding for all instances of $tag, or all fields at once.
 sub unfold(;$)
 {   my $self = shift;
     my @fields = @_ ? $self->get(shift) : $self->orderedFields;
-    $_->setWrapLength(100_000) foreach @fields;  # blunt approach
+    $_->setWrapLength(100_000) for @fields;  # blunt approach
     $self;
 }
 
@@ -218,11 +219,7 @@ Read the header from the $file.
 
 sub read($)
 {   my ($self, $file) = @_;
-    my $parser = Mail::Box::Parser::Perl->new
-       ( filename  => ('from file-handle '.ref $file)
-       , file      => $file
-       , trusted   => 1
-       );
+    my $parser = Mail::Box::Parser::Perl->new(filename => ('from file-handle '.ref $file), file => $file, trusted => 1);
     $self->read($parser);
     $parser->close;
     $self;

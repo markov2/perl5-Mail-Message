@@ -225,15 +225,7 @@ sub unfoldedBody($;$)
          return $body;
     }
 
-    $body = $self->foldedBody;
-
-    for($body)
-    {   s/\r?\n(\s)/$1/g;
-        s/\r?\n/ /g;
-        s/^\s+//;
-        s/\s+$//;
-    }
-    $body;
+    $self->foldedBody =~ s/\r?\n(\s)/$1/gr =~ s/\r?\n/ /gr =~  s/^\s+//r =~ s/\s+$//r;
 }
 
 sub foldedBody($)
@@ -570,9 +562,8 @@ sub _decoder($$$)
     {   $decoded = $encoded;
     }
     elsif(lc($encoding) eq 'q')
-    {   # Quoted-printable encoded
-        $encoded =~ s/_/ /g;   # specific to mime-fields
-        $decoded = MIME::QuotedPrint::decode_qp($encoded);
+    {   # Quoted-printable encoded specific to mime-fields
+        $decoded = MIME::QuotedPrint::decode_qp($encoded =~ s/_/ /gr);
     }
     elsif(lc($encoding) eq 'b')
     {   # Base64 encoded
@@ -612,7 +603,6 @@ sub decode($@)
 }
 
 #------------------------------------------
-
 =section Parsing
 
 You probably do not want to call these parsing methods yourself: use
@@ -655,9 +645,7 @@ sub consumePhrase($)
         CORE::length($phrase) or undef $phrase;
     }
         
-      defined $phrase
-    ? ($thing->decode($phrase), $string)
-    : (undef, $string);
+    defined $phrase ? ($thing->decode($phrase), $string) : (undef, $string);
 }
 
 =ci_method consumeComment STRING
@@ -671,9 +659,8 @@ sub consumeComment($)
     # Backslashes are officially not permitted in comments, but not everyone
     # knows that.  Nested parens are supported.
 
-    return (undef, $string)
-        unless $string =~ s/^\s* \( ((?:\\.|[^)])*) (?:\)|$) //x;
-        # allow unterminated comments
+    $string =~ s/^\s* \( ((?:\\.|[^)])*) (?:\)|$) //x
+        or return (undef, $string);    # allow unterminated comments
 
     my $comment = $1;
 
@@ -710,7 +697,8 @@ sub consumeDotAtom($)
     {   (my $c, $string) = $self->consumeComment($string);
         if(defined $c) { $comment .= $c; next }
 
-        last unless $string =~ s/^\s*([$atext]+(?:\.[$atext]+)*)//o;
+        $string =~ s/^\s*([$atext]+(?:\.[$atext]+)*)//o
+            or last;
 
         $atom .= $1;
     }
@@ -731,7 +719,6 @@ a call to this method when the field is needed later.
 sub produceBody() { $_[0]->{MMFF_body} }
 
 #------------------------------------------
-
 =section Error handling
 =cut
 

@@ -307,29 +307,17 @@ sub reply(@)
     if($include eq 'NO') {$total = $body}
     elsif($include eq 'INLINE')
     {   my $signature = $args{signature};
-        $signature = $signature->body
-           if defined $signature && $signature->isa('Mail::Message');
+        $signature    = $signature->body
+            if defined $signature && $signature->isa('Mail::Message');
 
-        $total = $body->concatenate
-          ( $prelude, $body, $postlude
-          , (defined $signature ? "-- \n" : undef), $signature
-          );
+        $total = $body->concatenate($prelude, $body, $postlude, (defined $signature ? "-- \n" : undef), $signature);
     }
-    if($include eq 'ATTACH')
-    {
-         my $intro = $prelude->concatenate
-           ( $prelude
-           , [ "\n", "[Your message is attached]\n" ]
-           , $postlude
-           );
-
-        $total = Mail::Message::Body::Multipart->new
-         ( parts => [ $intro, $body, $args{signature} ]
-        );
+    elsif($include eq 'ATTACH')
+    {   my $intro = $prelude->concatenate($prelude, ["\n", "[Your message is attached]\n"], $postlude);
+        $total = Mail::Message::Body::Multipart->new(parts => [ $intro, $body, $args{signature} ]);
     }
 
     my $msgtype = $args{message_type} || 'Mail::Message';
-
     my $reply   = $msgtype->buildFromBody
       ( $total
       , From    => $from || 'Undisclosed senders:;'
@@ -346,7 +334,6 @@ sub reply(@)
         for sort grep /^[A-Z]/, keys %args;
 
     # Ready
-
     $self->log(PROGRESS => 'Reply created from '.$origid);
     $self->label(replied => 1);
     $reply;
@@ -386,7 +373,7 @@ sub replySubject($)
 
         for(shift @subject)
         {   while( /\bRe(?:\[\s*(\d+)\s*\]|\b)/g )
-            {   $re_count += defined $1 ? $1 : 1;
+            {   $re_count += ($1 // 1);
             }
         }
     }
@@ -402,18 +389,13 @@ sub replySubject($)
     # Create the new subject string.
 
     my $text = (join ':', @subject) || 'your mail';
-    for($text)
-    {  s/^\s+//;
-       s/\s+$//;
-    }
+    s/^\s+//, s/\s+$// for $text;
 
     $re_count==1 ? "Re: $text" : "Re[$re_count]: $text";
 }
 
-#------------------------------------------
 
 =method replyPrelude [STRING|$field|$address|ARRAY-$of-$things]
-
 Produces a list of lines (usually only one), which will preceded the
 quoted body of the message.  STRING must comply to the RFC822 email
 address specification, and is usually the content of a C<To> or C<From>
@@ -429,19 +411,18 @@ An characteristic example of the output is
 
 sub replyPrelude($)
 {   my ($self, $who) = @_;
- 
     $who = $who->[0] if ref $who eq 'ARRAY';
 
     my $user
-     = !defined $who                     ? undef
-     : !ref $who                         ? (Mail::Address->parse($who))[0]
-     : $who->isa('Mail::Message::Field') ? ($who->addresses)[0]
-     :                                     $who;
+      = !defined $who                     ? undef
+      : !ref $who                         ? (Mail::Address->parse($who))[0]
+      : $who->isa('Mail::Message::Field') ? ($who->addresses)[0]
+      :                                     $who;
 
     my $from
-     = ref $user && $user->isa('Mail::Address')
-     ? ($user->name || $user->address || $user->format)
-     : 'someone';
+      = ref $user && $user->isa('Mail::Address')
+      ? ($user->name || $user->address || $user->format)
+      : 'someone';
 
     my $time = gmtime $self->timestamp;
     "On $time, $from wrote:\n";

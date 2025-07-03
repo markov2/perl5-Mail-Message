@@ -194,10 +194,7 @@ sub produceBody()
 }
 
 #------------------------------------------
-
 =section Access to the content
-
-=cut
 
 =method addAttribute ...
 Attributes are not supported here.
@@ -212,14 +209,12 @@ sub addAttribute($;@)
     $self;
 }
 
-
 =method server
 The hostname which ran this authentication tool.
 
 =method version
 The version of the 'Authentication-Results' header, which may be different
 from '1' (default) for successors of RFC7601.
-
 =cut
 
 sub server()  { shift->{MMFA_server} }
@@ -249,7 +244,6 @@ sub addResult($)
 }
 
 #------------------------------------------
-
 =section Error handling
 =cut
 

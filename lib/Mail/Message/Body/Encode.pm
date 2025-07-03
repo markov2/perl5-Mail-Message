@@ -565,11 +565,7 @@ sub dispositionFilename(;$)
     my $dir      = shift;
     my $filename = '';
     if(defined $base)   # RFC6266 section 4.3, very safe
-    {   $filename = basename $base;
-        for($filename)
-        {   s/\s+/ /g;  s/ $//; s/^ //;
-            s/[^\w .-]//g;
-        }
+    {   $filename = basename $base =~ s/\s+/ /gr =~ s/ $//r =~ s/^ //r =~ s/[^\w .-]//gr;
     }
 
 	my ($filebase, $ext) = length $filename && $filename =~ m/(.*)\.([^.]+)/
