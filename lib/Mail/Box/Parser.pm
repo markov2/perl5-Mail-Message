@@ -55,8 +55,9 @@ The name of the file to be read.
 
 =option  file FILE-HANDLE
 =default file undef
-Any C<IO::File> which can be used to read the data from.  In
-case this option is specified, the C<filename> is informational only.
+Any C<IO::File> or C<GLOB> file-handle which can be used to read
+the data from.  In case this option is specified, the C<filename> is
+informational only.
 
 =option  mode OPENMODE
 =default mode C<'r'>
@@ -66,7 +67,7 @@ when no C<file> is specified.
 
 =error Filename or handle required to create a parser.
 A message parser needs to know the source of the message at creation.  These
-sources can be a filename (string) or file handle object.
+sources can be a filename (string), file handle object, or GLOB.
 See new(filename) and new(file).
 
 =cut

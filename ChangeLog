@@ -16,10 +16,10 @@ version 3.018:
 	- charset detection upto 45% faster.  GitHub#22
 	- setting eol() on a body was not lazy enough, and mutulated caller.
 	  GitHub#23
+	- protect two isa calls with blessed.
 
 	Improvements:
-	- remove support for bareword file-handles/GLOB for users.
-	- do not use bareword file-handles anymore.
+	- do not use bareword file-handles anywhere in the code.
 	- use s///r
 
 version 3.017: Fri 18 Apr 18:29:10 CEST 2025

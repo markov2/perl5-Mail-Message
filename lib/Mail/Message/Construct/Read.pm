@@ -7,9 +7,10 @@ package Mail::Message;
 use strict;
 use warnings;
 
-use IO::Handle ();
 use Mail::Box::FastScalar;
 use Mail::Box::Parser::Perl ();
+
+use Scalar::Util  qw(blessed);
 
 =chapter NAME
 
@@ -107,8 +108,8 @@ sub read($@)
         my $buffer= join '', @$from;
         $file     = Mail::Box::FastScalar->new(\$buffer);
     }
-    elsif($ref && $from->isa('IO::Handle'))
-    {   $filename = 'file ('.ref($from).')';
+    elsif($ref eq 'GLOB' || (blessed $from && $from->isa('IO::Handle')))
+    {   $filename = "file ($ref)";
         my $buffer= join '', $from->getlines;
         $file     = Mail::Box::FastScalar->new(\$buffer);
     }

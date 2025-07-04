@@ -76,8 +76,8 @@ line, including the last, must be terminated by a newline.  This argument
 is passed to M<Mail::Message::Body::new(data)> to
 construct one.
 
-  data => [ "line 1\n", "line 2\n" ]     # array of lines
-  data => <<'TEXT'                       # string
+  data => [ "line 1\n", "line 2\n" ] # array of lines
+  data => <<'TEXT'                   # string
  line 1
  line 2
  TEXT
@@ -92,8 +92,8 @@ than one file at once: 'file' and 'files' option are equivalent.
 
  my $in = IO::File->new('/etc/passwd', 'r');
 
- file  => 'picture.jpg'                   # filename
- file  => $fh                             # file-handle
+ file  => 'picture.jpg'              # filename
+ file  => $fh                        # IO::File or GLOB
  files => [ 'picture.jpg', $fh ]
 
 =option  files ARRAY-OF-FILE

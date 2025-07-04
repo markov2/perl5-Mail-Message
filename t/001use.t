@@ -11,7 +11,7 @@ use Test::More tests => 52;
 my @show_versions =
  qw/Mail::Box
     Mail::Box::Manager
-    Mail::Transfer
+    Mail::Transport
    /;
 
 foreach my $package (@show_versions)

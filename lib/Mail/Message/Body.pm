@@ -308,7 +308,7 @@ sub init($)
             $mime ||= $mime_types->mimeTypeOf($filename)
                   || (-T $file ? 'text/plain' : 'application/octet-stream');
         }
-        elsif($file->isa('IO::Handle'))
+        elsif(ref $file eq 'GLOB' || (blessed $file && $file->isa('IO::Handle')))
         {   $self->_data_from_filehandle($file) or return;
         }
         else

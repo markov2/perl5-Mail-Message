@@ -14,14 +14,13 @@ use Mail::Message::Body::Lines;
 
 use IO::Handle ();
 use File::Spec;
+use Scalar::Util qw/blessed/;
 
 =chapter NAME
 
 Mail::Message::Replace::MailInternet - fake Mail::Internet
 
 =chapter SYNOPSIS
-
- !!! BETA !!!
 
  # change
  use Mail::Internet;
@@ -117,15 +116,15 @@ sub init($)
 
 sub processRawData($$$)
 {   my ($self, $data, $get_head, $get_body) = @_;
-    return $self unless $get_head || $get_body;
+    $get_head || $get_body or return $self;
  
     my ($filename, $lines);
     if(ref $data eq 'ARRAY')
     {   $filename = 'array of lines';
         $lines    = $data;
     }
-    elsif(ref $data && $data->isa('IO::Handle'))
-    {   $filename = 'file ('.ref($data).')';
+    elsif(ref $data eq 'GLOB' || (blessed $data && $data->isa('IO::Handle')))
+    {   $filename = 'file (' . (ref $data) . ')';
         $lines    = [ $data->getlines ];
     }
     else
@@ -139,14 +138,14 @@ sub processRawData($$$)
     my $file   = Mail::Box::FastScalar->new(\$buffer);
 
     my $parser = Mail::Box::Parser::Perl->new
-     ( filename  => $filename
-     , file      => $file
-     , trusted   => 1
-     );
+      ( filename  => $filename
+      , file      => $file
+      , trusted   => 1
+      );
 
     my $head;
     if($get_head)
-    {   my $from = substr($lines->[0], 0, 5) eq 'From ' ? shift @$lines : undef;
+    {   my $from = $lines->[0] =~ m/^From / ? shift @$lines : undef;
 
         my $head = $self->{MM_head_type}->new
           ( MailFrom   => $self->{MI_mail_from}
@@ -174,7 +173,7 @@ compatible object.
 
 sub dup()
 {   my $self = shift;
-    ref($self)->coerce($self->clone);
+    (ref $self)->coerce($self->clone);
 }
 
 =method empty
@@ -196,7 +195,6 @@ sub MailFrom(;$)
 }
 
 #--------------------------
-
 =section Constructing a message
 
 =ci_method read \@lines|$fh, %options
@@ -210,8 +208,8 @@ only available in the first case.
 sub read($@)
 {   my $thing = shift;
 
-    return $thing->SUPER::read(@_)   # Mail::Message behavior
-        unless ref $thing;
+    blessed $thing
+        or return $thing->SUPER::read(@_);  # Mail::Message behavior
 
     # Mail::Header emulation
     my $data = shift;
