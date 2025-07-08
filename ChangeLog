@@ -21,6 +21,7 @@ version 3.018:
 	Improvements:
 	- do not use bareword file-handles anywhere in the code.
 	- use s///r
+	- cleanup syntax of Mail::Box::FastScalar
 
 version 3.017: Fri 18 Apr 18:29:10 CEST 2025
 
