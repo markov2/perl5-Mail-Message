@@ -655,10 +655,7 @@ have encoded characters in it; use M<study()> to get rit of that.
  print $msg->study('subject');
 =cut
 
-sub subject()
-{   my $subject = shift->get('subject');
-    defined $subject ? $subject : '';
-}
+sub subject() { shift->get('subject') // '' }
 
 =method guessTimestamp
 Return an estimate on the time this message was sent.  The data is
@@ -675,7 +672,7 @@ method, described below.
 
 =cut
 
-sub guessTimestamp() {shift->head->guessTimestamp}
+sub guessTimestamp() { shift->head->guessTimestamp }
 
 =method timestamp
 Get a good timestamp for the message, doesn't matter how much work it is.
@@ -822,7 +819,7 @@ defined.  The parameters will be stripped off.
 
 sub contentType()
 {   my $head = shift->head;
-    my $ct   = (defined $head ? $head->get('Content-Type', 0) : undef) || '';
+    my $ct   = (defined $head ? $head->get('Content-Type', 0) : undef) // '';
     $ct      =~ s/\s*\;.*//;
     length $ct ? $ct : 'text/plain';
 }
@@ -1326,11 +1323,7 @@ sub readBody($$;$$)
 
     my $lines   = $head->get('Lines');  # usually off-by-one
     my $size    = $head->guessBodySize;
-
-    $body->read
-      ( $parser, $head, $getbodytype,
-      , $size, (defined $lines ? $lines : undef)
-      );
+    $body->read($parser, $head, $getbodytype, $size, $lines);
 }
 
 =method storeBody $body

@@ -46,14 +46,10 @@ sub string()
     $self->head->string . $self->body->string;
 }
 
-#------------------------------------------
-
 =method lines
-
 Returns the whole message as set of lines.  In LIST context, copies of the
 lines are returned.  In SCALAR context, a reference to an array of lines
 is returned.
-
 =cut
 
 sub lines()
@@ -64,11 +60,8 @@ sub lines()
     wantarray ? @lines : \@lines;
 }
 
-#------------------------------------------
-
 =method file
 Returns the message as file-handle.
-
 =cut
 
 sub file()
@@ -144,6 +137,7 @@ sub printStructure(;$$)
     $buffer;
 }
     
+#---------------------
 =section Flags
 =cut
 

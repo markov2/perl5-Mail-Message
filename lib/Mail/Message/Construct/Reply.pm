@@ -260,8 +260,7 @@ sub reply(@)
     }
 
     # To whom to send
-    my $to = delete $args{To}
-          || $mainhead->get('reply-to') || $mainhead->get('from');
+    my $to = delete $args{To} || $mainhead->get('reply-to') || $mainhead->get('from');
     defined $to or return;
 
     # Add Cc

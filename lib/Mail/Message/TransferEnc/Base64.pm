@@ -40,23 +40,16 @@ four bytes.
 
 sub name() { 'base64' }
 
-#------------------------------------------
-
 sub check($@)
 {   my ($self, $body, %args) = @_;
     $body;
 }
 
-#------------------------------------------
-
 =method decode $body, %options
-
 =warning Base64 line length not padded on 4.
-
 While decoding base64 the data in a message body, a string was found which
 was not padded into a multiple of four bytes.  This is illegal, and therefore
 this data is ignored.
-
 =cut
 
 sub decode($@)
@@ -80,8 +73,6 @@ sub decode($@)
      );
 }
 
-#------------------------------------------
-
 sub encode($@)
 {   my ($self, $body, %args) = @_;
 
@@ -94,7 +85,5 @@ sub encode($@)
      , data              => encode_base64($body->string)
      );
 }
-
-#------------------------------------------
 
 1;

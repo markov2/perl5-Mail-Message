@@ -358,7 +358,7 @@ sub init($)
         $lang     //= $based->language;
         $cid      //= $based->contentId;
 
-        $self->{MMB_checked} = defined $args->{checked} ? $args->{checked} : $based->checked;
+        $self->{MMB_checked} = exists $args->{checked} ? $args->{checked} : $based->checked;
     }
     else
     {   $transfer = $args->{transfer_encoding};

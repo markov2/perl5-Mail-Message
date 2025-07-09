@@ -231,8 +231,7 @@ sub produceBody()
     my $attrs = $self->{MMFS_attrs};
     my $datum = $self->{MMFS_datum};
 
-    join '; '
-       , (defined $datum ? $datum : '')
+    join '; ', ($datum // '')
        , map $_->string, @{$attrs}{sort keys %$attrs};
 }
 

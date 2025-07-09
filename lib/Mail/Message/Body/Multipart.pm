@@ -136,16 +136,14 @@ sub init($)
     
     if($based)
     {   $self->boundary($args->{boundary} || $based->boundary);
-        $self->{MMBM_preamble}
-            = defined $preamble ? $preamble : $based->preamble;
+        $self->{MMBM_preamble} = $preamble // $based->preamble;
 
         $self->{MMBM_parts}
             = @parts ? \@parts
             : !$args->{parts} && $based->isMultipart ? [ $based->parts('ACTIVE') ]
             :          [];
 
-        $self->{MMBM_epilogue}
-            = defined $epilogue ? $epilogue : $based->epilogue;
+        $self->{MMBM_epilogue} = $epilogue // $based->epilogue;
     }
     else
     {   $self->boundary($args->{boundary} ||$self->type->attribute('boundary'));

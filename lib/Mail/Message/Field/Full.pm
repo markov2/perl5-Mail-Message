@@ -585,7 +585,7 @@ sub decode($@)
 
     my %args    = @_;
 
-    my $is_text = defined $args{is_text} ? $args{is_text} : 1;
+    my $is_text = exists $args{is_text} ? $args{is_text} : 1;
     my @decoded = shift @encoded;
 
     while(@encoded)
