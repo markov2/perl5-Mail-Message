@@ -31,13 +31,11 @@ compiler is available.
 
 =option  trusted BOOLEAN
 =default trusted <false>
-
 Is the input from the file to be trusted, or does it require extra
 tests.  Related to M<Mail::Box::new(trusted)>.
 
 =option  fix_header_errors BOOLEAN
 =default fix_header_errors <false>
-
 When header errors are detected, the parsing of the header will
 be stopped.  Other header lines will become part of the body of
 the message.  Set this flag to have the erroneous line added to
@@ -47,13 +45,34 @@ the previous header line.
 
 sub init(@)
 {   my ($self, $args) = @_;
-
     $self->SUPER::init($args) or return;
 
     $self->{MBPP_trusted} = $args->{trusted};
     $self->{MBPP_fix}     = $args->{fix_header_errors};
     $self;
 }
+
+#----------------------
+=section Attributes
+
+=method fixHeaderErrors [BOOLEAN]
+If set to C<true>, parsing of a header will not stop on an error, but
+attempt to add the erroneous this line to previous field.  Without BOOLEAN,
+the current setting is returned.
+
+=example
+ $folder->parser->fixHeaderErrors(1);
+ my $folder = $mgr->open('folder', fix_header_errors => 1);
+=cut
+
+sub fixHeaderErrors(;$)
+{   my $self = shift;
+    @_ ? ($self->{MBPP_fix} = shift) : $self->{MBPP_fix};
+}
+
+#----------------------
+=section The parser
+=cut
 
 sub pushSeparator($)
 {   my ($self, $sep) = @_;
@@ -79,7 +98,6 @@ my $empty = qr/^\015?\012?$/;
 =method readHeader
 
 =warning Unexpected end of header in $source: $line
-
 While parsing a message from the specified source (usually a file name),
 the parser found a syntax error.  According to the MIME specification in the
 RFCs, each header line must either contain a colon, or start with a blank
@@ -327,7 +345,6 @@ sub openFile($)
 
 sub closeFile()
 {   my $self = shift;
-
     delete $self->{MBPP_separators};
     delete $self->{MBPP_strip_gt};
 
@@ -335,26 +352,5 @@ sub closeFile()
     $file->close;
     $self;
 }
-
-#------------------------------------------
-
-=section The parser
-
-=method fixHeaderErrors [BOOLEAN]
-If set to C<true>, parsing of a header will not stop on an error, but
-attempt to add the erroneous this line to previous field.  Without BOOLEAN,
-the current setting is returned.
-
-=example
- $folder->parser->fixHeaderErrors(1);
- my $folder = $mgr->open('folder', fix_header_errors => 1);
-=cut
-
-sub fixHeaderErrors(;$)
-{   my $self = shift;
-    @_ ? ($self->{MBPP_fix} = shift) : $self->{MBPP_fix};
-}
-
-#------------------------------------------
 
 1;
