@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use Carp;
-use Scalar::Util 'dualvar';
+use Scalar::Util qw(dualvar blessed);
 
 =chapter NAME
 
@@ -86,6 +86,22 @@ sub init($)
     $self->{MR_log}   = $levelprio{$args->{log}   || $default_log};
     $self->{MR_trace} = $levelprio{$args->{trace} || $default_trace};
     $self;
+}
+
+#------------------------------------------
+=section Attributes
+
+=method logSettings
+Returns a list of C<(key => value)> pairs which can be used to initiate
+a new object with the same log-settings as this one.
+
+=examples
+ $head->new($folder->logSettings);
+=cut
+
+sub logSettings()
+{  my $self = shift;
+   (log => $self->{MR_log}, trace => $self->{MR_trace});
 }
 
 #------------------------------------------
@@ -228,40 +244,34 @@ be added.
 # whether or not to display it.
 
 sub log(;$@)
-{   my $thing = shift;
-
-    if(ref $thing)   # instance call
-    {   return $thing->logPriority($thing->{MR_log})
-            unless @_;
+{   if(blessed $_[0])   # instance call
+    {   my $self = shift;
+        @_ or return $self->logPriority($self->{MR_log});
 
         my $level = shift;
-        my $prio  = $levelprio{$level}
-            or croak "Unknown log-level $level";
+        my $prio  = $levelprio{$level} or croak "Unknown log-level $level";
 
-        return $thing->{MR_log} = $prio
-            unless @_;
+        @_ or return $self->{MR_log} = $prio;
 
         my $text    = join '', @_;
-        $trace_callback->($thing, $level, $text)
-            if $prio >= $thing->{MR_trace};
-use Carp;
-$thing->{MR_trace} or confess;
+        $trace_callback->($self, $level, $text)
+            if $prio >= $self->{MR_trace};
 
-        push @{$thing->{MR_report}[$prio]}, $text
-            if $prio >= $thing->{MR_log};
-    }
-    else             # class method
-    {   my $level = shift;
-        my $prio  = $levelprio{$level}
-            or croak "Unknown log-level $level";
+        push @{$self->{MR_report}[$prio]}, $text
+            if $prio >= $self->{MR_log};
 
-        $trace_callback->($thing, $level, join('',@_)) 
-           if $prio >= $default_trace;
+		return $self;
     }
 
-    $thing;
+    # class method
+	my ($class, $level) = @_;
+    my $prio  = $levelprio{$level} or croak "Unknown log-level $level";
+
+    $trace_callback->($class, $level, join('', @_)) 
+        if $prio >= $default_trace;
+
+    $class;
 }
-
 
 =method report [$level]
 Get logged reports, as list of strings.  If a $level is specified, the log
@@ -294,15 +304,13 @@ sub report(;$)
 
     if(@_)
     {   my $level = shift;
-        my $prio  = $levelprio{$level}
-            or croak "Unknown report level $level.";
-
+        my $prio  = $levelprio{$level} or croak "Unknown report level $level.";
         return $reports->[$prio] ? @{$reports->[$prio]} : ();
     }
 
     my @reports;
     for(my $prio = 1; $prio < @$reports; $prio++)
-    {   next unless $reports->[$prio];
+    {   $reports->[$prio] or next;
         my $level = $levelname[$prio];
         push @reports, map +[ $level, $_ ], @{$reports->[$prio]};
     }
@@ -319,11 +327,11 @@ about any problems.
 
 sub addReport($)
 {   my ($self, $other) = @_;
-    my $reports = $other->{MR_report} || return ();
+    my $from = $other->{MR_report} || return ();
 
     for(my $prio = 1; $prio < @$reports; $prio++)
-    {   push @{$self->{MR_report}[$prio]}, @{$reports->[$prio]}
-            if exists $reports->[$prio];
+    {   my $take = $from->[$prio] or next;
+		push @{$self->{MR_report}[$prio]}, @$take;
     }
     $self;
 }
@@ -352,26 +360,18 @@ level of the report, and the message.
 
 sub reportAll(;$)
 {   my $self = shift;
-    map { [ $self, @$_ ] } $self->report(@_);
+    map +[ $self, @$_ ], $self->report(@_);
 }
 
 =method errors
-Equivalent to
-
- $folder->report('ERRORS')
-
-=cut
-
-sub errors(@)   {shift->report('ERRORS')}
+Equivalent to C<<$folder->report('ERRORS')>>
 
 =method warnings
-Equivalent to
-
- $folder->report('WARNINGS')
-
+Equivalent to C<<$folder->report('WARNINGS')>>
 =cut
 
 sub warnings(@) {shift->report('WARNINGS')}
+sub errors(@)   {shift->report('ERRORS')}
 
 =method notImplemented
 A special case of M<log()>, which logs a C<INTERNAL>-error
@@ -418,19 +418,6 @@ Only messages about C<INTERNAL> problems are more important than C<NONE>.
 sub logPriority($)
 {   my $level = $levelprio{$_[1]} or return undef;
     dualvar $level, $levelname[$level];
-}
-
-=method logSettings
-Returns a list of C<(key => value)> pairs which can be used to initiate
-a new object with the same log-settings as this one.
-
-=examples
- $head->new($folder->logSettings);
-=cut
-
-sub logSettings()
-{  my $self = shift;
-   (log => $self->{MR_log}, trace => $self->{MR_trace});
 }
 
 =method AUTOLOAD

@@ -23,6 +23,7 @@ version 3.018:
 	- use s///r
 	- cleanup syntax of Mail::Box::FastScalar
 	- use defined-or
+	- add Attributes section to documentation
 
 version 3.017: Fri 18 Apr 18:29:10 CEST 2025
 
