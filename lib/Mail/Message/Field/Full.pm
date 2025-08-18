@@ -442,7 +442,7 @@ sub _encode_b($)   { MIME::Base64::encode_base64(shift, '')  }
 
 sub _encode_q($)   # RFC2047 sections 4.2 and 5
 {   my $chunk = shift;
-    $chunk =~ s#([^a-zA-Z0-9!*+/=_ -])#sprintf "=%02X", ord $1#ge;
+    $chunk =~ s#([^a-zA-Z0-9!*+/_ -])#sprintf "=%02X", ord $1#ge;
     $chunk =~ s#([_\?,"])#sprintf "=%02X", ord $1#ge;
     $chunk =~ s/ /_/g;     # special case for =? ?= use
     $chunk;
