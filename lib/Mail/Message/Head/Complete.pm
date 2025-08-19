@@ -11,7 +11,7 @@ use warnings;
 use Mail::Box::Parser;
 use Mail::Message::Head::Partial;
 
-use Scalar::Util  qw/weaken/;
+use Scalar::Util  qw/weaken blessed/;
 use List::Util    qw/sum/;
 use Sys::Hostname qw/hostname/;
 
@@ -146,7 +146,7 @@ which is created (or was specified).
  my $head  = M<Mail::Message::Head>->new;
  $head->add('Subject: hi!');
  $head->add(From => 'me@home');
- my $field = M<Mail::Message::Field>->new('To: you@there');
+ my $field = Mail::Message::Field->new('To: you@there');
  $head->add($field);
  my Mail::Message::Field $s = $head->add(Sender => 'I');
 
@@ -158,7 +158,7 @@ sub add(@)
     # Create object for this field.
 
     my $field
-      = @_==1 && ref $_[0] ? shift     # A fully qualified field is added.
+      = @_==1 && blessed $_[0] ? shift     # A fully qualified field is added.
       : ($self->{MMH_field_type} || 'Mail::Message::Field::Fast')->new(@_);
 
     return if !defined $field;
@@ -225,9 +225,9 @@ also specify one or more prepared regexes.
 sub grepNames(@)
 {   my $self = shift;
     my @take;
-    push @take, (ref $_ eq 'ARRAY' ? @$_ : $_) foreach @_;
+    push @take, (ref $_ eq 'ARRAY' ? @$_ : $_) for @_;
 
-    return $self->orderedFields unless @take;
+    @take or return $self->orderedFields;
 
     my $take;
     if(@take==1 && ref $take[0] eq 'Regexp')
@@ -239,7 +239,7 @@ sub grepNames(@)
         $take    = qr/^(?:(?:@take))/i;
     }
 
-    grep {$_->name =~ $take} $self->orderedFields;
+    grep { $_->name =~ $take } $self->orderedFields;
 }
 
 =method set $field | $line | <$name, $body, [$attrs]>
@@ -248,9 +248,7 @@ options. However, existing values for fields will be removed before a new
 value is added.  READ THE IMPORTANT WARNING IN M<removeField()>
 =cut
 
-my @skip_none = qw/content-transfer-encoding content-disposition
-                   content-description content-id/;
-
+my @skip_none = qw/content-transfer-encoding content-disposition content-description content-id/;
 my %skip_none = map +($_ => 1), @skip_none;
 
 sub set(@)
@@ -261,7 +259,7 @@ sub set(@)
     $self->{MMH_modified}++;
 
     # Create object for this field.
-    my $field = @_==1 && ref $_[0] ? shift->clone : $type->new(@_);
+    my $field = @_==1 && blessed $_[0] ? shift->clone : $type->new(@_);
 
     my $name  = $field->name;         # is already lower-cased
     my $known = $self->{MMH_fields};

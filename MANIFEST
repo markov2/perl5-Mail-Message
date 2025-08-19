@@ -5,6 +5,7 @@ README.md
 lib/Mail/Box/FastScalar.pm
 lib/Mail/Box/Parser.pm
 lib/Mail/Box/Parser/Perl.pm
+lib/Mail/Box/Parser/Lines.pm
 lib/Mail/Message.pm
 lib/Mail/Message/Body.pm
 lib/Mail/Message/Body/Construct.pm

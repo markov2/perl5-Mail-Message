@@ -69,8 +69,9 @@ produced.
 
 =cut
 
-use overload qq("") => 'string_unless_carp'
-           , bool   => 'isEmpty';
+use overload
+    qq("") => 'string_unless_carp',
+    bool   => 'isEmpty';
 
 # To satisfy overload in static resolving.
 sub toString() { shift->load->toString }
@@ -85,7 +86,6 @@ sub string_unless_carp()
 }
 
 #------------------------------------------
-
 =chapter METHODS
 
 =section Constructors
@@ -122,7 +122,7 @@ sub new(@)
 {   my $class = shift;
 
     return Mail::Message::Head::Complete->new(@_)
-       if $class eq __PACKAGE__;
+        if $class eq __PACKAGE__;
 
     $class->SUPER::new(@_);
 }
@@ -249,7 +249,6 @@ partial.  C<names()> will trigger completion, where C<knownNames()> does not.
 sub knownNames() { keys %{shift->{MMH_fields}} }
 
 #------------------------------------------
-
 =section Access to the header
 
 =method get $name, [$index]
@@ -315,8 +314,8 @@ When an $index is specified, that element is returned.
 
 sub study($;$)
 {   my $self = shift;
-    return map {$_->study} $self->get(@_)
-       if wantarray;
+    return map $_->study, $self->get(@_)
+        if wantarray;
 
     my $got  = $self->get(@_);
     defined $got ? $got->study : undef;

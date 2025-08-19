@@ -7,8 +7,7 @@ package Mail::Message;
 use strict;
 use warnings;
 
-use Mail::Box::FastScalar;
-use Mail::Box::Parser::Perl ();
+use Mail::Box::Parser::Lines ();
 
 use Scalar::Util  qw(blessed);
 
@@ -55,7 +54,6 @@ with your internal administration, which may have security implications.
 
 =option  strip_status_fields BOOLEAN
 =default strip_status_fields <true>
-
 Remove the C<Status> and C<X-Status> fields from the message after
 reading, to lower the risk that received messages from external
 sources interfere with your internal administration.  If you want
@@ -64,10 +62,23 @@ you probably process folders yourself, which is a Bad Thing!
 
 =option  body_type CLASS
 =default body_type C<undef>
-
 Force a body type (any specific implementation of a M<Mail::Message::Body>)
 to be used to store the message content.  When the body is a multipart or
 nested, this will be overruled.
+
+=option  trusted BOOLEAN
+=default trusted C<true>
+
+=option  seekable BOOLEAN
+=default seekable C<false>
+Indicate that a seekable file-handle has been passed. In this case, we
+can use the M<Mail::Box::Parser::Perl> parser which reads messages
+directly from the input stream.
+
+=option  parser_class CLASS
+=default parser_class C<undef>
+Enforce a certain parser type to be used, which must be an extension of
+the parser class otherwise taken.
 
 =examples
 
@@ -90,49 +101,65 @@ nested, this will be overruled.
  
 =cut
 
+sub _scalar2lines($)
+{   my $lines = [ split /^/, ${$_[0]} ];
+#   pop @$lines if @$lines && ! length $lines->[-1];
+	$lines;
+}
+
 sub read($@)
-{   my ($class, $from, %args) = @_;
+{   # try avoiding copy of large strings
+    my ($class, undef, %args) = @_;
+	my $trusted      = exists $args{trusted} ? $args{trusted} : 1;
+    my $strip_status = exists $args{strip_status_fields} ? delete $args{strip_status_fields} : 1;
+	my $body_type    = $args{body_type};
+	my $pclass       = $args{parser_class};
 
-    my ($filename, $file);
-    my $ref       = ref $from;
-    if(!$ref)
-    {   $filename = 'scalar';
-        $file     = Mail::Box::FastScalar->new(\$from);
-    }
-    elsif($ref eq 'SCALAR')
-    {   $filename = 'ref scalar';
-        $file     = Mail::Box::FastScalar->new($from);
-    }
-    elsif($ref eq 'ARRAY')
-    {   $filename = 'array of lines';
-        my $buffer= join '', @$from;
-        $file     = Mail::Box::FastScalar->new(\$buffer);
-    }
-    elsif($ref eq 'GLOB' || (blessed $from && $from->isa('IO::Handle')))
-    {   $filename = "file ($ref)";
-        my $buffer= join '', $from->getlines;
-        $file     = Mail::Box::FastScalar->new(\$buffer);
-    }
-    else
-    {   $class->log(ERROR => "Cannot read from $from");
-        return undef;
-    }
+	my $parser;
+    my $ref     = ref $_[1];
 
-    my $strip_status
-      = exists $args{strip_status_fields}
-      ? delete $args{strip_status_fields}
-      : 1;
+    if($args{seekable})
+    {   $parser = ($pclass // 'Mail::Box::Parser::Perl')->new(%args,
+            filename  => "file ($ref)",
+            file      => $_[1],
+            trusted   => $trusted,
+        );
+    }
+	else
+    {   my ($source, $lines);
+        if(!$ref)
+        {   $source = 'scalar';
+            $lines  = _scalar2lines \$_[1];
+        }
+        elsif($ref eq 'SCALAR')
+        {   $source = 'ref scalar';
+            $lines  = _scalar2lines $_[1];
+        }
+        elsif($ref eq 'ARRAY')
+        {   $source = 'array of lines';
+            $lines  = $_[1];
+        }
+        elsif($ref eq 'GLOB' || (blessed $_[1] && $_[1]->isa('IO::Handle')))
+        {   $source = "file ($ref)";
+			local $/ = undef;   # slurp
+            $lines  = _scalar2lines \$_[1]->getline;
+        }
+        else
+        {   $class->log(ERROR => "Cannot read message from $_[1]/$ref");
+            return undef;
+        }
+    
+        $parser = ($pclass // 'Mail::Box::Parser::Lines')->new(%args,
+            source  => $source,
+            lines   => $lines,
+            trusted => $trusted,
+        );
 
-    # Not parseable by the C implementation
-    my $parser = Mail::Box::Parser::Perl->new
-      ( %args
-      , filename  => $filename
-      , file      => $file
-      , trusted   => 1
-      );
+		$body_type = 'Mail::Message::Body::Lines';
+    }
 
     my $self = $class->new(%args);
-    $self->readFromParser($parser, $args{body_type});
+    $self->readFromParser($parser, $body_type);
     $self->addReport($parser);
 
     $parser->stop;
@@ -141,7 +168,8 @@ sub read($@)
     $head->get('Message-ID')
         or $head->set('Message-ID' => '<'.$self->messageId.'>');
 
-    $head->delete('Status', 'X-Status') if $strip_status;
+    $head->delete('Status', 'X-Status')
+        if $strip_status;
 
     $self;
 }

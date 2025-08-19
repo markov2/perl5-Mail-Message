@@ -12,6 +12,8 @@ use Mail::Message::Field;
 use List::Util 'sum';
 use IO::File;
 
+my $empty_line = qr/^\015?\012?$/;
+
 =chapter NAME
 
 Mail::Box::Parser::Perl - reading messages from file using Perl
@@ -29,17 +31,20 @@ compiler is available.
 
 =c_method new %options
 
-=option  trusted BOOLEAN
-=default trusted <false>
-Is the input from the file to be trusted, or does it require extra
-tests.  Related to M<Mail::Box::new(trusted)>.
+=requires  filename FILENAME
+The name of the file to be read.
 
-=option  fix_header_errors BOOLEAN
-=default fix_header_errors <false>
-When header errors are detected, the parsing of the header will
-be stopped.  Other header lines will become part of the body of
-the message.  Set this flag to have the erroneous line added to
-the previous header line.
+=option  file FILE-HANDLE
+=default file undef
+Any C<IO::File> or C<GLOB> file-handle which can be used to read
+the data from.  In case this option is specified, the C<filename> is
+informational only.
+
+=option  mode OPENMODE
+=default mode C<'r'>
+File-open mode, which defaults to C<'r'>, which means `read-only'.
+See C<perldoc -f open> for possible modes.  Only applicable
+when no C<file> is specified.
 
 =cut
 
@@ -47,80 +52,118 @@ sub init(@)
 {   my ($self, $args) = @_;
     $self->SUPER::init($args) or return;
 
-    $self->{MBPP_trusted} = $args->{trusted};
-    $self->{MBPP_fix}     = $args->{fix_header_errors};
+    $self->{MBPP_mode}     = $args->{mode} || 'r';
+    $self->{MBPP_filename} = $args->{filename} || ref $args->{file}
+        or $self->log(ERROR => "Filename or handle required to create a parser."), return;
+
+    $self->start(file => $args->{file});
     $self;
 }
 
 #----------------------
 =section Attributes
 
-=method fixHeaderErrors [BOOLEAN]
-If set to C<true>, parsing of a header will not stop on an error, but
-attempt to add the erroneous this line to previous field.  Without BOOLEAN,
-the current setting is returned.
+=method filename
+Returns the name of the file this parser is working on.
 
-=example
- $folder->parser->fixHeaderErrors(1);
- my $folder = $mgr->open('folder', fix_header_errors => 1);
+=method openMode
+=method file
 =cut
 
-sub fixHeaderErrors(;$)
-{   my $self = shift;
-    @_ ? ($self->{MBPP_fix} = shift) : $self->{MBPP_fix};
-}
+sub filename() { $_[0]->{MBPP_filename} }
+sub openMode() { $_[0]->{MBPP_mode} }
+sub file()     { $_[0]->{MBPP_file} }
 
 #----------------------
-=section The parser
+=section Parsing
+
+=method start %options
+Start the parser by opening a file.
+
+=option  file FILEHANDLE|undef
+=default file undef
+The file is already open, for instance because the data must be read
+from STDIN.
 =cut
 
-sub pushSeparator($)
-{   my ($self, $sep) = @_;
-    unshift @{$self->{MBPP_separators}}, $sep;
-    $self->{MBPP_strip_gt}++ if $sep eq 'From ';
+sub start(@)
+{   my ($self, %args) = @_;
+    $self->openFile(%args) or return;
+    $self->takeFileInfo;
+
+    $self->log(PROGRESS => "Opened folder ".$self->filename." to be parsed");
     $self;
 }
 
-sub popSeparator()
-{   my $self = shift;
-    my $sep  = shift @{$self->{MBPP_separators}};
-    $self->{MBPP_strip_gt}-- if $sep eq 'From ';
-    $sep;
-}
-    
-sub filePosition(;$)
-{   my $self = shift;
-    @_ ? $self->{MBPP_file}->seek(shift, 0) : $self->{MBPP_file}->tell;
-}
+=method stop
+Stop the parser, which will include a close of the file.  The lock on the
+folder will not be removed (is not the responsibility of the parser).
 
-my $empty = qr/^\015?\012?$/;
+=warning File $file changed during access.
+When a message parser starts working, it takes size and modification time
+of the file at hand.  If the folder is written, it checks whether there
+were changes in the file made by external programs.
 
-=method readHeader
-
-=warning Unexpected end of header in $source: $line
-While parsing a message from the specified source (usually a file name),
-the parser found a syntax error.  According to the MIME specification in the
-RFCs, each header line must either contain a colon, or start with a blank
-to indicate a folded field.  Apparently, this header contains a line which
-starts on the first position, but not with a field name.
-
-By default, parsing of the header will be stopped.  If there are more header
-lines after the erroneous line, they will be added to the body of the message.
-In case of new(fix_headers) set, the parsing of the header will be continued.
-The erroneous line will be added to the preceding field.
+Calling M<Mail::Box::update()> on a folder before it being closed
+will read these new messages.  But the real source of this problem is
+locking: some external program (for instance the mail transfer agent,
+like sendmail) uses a different locking mechanism as you do and therefore
+violates your rights.
 
 =cut
 
+sub stop()
+{   my $self = shift;
+    $self->log(NOTICE  => "Close parser for file ".$self->filename);
+    $self->closeFile;
+}
+
+=method restart %options
+Restart the parser on a certain file, usually because the content has
+changed.  The C<%options> are passed to M<openFile()>.
+=cut
+
+sub restart()
+{   my $self     = shift;
+    $self->closeFile;
+    $self->openFile(@_) or return;
+    $self->takeFileInfo;
+    $self->log(NOTICE  => "Restarted parser for file ".$self->filename);
+    $self;
+}
+
+=method fileChanged
+Returns whether the file which is parsed has changed after the last
+time takeFileInfo() was called.
+=cut
+
+sub fileChanged()
+{   my $self = shift;
+    my ($size, $mtime) = (stat $self->filename)[7,9];
+    return 0 if !defined $size || !defined $mtime;
+    $size != $self->{MBPP_size} || $mtime != $self->{MBPP_mtime};
+}
+
+=method filePosition [$position]
+Returns the location of the next byte to be used in the file which is
+parsed.  When a $position is specified, the location in the file is
+moved to the indicated spot first.
+=cut
+
+sub filePosition(;$)
+{   my $self = shift;
+    @_ ? $self->file->seek(shift, 0) : $self->file->tell;
+}
+
 sub readHeader()
 {   my $self  = shift;
-    my $file  = $self->{MBPP_file};
-
+    my $file  = $self->file;
     my @ret   = ($file->tell, undef);
     my $line  = $file->getline;
 
   LINE:
     while(defined $line)
-    {   last LINE if $line =~ $empty;
+    {   last LINE if $line =~ $empty_line;
         my ($name, $body) = split /\s*\:\s*/, $line, 2;
 
         unless(defined $body)
@@ -156,43 +199,37 @@ sub _is_good_end($)
 {   my ($self, $where) = @_;
 
     # No seps, then when have to trust it.
-    my $sep = $self->{MBPP_separators}[0];
-    return 1 unless defined $sep;
-
-    my $file = $self->{MBPP_file};
+    my $sep  = $self->activeSeparator // return 1;
+    my $file = $self->file;
     my $here = $file->tell;
     $file->seek($where, 0) or return 0;
 
     # Find first non-empty line on specified location.
     my $line = $file->getline;
-    $line    = $file->getline while defined $line && $line =~ $empty;
+    $line    = $file->getline while defined $line && $line =~ $empty_line;
 
     # Check completed, return to old spot.
     $file->seek($here, 0);
-    return 1 unless defined $line;
+    $line // return 1;
 
         substr($line, 0, length $sep) eq $sep
     && ($sep ne 'From ' || $line =~ m/ (?:19[6-9]|20[0-3])[0-9]\b/ );
 }
 
 sub readSeparator()
-{   my $self = shift;
-
-    my $sep   = $self->{MBPP_separators}[0];
-    defined $sep or return ();
-
-    my $file  = $self->{MBPP_file};
+{   my $self  = shift;
+    my $sep   = $self->activeSeparator // return ();
+    my $file  = $self->file;
     my $start = $file->tell;
 
     my $line  = $file->getline;
-    while(defined $line && $line =~ $empty)
+    while(defined $line && $line =~ $empty_line)
     {   $start = $file->tell;
         $line  = $file->getline;
     }
 
-    defined $line or return ();
-
-    $line     =~ s/[\012\015]+$/\n/;
+    $line // return ();
+    $line      =~ s/[\012\015]+$/\n/;
 
     substr($line, 0, length $sep) eq $sep
         and return ($start, $line);
@@ -203,20 +240,19 @@ sub readSeparator()
 
 sub _read_stripped_lines(;$$)
 {   my ($self, $exp_chars, $exp_lines) = @_;
-    my @seps    = @{$self->{MBPP_separators}};
-
-    my $file    = $self->{MBPP_file};
+    my $seps    = $self->separators;
+    my $file    = $self->file;
     my $lines   = [];
     my $msgend;
 
-    if(@seps)
+    if(@$seps)
     {   
        LINE:
         while(1)
         {   my $where = $file->getpos;
             my $line  = $file->getline or last LINE;
 
-            foreach my $sep (@seps)
+            foreach my $sep (@$seps)
             {   substr($line, 0, length $sep) eq $sep or next;
 
                 # Some apps fail to escape lines starting with From
@@ -230,10 +266,10 @@ sub _read_stripped_lines(;$$)
             push @$lines, $line;
         }
 
-        if(@$lines && $lines->[-1] =~ s/(\r?\n)\z//)
+        if(@$lines && $lines->[-1] =~ s/\015?\012\z//)
         {   # Keep an empty line to signal the existence of a preamble, but
             # remove a second.
-            pop @$lines if @seps==1 && @$lines > 1 && length($lines->[-1])==0;
+            pop @$lines if @$seps==1 && @$lines > 1 && length($lines->[-1])==0;
         }
     }
     else # File without separators.
@@ -241,16 +277,15 @@ sub _read_stripped_lines(;$$)
     }
 
     my $bodyend = $file->tell;
-    if($lines)
-    {   if($self->{MBPP_strip_gt})
-        {   s/^\>(\>*From\s)/$1/ for @$lines;
-        }
-        unless($self->{MBPP_trusted})
-        {   s/\015$// for @$lines;
-            # input is read as binary stream (i.e. preserving CRLF on Windows).
-            # Code is based on this assumption. Removal of CR if not trusted
-            # conflicts with this assumption. [Markus Spann]
-        }
+    if($self->stripGt)
+    {   s/^\>(\>*From\s)/$1/ for @$lines;
+    }
+
+    unless($self->trusted)
+    {   s/\015$// for @$lines;
+        # input is read as binary stream (i.e. preserving CRLF on Windows).
+        # Code is based on this assumption. Removal of CR if not trusted
+        # conflicts with this assumption. [Markus Spann]
     }
 
     ($bodyend, $lines, $msgend);
@@ -258,18 +293,17 @@ sub _read_stripped_lines(;$$)
 
 sub _take_scalar($$)
 {   my ($self, $begin, $end) = @_;
-    my $file = $self->{MBPP_file};
+    my $file = $self->file;
     $file->seek($begin, 0);
 
-    my $return;
-    $file->read($return, $end-$begin);
-    $return =~ s/\015//g;
-    $return;
+    my $buffer;
+    $file->read($buffer, $end-$begin);
+    $buffer =~ s/\015//gr;
 }
 
 sub bodyAsString(;$$)
 {   my ($self, $exp_chars, $exp_lines) = @_;
-    my $file  = $self->{MBPP_file};
+    my $file  = $self->file;
     my $begin = $file->tell;
 
     if(defined $exp_chars && $exp_chars>=0)
@@ -278,18 +312,18 @@ sub bodyAsString(;$$)
 
         if($self->_is_good_end($end))
         {   my $body = $self->_take_scalar($begin, $end);
-            $body =~ s/^\>(\>*From\s)/$1/gm if $self->{MBPP_strip_gt};
+            $body =~ s/^\>(\>*From\s)/$1/gm if $self->stripGt;
             return ($begin, $file->tell, $body);
         }
     }
 
     my ($end, $lines) = $self->_read_stripped_lines($exp_chars, $exp_lines);
-    return ($begin, $end, join('', @$lines));
+    ($begin, $end, join('', @$lines));
 }
 
 sub bodyAsList(;$$)
 {   my ($self, $exp_chars, $exp_lines) = @_;
-    my $file  = $self->{MBPP_file};
+    my $file  = $self->file;
     my $begin = $file->tell;
 
     my ($end, $lines) = $self->_read_stripped_lines($exp_chars, $exp_lines);
@@ -298,7 +332,7 @@ sub bodyAsList(;$$)
 
 sub bodyAsFile($;$$)
 {   my ($self, $out, $exp_chars, $exp_lines) = @_;
-    my $file  = $self->{MBPP_file};
+    my $file  = $self->file;
     my $begin = $file->tell;
 
     my ($end, $lines) = $self->_read_stripped_lines($exp_chars, $exp_lines);
@@ -309,7 +343,7 @@ sub bodyAsFile($;$$)
 
 sub bodyDelayed(;$$)
 {   my ($self, $exp_chars, $exp_lines) = @_;
-    my $file  = $self->{MBPP_file};
+    my $file  = $self->file;
     my $begin = $file->tell;
 
     if(defined $exp_chars)
@@ -326,31 +360,58 @@ sub bodyDelayed(;$$)
     ($begin, $end, $chars, scalar @$lines);
 }
 
-sub openFile($)
-{   my ($self, $args) = @_;
-    my $mode = $args->{mode} or die "mode required";
-    my $fh = $args->{file} || IO::File->new($args->{filename}, $mode);
+=method openFile %options
+[3.012] Open the file to be parsed.
+=cut
 
-    return unless $fh;
-    $self->{MBPP_file}       = $fh;
+sub openFile(%)
+{   my ($self, %args) = @_;
+
+    my $fh = $self->{MBPP_file} = $args{file} ||
+        IO::File->new($self->filename, $args{mode} || $self->openMode)
+        or return;
 
     $fh->binmode(':raw')
         if $fh->can('binmode') || $fh->can('BINMODE');
 
-    $self->{MBPP_separators} = [];
-
-#   binmode $fh, ':crlf' if $] < 5.007;  # problem with perlIO
+    $self->resetSeparators;
     $self;
 }
 
+=method closeFile
+Close the file which was being parsed.
+=cut
+
 sub closeFile()
 {   my $self = shift;
-    delete $self->{MBPP_separators};
-    delete $self->{MBPP_strip_gt};
+    $self->resetSeparators;
 
     my $file = delete $self->{MBPP_file} or return;
     $file->close;
     $self;
+}
+
+=method takeFileInfo
+Capture some data about the file being parsed, to be compared later.
+=cut
+
+sub takeFileInfo()
+{   my $self = shift;
+    @$self{ qw/MBPP_size MBPP_mtime/ } = (stat $self->filename)[7,9];
+}
+
+#------------------------------------------
+=section Error handling
+=cut
+
+#------------------------------------------
+=section Cleanup
+=cut
+
+sub DESTROY
+{   my $self = shift;
+    $self->stop;
+    $self->SUPER::DESTROY;
 }
 
 1;

@@ -77,10 +77,10 @@ for(my $l = 1; $l < @levelname; $l++)
 sub new(@)
 {   my $class = shift;
 #confess "Parameter list has odd length: @_" if @_ % 2;
-    (bless {MR_log => 1, MR_trace => 1}, $class)->init({@_});
+    (bless +{MR_log => 1, MR_trace => 1}, $class)->init({@_});
 }
 
-my($default_log, $default_trace, $trace_callback);
+my ($default_log, $default_trace, $trace_callback);
 sub init($)
 {   my ($self, $args) = @_;
     $self->{MR_log}   = $levelprio{$args->{log}   || $default_log};
@@ -264,7 +264,7 @@ sub log(;$@)
     }
 
     # class method
-	my ($class, $level) = @_;
+	my ($class, $level) = (shift, shift);
     my $prio  = $levelprio{$level} or croak "Unknown log-level $level";
 
     $trace_callback->($class, $level, join('', @_)) 
@@ -329,7 +329,7 @@ sub addReport($)
 {   my ($self, $other) = @_;
     my $from = $other->{MR_report} || return ();
 
-    for(my $prio = 1; $prio < @$reports; $prio++)
+    for(my $prio = 1; $prio < @$from; $prio++)
     {   my $take = $from->[$prio] or next;
 		push @{$self->{MR_report}[$prio]}, @$take;
     }

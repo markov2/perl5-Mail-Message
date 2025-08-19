@@ -335,16 +335,11 @@ sub read($$$$)
 
     # Get preamble.
     my $headtype = ref $head;
-
     my $begin    = $parser->filePosition;
-    my $preamble = Mail::Message::Body::Lines->new(@msgopts, @sloppyopts)
-       ->read($parser, $head);
+    my $preamble = Mail::Message::Body::Lines->new(@msgopts, @sloppyopts)->read($parser, $head);
 
-    $preamble->nrLines
-        or undef $preamble;
-
-    $self->{MMBM_preamble} = $preamble
-        if defined $preamble;
+    $preamble->nrLines or undef $preamble;
+    $self->{MMBM_preamble} = $preamble if defined $preamble;
 
     # Get the parts.
 
@@ -359,14 +354,11 @@ sub read($$$$)
             last;
         }
 
-        my $part = Mail::Message::Part->new
-         ( @msgopts
-         , container => $self
-         );
+        my $part = Mail::Message::Part->new(@msgopts, container => $self);
+        $part->readFromParser($parser, $bodytype)
+            or last;
 
-        last unless $part->readFromParser($parser, $bodytype);
-        push @parts, $part
-            if $part->head->names || $part->body->size;
+        push @parts, $part if $part->head->names || $part->body->size;
     }
     $self->{MMBM_parts} = \@parts;
 
@@ -392,7 +384,6 @@ sub read($$$$)
 }
 
 #------------------------------------------
-
 =section Constructing a body
 
 =method foreachComponent CODE
