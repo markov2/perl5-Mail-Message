@@ -8,7 +8,7 @@ use base 'Mail::Message::TransferEnc';
 use strict;
 use warnings;
 
-use MIME::Base64;
+use MIME::Base64  qw/decode_base64 encode_base64/;
 
 =chapter NAME
 

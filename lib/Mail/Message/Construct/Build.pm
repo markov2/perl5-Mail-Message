@@ -188,15 +188,12 @@ sub build(@)
         elsif($key eq 'data')
         {   @data = Mail::Message::Body->new(data => $value) }
         elsif($key eq 'file' || $key eq 'files')
-        {   @data = map Mail::Message::Body->new(file => $_)
-              , ref $value eq 'ARRAY' ? @$value : $value;
+        {   @data = map Mail::Message::Body->new(file => $_), ref $value eq 'ARRAY' ? @$value : $value;
         }
         elsif($key eq 'attach')
         {   foreach my $c (ref $value eq 'ARRAY' ? @$value : $value)
             {   defined $c or next;
-                push @data, ref $c && $c->isa('Mail::Message')
-		          ? Mail::Message::Body::Nested->new(nested => $c)
-                  : $c;
+                push @data, ref $c && $c->isa('Mail::Message') ? Mail::Message::Body::Nested->new(nested => $c) : $c;
             }
         }
         elsif($key =~ m/^content\-(type|transfer\-encoding|disposition|language|description|id)$/i )
@@ -219,9 +216,9 @@ sub build(@)
     }
 
     my $body
-       = @parts==0 ? Mail::Message::Body::Lines->new()
+       = @parts==0 ? Mail::Message::Body::Lines->new
        : @parts==1 ? $parts[0]
-       : Mail::Message::Body::Multipart->new(parts => \@parts);
+       :    Mail::Message::Body::Multipart->new(parts => \@parts);
 
     # Setting the type explicitly, only after the body object is finalized
     $body->type($type)           if defined $type;
@@ -234,10 +231,7 @@ sub build(@)
     $class->buildFromBody($body, $head, @headerlines);
 }
 
-#------------------------------------------
-
 =c_method buildFromBody $body, [$head], $headers
-
 Shape a message around a $body.  Bodies have information about their
 content in them, which is used to construct a header for the message.
 You may specify a $head object which is pre-initialized, or one is
@@ -288,11 +282,7 @@ sub buildFromBody(@)
         else          {$head->add(shift, shift)}
     }
 
-    my $message = $class->new
-     ( head => $head
-     , @log
-     );
-
+    my $message = $class->new(head => $head, @log);
     $message->body($body);
 
     # be sure the message-id is actually stored in the header.

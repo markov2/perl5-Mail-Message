@@ -14,6 +14,7 @@ use Mail::Message;
 use Carp;
 use File::Temp qw/tempfile/;
 use File::Copy qw/copy/;
+use POSIX      qw/SEEK_END/;
 
 =chapter NAME
 
@@ -125,8 +126,6 @@ sub nrLines()
     $self->{MMBF_nrlines} = $nrlines;
 }
 
-#------------------------------------------
-
 sub size()
 {   my $self = shift;
 
@@ -169,8 +168,8 @@ sub file()
 sub print(;$)
 {   my $self = shift;
     my $fh   = shift || select;
-    my $file = $self->tempFilename;
 
+    my $file = $self->tempFilename;
     open my $in, '<:raw', $file
         or croak "Cannot read from $file: $!\n";
 
@@ -178,6 +177,18 @@ sub print(;$)
     $in->close;
 
     $self;
+}
+
+sub endsOnNewline()
+{   my $self = shift;
+
+    my $file = $self->tempFilename;
+    open my $in, '<:raw', $file
+        or croak "Cannot read from $file: $!\n";
+
+    $in->seek(-1, SEEK_END);
+    $in->read(my $char, 1);
+    $char eq "\n" || $char eq "\r";
 }
 
 sub read($$;$@)
@@ -193,10 +204,6 @@ sub read($$;$@)
     $self->fileLocation($begin, $end);
     $self;
 }
-
-# on UNIX always true.  Expensive to calculate on Windows: message size
-# may be off-by-one in rare cases.
-sub endsOnNewline() { shift->size==0 }
 
 #------------------------------------------
 =section Internals

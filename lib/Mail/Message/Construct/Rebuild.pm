@@ -7,14 +7,14 @@ package Mail::Message;
 use strict;
 use warnings;
 
-use Mail::Message::Head::Complete;
-use Mail::Message::Body::Lines;
-use Mail::Message::Body::Multipart;
+use Mail::Message::Head::Complete  ();
+use Mail::Message::Body::Lines     ();
+use Mail::Message::Body::Multipart ();
+use Mail::Box::FastScalar          ();
 
-use Mail::Address;
-use Scalar::Util    'blessed';
-use List::Util      'first';
-use Mail::Box::FastScalar;
+use Mail::Address                  ();
+use Scalar::Util          qw/blessed/;
+use List::Util            qw/first/;
 
 =chapter NAME
 
@@ -254,13 +254,11 @@ sub replaceDeletedParts($@)
         or return $part;
 
     my $structure = '';
-    my $output    = Mail::Box::FastScalar->new(\$structure, '  ');
+    my $output    = Mail::Box::FastScalar->new(\$structure);
     $part->printStructure($output);
 
-    my $dispfn   = $part->body->dispositionFilename || '';
-    Mail::Message::Part->build
-      ( data => "Removed content:\n\n$structure\n$dispfn"
-      );
+    my $dispfn    = $part->body->dispositionFilename || '';
+    Mail::Message::Part->build(data => "Removed content:\n\n$structure\n$dispfn");
 }
 
 #------------------------------------------

@@ -247,10 +247,9 @@ sub lines()
     wantarray ? @lines : \@lines;
 }
 
-sub file()                    # It may be possible to speed-improve the next
-{   my $self   = shift;       # code, which first produces a full print of
-    my $text;                 # the message in memory...
-    my $dump   = Mail::Box::FastScalar->new(\$text);
+sub file()                    # It may be possible to speed-improve the next code, which first 
+{   my $self   = shift;       # produces a full print of the message in memory...
+    my $dump   = Mail::Box::FastScalar->new;
     $self->print($dump);
     $dump->seek(0,0);
     $dump;
@@ -281,6 +280,12 @@ sub print(;$)
     }
 
     $self;
+}
+
+sub endsOnNewline()
+{   my $self = shift;
+    my $epilogue = $self->epilogue or return 1;
+    $epilogue =~ m/[\r\n]$/;
 }
 
 =method foreachLine(CODE)
@@ -598,14 +603,6 @@ sub boundary(;$)
     $self->type->attribute(boundary => $boundary);
 }
 
-sub endsOnNewline() { 1 }
-
 sub toplevel() { my $msg = shift->message; $msg ? $msg->toplevel : undef}
-
-#-------------------------------------------
-
-=section Error handling
-
-=cut
 
 1;

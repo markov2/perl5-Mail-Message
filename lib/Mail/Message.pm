@@ -337,6 +337,14 @@ this will return C<false>.
 
 sub isDummy() { 0 }
 
+=method endsOnNewline
+[3.018] Return true when the printed message has a trailing "\n".  In
+rare cases, that's not the case.  For instance, when the body is read
+from a file which was generated without trailing new-line.
+=cut
+
+sub endsOnNewline() { $_[0]->body->endsOnNewline }
+
 =method print [$fh]
 Print the message to the FILE-HANDLE, which defaults to the selected
 filehandle, without the encapsulation sometimes required by a folder
@@ -358,6 +366,7 @@ sub print(;$)
     $self->head->print($out);
     my $body = $self->body;
     $body->print($out) if $body;
+	$body->endsOnNewline or $out->print("\n");
     $self;
 }
 

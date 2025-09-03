@@ -8,13 +8,13 @@ use base 'Mail::Message';
 use strict;
 use warnings;
 
-use Mail::Box::FastScalar;
-use Mail::Box::Parser::Perl;
-use Mail::Message::Body::Lines;
+use Mail::Box::FastScalar        ();
+use Mail::Box::Parser::Perl      ();
+use Mail::Message::Body::Lines   ();
 
-use IO::Handle ();
-use File::Spec;
-use Scalar::Util qw/blessed/;
+use IO::Handle                   ();
+use File::Spec                   ();
+use Scalar::Util                 qw/blessed/;
 
 =chapter NAME
 

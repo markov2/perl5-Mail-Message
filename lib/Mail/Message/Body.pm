@@ -366,7 +366,7 @@ sub init($)
     }
 
     $mime ||= 'text/plain';
-    $mime = $self->type($mime);
+    $mime   = $self->type($mime);
 
     my $default_charset = exists $args->{charset} ? $args->{charset} : 'PERL';
     $mime->attribute(charset => $default_charset)
@@ -403,7 +403,6 @@ sub clone() {shift->notImplemented}
 =section Constructing a body
 
 =method decoded %options
-
 Returns a body, an object which is (a sub-)class of a M<Mail::Message::Body>,
 which contains a simplified representation of textual data.  The returned
 object may be the object where this is called on, but may also be a new
@@ -433,7 +432,6 @@ sub decoded(@)
 }
 
 #------------------------------------------
-
 =section The body
 
 =method message [$message]
@@ -576,8 +574,7 @@ sub transferEncoding(;$)
     return $self->{MMB_transfer} if !@_ && defined $self->{MMB_transfer};
 
     my $set = defined $_[0] ? shift : 'none';
-    $self->{MMB_transfer} = ref $set ? $set->clone
-       : Mail::Message::Field->new('Content-Transfer-Encoding' => $set);
+    $self->{MMB_transfer} = ref $set ? $set->clone : Mail::Message::Field->new('Content-Transfer-Encoding' => $set);
 }
 
 =method description [STRING|$field]
@@ -596,8 +593,7 @@ sub description(;$)
     return $self->{MMB_description} if !@_ && $self->{MMB_description};
 
     my $disp = defined $_[0] ? shift : 'none';
-    $self->{MMB_description} = ref $disp ? $disp->clone
-      : Mail::Message::Field->new('Content-Description' => $disp);
+    $self->{MMB_description} = ref $disp ? $disp->clone : Mail::Message::Field->new('Content-Description' => $disp);
 }
 
 =method disposition [STRING|$field]
@@ -620,9 +616,7 @@ sub disposition(;$)
     return $self->{MMB_disposition} if !@_ && $self->{MMB_disposition};
 
     my $disp = defined $_[0] ? shift : 'none';
-
-    $self->{MMB_disposition} = blessed $disp ? $disp->clone
-      : Mail::Message::Field->new('Content-Disposition' => $disp);
+    $self->{MMB_disposition} = blessed $disp ? $disp->clone : Mail::Message::Field->new('Content-Disposition' => $disp);
 }
 
 =method language [@langs|\@langs|$langs|$field]
@@ -641,8 +635,7 @@ sub language(@)
 	  : ref $_[0] eq 'ARRAY' ? (join ', ', @{$_[0]}) : $_[0];
 
 	$self->{MMB_lang} = ! defined $langs || ! length $langs ? undef
-	  : blessed $langs ? $langs->clone
-	  : Mail::Message::Field->new('Content-Language' => $langs);
+	  : blessed $langs ? $langs->clone : Mail::Message::Field->new('Content-Language' => $langs);
 }
 
 =method contentId [STRING|$field]
@@ -661,8 +654,7 @@ sub contentId(;$)
     return $self->{MMB_id} if !@_ && $self->{MMB_id};
 
     my $cid = defined $_[0] ? shift : 'none';
-    $self->{MMB_id} = ref $cid ? $cid->clone
-      : Mail::Message::Field->new('Content-ID' => $cid);
+    $self->{MMB_id} = ref $cid ? $cid->clone : Mail::Message::Field->new('Content-ID' => $cid);
 }
 
 =method checked [BOOLEAN]

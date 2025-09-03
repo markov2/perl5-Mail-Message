@@ -8,9 +8,18 @@ use strict;
 use warnings;
 use integer;
 
+use Scalar::Util 'blessed';
+
 =chapter NAME
 
 Mail::Box::FastScalar - fast alternative to IO::Scalar
+
+=chapter SYNOPSIS
+
+  my $fh = Mail::Box::FastScalar->new;
+  $fh->open(\my $out);
+
+  my $fh = Mail::Box::FastScalar->new(\my $out);
 
 =chapter DESCRIPTION
 
@@ -28,10 +37,9 @@ $/ must be undef or string - "" and \scalar unimplemented
 
 =cut
 
-sub new($)
+sub new(;$)
 {   my ($class, $ref) = @_;
-    $$ref //= '';
-    bless { ref => $ref, pos => 0 }, $class;
+    (bless +{ }, $class)->open($ref);
 }
 
 sub autoflush() {}
@@ -41,22 +49,23 @@ sub flush()     {}
 sub sync()      { 0 }
 sub opened()    { $_[0]->{ref} }
 
-sub open($) {
-    my $self = $_[0];
-    ${$_[1]} //= '';
-    $self->{ref} = $_[1];
+sub open($)
+{   my $self = $_[0];
+    my $ref  = $self->{ref} = $_[1] // \(my $tmp);
+    $$ref  //= '';
     $self->{pos} = 0;
+    $self;
 }
 
 sub close() { undef $_[0]->{ref} }
 
-sub eof() {
-    my $self = $_[0];
+sub eof()
+{   my $self = $_[0];
     $self->{pos} >= length ${$self->{ref}};
 }
 
-sub getc() {
-    my $self = $_[0];
+sub getc()
+{   my $self = $_[0];
     substr(${$self->{ref}}, $self->{pos}++, 1);
 }
 
@@ -64,11 +73,11 @@ sub print
 {   my $self = shift;
     my $pos = $self->{pos};
     my $ref = $self->{ref};
-    my $len = length($$ref);
-    
+    my $len = length $$ref;
+
     if ($pos >= $len)
     {   $$ref .= $_ for @_;
-        $self->{pos} = length($$ref);
+        $self->{pos} = length $$ref;
     }
     else
     {   my $buf = $#_ ? join('', @_) : $_[0];
@@ -89,7 +98,7 @@ sub read($$;$)
     length $buf;
 }
 
-sub sysread($$;$) { $_[0]->read(@_) }
+sub sysread($$;$) { shift->read(@_) }
 
 sub seek($$)
 {   my ($self, $delta, $whence) = @_;
@@ -133,21 +142,21 @@ sub write($$;$)
     $len;
 }
 
-sub syswrite($;$$) { $_[0]->write(@_) }
+sub syswrite($;$$) { shift->write(@_) }
 
 sub getline()
 {   my $self = shift;
     my $ref  = $self->{ref};
     my $pos  = $self->{pos};
 
-	my $idx;
+    my $idx;
     if( !defined $/ || ($idx = index($$ref, $/, $pos)) == -1)
     {   return if $pos >= length $$ref;
         $self->{pos} = length $$ref;
         return substr $$ref, $pos;
     }
 
-    substr $$ref, $pos, ($self->{pos} = $idx + length($/)) - $pos;
+    substr $$ref, $pos, ($self->{pos} = $idx + length $/) - $pos;
 }
 
 sub getlines()
@@ -158,9 +167,10 @@ sub getlines()
     my @lines;
     if(defined $/)
     {   my $idx;
+        my $sep_length = length $/;
         while(($idx = index($$ref, $/, $pos)) != -1)
-        {   push @lines, substr($$ref, $pos, ($idx + 1) - $pos);
-            $pos = $idx + 1;
+        {   push @lines, substr($$ref, $pos, $idx + $sep_length - $pos);
+            $pos = $idx + $sep_length;
         }
     }
     my $r = substr $$ref, $pos;
@@ -171,7 +181,7 @@ sub getlines()
 }
 
 # Call OO, because this module might be extended
-sub TIEHANDLE { defined $_[1] && UNIVERSAL::isa($_[1], __PACKAGE__) ? $_[1] : shift->new(@_) }
+sub TIEHANDLE { blessed $_[1] && $_[1]->isa(__PACKAGE__) ? $_[1] : shift->new(@_) }
 sub GETC      { shift->getc(@_) }
 sub PRINT     { shift->print(@_) }
 sub PRINTF    { shift->print(sprintf shift, @_) }

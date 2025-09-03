@@ -122,6 +122,8 @@ sub print(;$)
     $self->nested->print(shift || select);
 }
 
+sub endsOnNewline() { shift->nested->body->endsOnNewline }
+
 sub partNumberOf($)
 {   my ($self, $part) = @_;
     $self->message->partNumber || '1';
@@ -172,8 +174,6 @@ sub fileLocation()
     , ($nested->body->fileLocation)[1]
     );
 }
-
-sub endsOnNewline() { shift->nested->body->endsOnNewline }
 
 sub moveLocation($)
 {   my $self   = shift;

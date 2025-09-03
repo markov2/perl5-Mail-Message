@@ -157,7 +157,7 @@ sub filePosition(;$)
 
 sub readHeader()
 {   my $self  = shift;
-    my $file  = $self->file;
+    my $file  = $self->file or return ();
     my @ret   = ($file->tell, undef);
     my $line  = $file->getline;
 

@@ -174,7 +174,7 @@ starts on the first position, but not with a field name.
 
 By default, parsing of the header will be stopped.  If there are more header
 lines after the erroneous line, they will be added to the body of the message.
-In case of M<new(fix_headers)> set, the parsing of the header will be continued.
+In case of M<new(fix_header_errors)> set, the parsing of the header will be continued.
 The erroneous line will be added to the preceding field.
 =cut
 

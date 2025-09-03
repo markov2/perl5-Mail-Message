@@ -8,7 +8,12 @@ Limitations to be fixed:
 	- when lines are over 997 chars, then the transfer-encoding should
 	 automatically change from 'none' into 'quoted-printable' or 'base64'
 
-version 3.018:
+version 3.018_002:
+
+	Improvements:
+	- add $msg->endsOnNewline()
+
+version 3.018_001: Thu 21 Aug 10:15:05 CEST 2025
 
 	Fixes:
 	- at message construction, do not detect charset for binaries.

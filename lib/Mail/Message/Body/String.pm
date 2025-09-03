@@ -9,7 +9,7 @@ use strict;
 use warnings;
 
 use Carp;
-use Mail::Box::FastScalar;
+use Mail::Box::FastScalar ();
 
 =chapter NAME
 

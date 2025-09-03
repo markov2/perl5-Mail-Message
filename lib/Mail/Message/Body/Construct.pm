@@ -76,10 +76,7 @@ sub foreachLine($)
       );
 }
 
-#------------------------------------------
-
 =method concatenate $components
-
 Concatenate a list of elements into one new body.
 
 Specify a list of text $components.  Each component can be
@@ -90,7 +87,6 @@ a scalar (which is split into lines), or
 an array of scalars (each providing one line).
 
 =examples
-
  # all arguments are M<Mail::Message::Body>'s.
  my $sum = $body->concatenate($preamble, $body, $epilogue, "-- \n" , $sig);
 
@@ -98,9 +94,7 @@ an array of scalars (each providing one line).
 
 sub concatenate(@)
 {   my $self = shift;
-
-    return $self
-        if @_==1;
+    return $self if @_==1;
 
     my @unified;
     foreach (@_)
@@ -120,10 +114,7 @@ sub concatenate(@)
       );
 }
 
-#------------------------------------------
-
 =method attach $messages, %options
-
 Make a multipart containing this body and the specified $messages. The
 options are passed to the constructor of the multi-part body.  If you
 need more control, create the multi-part body yourself.  At least
@@ -154,19 +145,12 @@ sub attach(@)
 
     my @parts;
     push @parts, shift while @_ && ref $_[0];
+    @parts or return $self;
 
-    return $self unless @parts;
-    unshift @parts,
-      ( $self->isNested    ? $self->nested
-      : $self->isMultipart ? $self->parts
-      : $self
-      );
+    unshift @parts, $self->isNested ? $self->nested : $self->isMultipart ? $self->parts : $self;
 
-    return $parts[0] if @parts==1;
-    Mail::Message::Body::Multipart->new(parts => \@parts, @_);
+    @parts==1 ? $parts[0] : Mail::Message::Body::Multipart->new(parts => \@parts, @_);
 }
-
-#------------------------------------------
 
 =method stripSignature %options
 
@@ -185,13 +169,11 @@ and C<undef> for the signature body.
 
 =option  result_type CLASS
 =default result_type <same as current>
-
 The type of body to be created for the stripped body (and maybe also to
 contain the stripped signature)
 
 =option  pattern REGEX|STRING|CODE
 =default pattern C<qr/^--\s?$/>
-
 Which pattern defines the line which indicates the separator between
 the message and the signature.  In case of a STRING, this is matched
 to the beginning of the line, and REGEX is a full regular expression.
@@ -202,7 +184,6 @@ TRUE when the separator is found.
 
 =option  max_lines INTEGER|undef
 =default max_lines C<10>
-
 The maximum number of lines which can be the length of a signature.
 Specify C<undef> to remove the limit.
 
@@ -252,25 +233,15 @@ sub stripSignature($@)
         }
     }
  
-    return $self unless $found;
+    $found or return $self;
  
     my $bodytype = $args{result_type} || ref $self;
+    my $stripped = $bodytype->new(based_on => $self, data => [ @$lines[0..$sigstart-1] ]);
 
-    my $stripped = $bodytype->new
-      ( based_on => $self
-      , data     => [ @$lines[0..$sigstart-1] ]
-      );
+    wantarray or return $stripped;
 
-    return $stripped unless wantarray;
-
-    my $sig      = $bodytype->new
-      ( based_on => $self
-      , data     => [ @$lines[$sigstart..$#$lines] ]
-      );
-      
+    my $sig      = $bodytype->new(based_on => $self, data => [ @$lines[$sigstart..$#$lines] ]);
     ($stripped, $sig);
 }
-
-#------------------------------------------
 
 1;

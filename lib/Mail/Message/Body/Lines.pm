@@ -56,7 +56,7 @@ sub _data_from_filename(@)
 sub _data_from_filehandle(@)
 {   my ($self, $fh) = @_;
     $self->{MMBL_array} = ref $fh eq 'Mail::Box::FastScalar' ? $fh->getlines : [ $fh->getlines ];
-    $self
+    $self;
 }
 
 sub _data_from_lines(@)
@@ -87,14 +87,19 @@ sub size()
     $self->{MMBL_size} = $size;
 }
 
-sub string() { join '', @{shift->{MMBL_array}} }
-sub lines() { wantarray ? @{shift->{MMBL_array}} : shift->{MMBL_array} }
-sub file() { IO::Lines->new(shift->{MMBL_array}) }
+sub string() { join '', @{$_[0]->{MMBL_array}} }
+sub lines()  { wantarray ? @{$_[0]->{MMBL_array}} : $_[0]->{MMBL_array} }
+sub file()   { IO::Lines->new($_[0]->{MMBL_array}) }
 
 sub print(;$)
 {   my $self = shift;
     (shift || select)->print(@{$self->{MMBL_array}});
     $self;
+}
+
+sub endsOnNewline()
+{   my $last = $_[0]->{MMBL_array}[-1];
+	!defined $last || $last =~ /[\r\n]$/;
 }
 
 sub read($$;$@)
@@ -105,11 +110,6 @@ sub read($$;$@)
     $self->fileLocation($begin, $end);
     $self->{MMBL_array} = $lines;
     $self;
-}
-
-sub endsOnNewline()
-{   my $last = shift->{MMBL_array}[-1];
-    !defined $last || $last =~ m/\n$/;
 }
 
 1;
