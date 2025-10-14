@@ -10,6 +10,9 @@ Limitations to be fixed:
 
 version 3.018_002:
 
+	Fixes:
+	- nested bodies which specify a Content-Transfer-Encoding [Andy Beverly]
+
 	Improvements:
 	- add $msg->endsOnNewline()
 

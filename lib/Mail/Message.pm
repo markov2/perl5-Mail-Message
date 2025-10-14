@@ -95,7 +95,6 @@ of Mail::Message::Body.  See also M<body()> and M<storeBody()>.
 
 =option  body_type CLASS
 =default body_type M<Mail::Message::Body::Lines>
-
 Default type of body to be created for M<readBody()>.
 
 =option  head OBJECT
@@ -813,13 +812,13 @@ find this out, we need at least the header of the message; there is no
 need to read the body of the message to detect this.
 =cut
 
-sub isMultipart() {shift->head->isMultipart}
+sub isMultipart() { $_[0]->head->isMultipart }
 
 =method isNested
 Returns C<true> for C<message/rfc822> messages and message parts.
 =cut
 
-sub isNested() {shift->body->isNested}
+sub isNested() { $_[0]->body->isNested }
 
 =method contentType
 Returns the content type header line, or C<text/plain> if it is not
@@ -1315,9 +1314,8 @@ sub readBody($$;$$)
         {   $bodytype = 'Mail::Message::Body::Multipart';
         }
         elsif($type eq 'message/rfc822')
-        {   my $enc = $head->get('Content-Transfer-Encoding') || 'none';
-            $bodytype = 'Mail::Message::Body::Nested'
-                if lc($enc) eq 'none' && ! $bodytype->isNested;
+        {   $bodytype = 'Mail::Message::Body::Nested'
+                unless $bodytype->isNested;
         }
 
         $body = $bodytype->new
