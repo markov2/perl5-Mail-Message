@@ -14,7 +14,7 @@ use Mail::Message;
 use Carp;
 use File::Temp qw/tempfile/;
 use File::Copy qw/copy/;
-use POSIX      qw/SEEK_END/;
+use Fcntl      qw/SEEK_END/;
 
 =chapter NAME
 

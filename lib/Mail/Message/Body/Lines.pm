@@ -36,7 +36,6 @@ for inspecting message bodies).
 =c_method new %options
 
 =error Unable to read file $filename for message body lines: $!
-
 A M<Mail::Message::Body::Lines> object is to be created from a named file,
 but it is impossible to read that file to retrieve the lines within.
 

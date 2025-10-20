@@ -8,13 +8,13 @@ use base 'Mail::Reporter';
 use strict;
 use warnings;
 
-use Mail::Message::Part ();
-use Mail::Message::Head::Complete ();
-use Mail::Message::Construct ();
+use Mail::Message::Part            ();
+use Mail::Message::Head::Complete  ();
+use Mail::Message::Construct       ();
 
-use Mail::Message::Body::Lines ();
+use Mail::Message::Body::Lines     ();
 use Mail::Message::Body::Multipart ();
-use Mail::Message::Body::Nested ();
+use Mail::Message::Body::Nested    ();
 
 use Carp;
 use Scalar::Util   qw(weaken blessed);
@@ -86,59 +86,55 @@ our $crlf_platform = $^O =~ m/win32/i;
 
 =c_method new %options
 
-=option  body OBJECT
+=option  body $object
 =default body undef
-
 Instantiate the message with a body which has been created somewhere
-before the message is constructed.  The OBJECT must be a sub-class
+before the message is constructed.  The $object must be a sub-class
 of Mail::Message::Body.  See also M<body()> and M<storeBody()>.
 
-=option  body_type CLASS
+=option  body_type $class
 =default body_type M<Mail::Message::Body::Lines>
 Default type of body to be created for M<readBody()>.
 
-=option  head OBJECT
+=option  head $object
 =default head undef
-
 Instantiate the message with a head which has been created somewhere
-before the message is constructed.  The OBJECT must be a (sub-)class
+before the message is constructed.  The $object must be a (sub-)class
 of M<Mail::Message::Head>. See also M<head()>.
 
-=option  field_type CLASS
+=option  field_type $class
 =default field_type undef
 
-=option  head_type CLASS
+=option  head_type $class
 =default head_type M<Mail::Message::Head::Complete>
 
 Default type of head to be created for M<readHead()>.
 
-=option  messageId STRING
+=option  messageId $id
 =default messageId undef
-
-The id on which this message can be recognized.  If none specified and
-not defined in the header --but one is needed-- there will be one assigned
-to the message to be able to pass unique message-ids between objects.
+The $id string on which this message can be recognized.  If none specified
+and not defined in the header --but one is needed-- there will be one
+assigned to the message to be able to pass unique message-ids between
+objects.
 
 =option  modified BOOLEAN
-=default modified <false>
-
+=default modified false
 Flags this message as being modified from the beginning on.  Usually,
 modification is auto-detected, but there may be reasons to be extra
 explicit.
 
 =option  trusted BOOLEAN
-=default trusted <false>
-
+=default trusted false
 Is this message from a trusted source?  If not, the content must be
 checked before use.  This checking will be performed when the
 body data is decoded or used for transmission.
 
 =option  deleted BOOLEAN
-=default deleted <false>
+=default deleted false
 Is the file deleted from the start?
 
 =option  labels ARRAY|HASH
-=default labels {}
+=default labels +{}
 Initial values of the labels.  In case of M<Mail::Box::Message>'s, this
 shall reflect the state the message is in.  For newly constructed
 M<Mail::Message>'s, this may be anything you want, because M<coerce()>
@@ -765,7 +761,7 @@ sub body(;$@)
         return $body;
     }
 
-    ref $rawbody && $rawbody->isa('Mail::Message::Body')
+    blessed $rawbody && $rawbody->isa('Mail::Message::Body')
         or $self->log(INTERNAL => "wrong type of body for message $rawbody");
 
     # Bodies of real messages must be encoded for safe transmission.

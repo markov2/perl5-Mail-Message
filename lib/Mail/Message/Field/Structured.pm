@@ -154,14 +154,14 @@ ordered in any way.  The list may be empty.  Double attributes or
 continuations are folded into one.
 =cut
 
-sub attributes() { values %{shift->{MMFS_attrs}} }
-sub beautify() { delete shift->{MMFF_body} }
+sub attributes() { values %{$_[0]->{MMFS_attrs}} }
+sub beautify() { delete $_[0]->{MMFF_body} }
 
 =method attrPairs
 Returns a list with attribute name and value pairs.
 =cut
 
-sub attrPairs() { map +($_->name, $_->value), shift->attributes }
+sub attrPairs() { map +($_->name, $_->value), $_[0]->attributes }
 
 #-------------------------
 
@@ -231,8 +231,8 @@ sub produceBody()
     my $attrs = $self->{MMFS_attrs};
     my $datum = $self->{MMFS_datum};
 
-    join '; ', ($datum // '')
-       , map $_->string, @{$attrs}{sort keys %$attrs};
+    join '; ', ($datum // ''),
+		map $_->string, @{$attrs}{sort keys %$attrs};
 }
 
 =method datum [$value]

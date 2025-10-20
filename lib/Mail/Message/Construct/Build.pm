@@ -14,6 +14,7 @@ use Mail::Message::Body::Nested    ();
 use Mail::Message::Field           ();
 
 use Mail::Address  ();
+use Scalar::Util   qw(blessed);
 
 =chapter NAME
 
@@ -21,19 +22,21 @@ Mail::Message::Construct::Build - building a Mail::Message from components
 
 =chapter SYNOPSIS
 
- my $msg1 = Mail::Message->build
-   ( From => 'me', data => "only two\nlines\n");
+ my $msg1 = Mail::Message->build(
+   From => 'me',
+   data => "only two\nlines\n",
+ );
 
  my $msg2 = Mail::Message->buildFromBody($body);
 
- Mail::Message->build
-   ( From     => 'me@myhost.com'
-   , To       => 'you@yourhost.com'
-   , Subject  => "Read our folder!"
+ Mail::Message->build(
+   From     => 'me@myhost.com',
+   To       => 'you@yourhost.com',
+   Subject  => "Read our folder!",
 
-   , data     => \@lines
-   , file     => 'folder.pdf'
-   )->send(via => 'postfix');
+   data     => \@lines,
+   file     => 'folder.pdf',
+ )->send(via => 'postfix');
 
 =chapter DESCRIPTION
 
@@ -70,7 +73,6 @@ been constructed.  Together, they produce your message.
 
 =option  data STRING|ARRAY-OF-LINES
 =default data undef
-
 The text for one part, specified as one STRING, or an ARRAY of lines.  Each
 line, including the last, must be terminated by a newline.  This argument
 is passed to M<Mail::Message::Body::new(data)> to
@@ -82,11 +84,10 @@ construct one.
  line 2
  TEXT
 
-=option  file FILENAME|FILEHANDLE|IOHANDLE|ARRAY
+=option  file $file|$fh|$io|ARRAY
 =default file undef
-
-Create a body where the data is read from the specified FILENAME,
-FILEHANDLE, or object of type M<IO::Handle>.  Also this body is used
+Create a body where the data is read from the specified $file by name,
+filehandle $fh, or $io object of type M<IO::Handle>.  Also this body is used
 to create a M<Mail::Message::Body>. [2.119] You may even pass more
 than one file at once: 'file' and 'files' option are equivalent.
 
@@ -102,7 +103,6 @@ Alias for option C<file>.
 
 =option  attach BODY|PART|MESSAGE|ARRAY
 =default attach undef
-
 One attachment to the message.  Each attachment can be full $message, a
 $part, or a $body.
 Any $message will get encapsulated into a C<message/rfc822> body.
@@ -114,7 +114,6 @@ You can specify many items (may be of different types) at once.
 
 =option  head HEAD
 =default head undef
-
 Start with a prepared header, otherwise one is created.
 
 =examples
@@ -132,11 +131,11 @@ Start with a prepared header, otherwise one is created.
   , attach => $signature
   );
 
- my $msg = Mail::Message->build
-  ( To     => 'you'
-  , 'Content-Type' => 'text/html'
-  , data   => "<html></html>"
-  );
+ my $msg = Mail::Message->build(
+   To     => 'you',
+   'Content-Type' => 'text/html',
+   data   => "<html></html>",
+ );
 
 =error Only build() Mail::Message's; they are not in a folder yet
 You may wish to construct a message to be stored in a some kind
@@ -150,14 +149,11 @@ into the right message type, adding storage information and the like.
 sub build(@)
 {   my $class = shift;
 
-    if($class->isa('Mail::Box::Message'))
-    {   $class->log(ERROR
-           => "Only build() Mail::Message's; they are not in a folder yet"); 
-         return undef;
-    }
+    ! $class->isa('Mail::Box::Message')
+        or $class->log(ERROR => "Only build() Mail::Message's; they are not in a folder yet"), return undef;
 
     my @parts
-      = ! ref $_[0] ? ()
+      = ! blessed $_[0] ? ()
       : $_[0]->isa('Mail::Message')       ? shift
       : $_[0]->isa('Mail::Message::Body') ? shift
       :               ();
@@ -166,7 +162,7 @@ sub build(@)
     my ($type, $transfenc, $dispose, $descr, $cid, $lang);
     while(@_)
     {   my $key = shift;
-        if(ref $key && $key->isa('Mail::Message::Field'))
+        if(blessed $key && $key->isa('Mail::Message::Field'))
         {   my $name = $key->name;
                if($name eq 'content-type')        { $type    = $key }
             elsif($name eq 'content-transfer-encoding') { $transfenc = $key }
@@ -193,7 +189,7 @@ sub build(@)
         elsif($key eq 'attach')
         {   foreach my $c (ref $value eq 'ARRAY' ? @$value : $value)
             {   defined $c or next;
-                push @data, ref $c && $c->isa('Mail::Message') ? Mail::Message::Body::Nested->new(nested => $c) : $c;
+                push @data, blessed $c && $c->isa('Mail::Message') ? Mail::Message::Body::Nested->new(nested => $c) : $c;
             }
         }
         elsif($key =~ m/^content\-(type|transfer\-encoding|disposition|language|description|id)$/i )
@@ -250,19 +246,19 @@ supplied.
 
 =examples
 
- my $type = Mail::Message::Field->new('Content-Type', 'text/html'
-   , 'charset="us-ascii"');
+ my $type = Mail::Message::Field->new('Content-Type', 'text/html',
+   'charset="us-ascii"');
 
- my @to   = ( Mail::Address->new('Your name', 'you@example.com')
-            , 'world@example.info'
-            );
+ my @to   = (
+   Mail::Address->new('Your name', 'you@example.com'),
+   'world@example.info',
+ );
 
- my $msg  = Mail::Message->buildFromBody
-   ( $body
-   , From => 'me@example.nl'
-   , To   => \@to
-   , $type
-   );
+ my $msg  = Mail::Message->buildFromBody($body,
+   From => 'me@example.nl',
+   To   => \@to,
+   $type,
+ );
 
 =cut
 
@@ -271,29 +267,29 @@ sub buildFromBody(@)
     my @log     = $body->logSettings;
 
     my $head;
-    if(ref $_[0] && $_[0]->isa('Mail::Message::Head')) { $head = shift }
+    if(blessed $_[0] && $_[0]->isa('Mail::Message::Head')) { $head = shift }
     else
     {   shift unless defined $_[0];   # undef as head
         $head = Mail::Message::Head::Complete->new(@log);
     }
 
     while(@_)
-    {   if(ref $_[0]) {$head->add(shift)}
-        else          {$head->add(shift, shift)}
+    {   if(blessed $_[0]) { $head->add(shift) }
+        else              { $head->add(shift, shift) }
     }
 
     my $message = $class->new(head => $head, @log);
     $message->body($body);
 
     # be sure the message-id is actually stored in the header.
-    $head->add('Message-Id' => '<'.$message->messageId.'>')
-        unless defined $head->get('message-id');
+    defined $head->get('message-id')
+        or $head->add('Message-Id' => '<'.$message->messageId.'>');
 
-    $head->add(Date => Mail::Message::Field->toDate)
-        unless defined $head->get('Date');
+    defined $head->get('Date')
+        or $head->add(Date => Mail::Message::Field->toDate);
 
-    $head->add('MIME-Version' => '1.0')  # required by rfc2045
-        unless defined $head->get('MIME-Version');
+    defined $head->get('MIME-Version')
+        or $head->add('MIME-Version' => '1.0'); # required by rfc2045
 
     $message;
 }
@@ -330,33 +326,37 @@ not that simple after all!  Let's look at an example from MIME::Entity's
 manual page:
 
  ### Create the top-level, and set up the mail headers:
- $top = MIME::Entity->build(Type     => "multipart/mixed",
-                            From     => 'me@myhost.com',
-                            To       => 'you@yourhost.com',
-                            Subject  => "Hello, nurse!");
-                                                                                
+ $top = MIME::Entity->build(
+   Type     => "multipart/mixed",
+   From     => 'me@myhost.com',
+   To       => 'you@yourhost.com',
+   Subject  => "Hello, nurse!",
+ );
+
  ### Attachment #1: a simple text document:
  $top->attach(Path=>"./testin/short.txt");
                                                                                 
  ### Attachment #2: a GIF file:
- $top->attach(Path        => "./docs/mime-sm.gif",
-              Type        => "image/gif",
-              Encoding    => "base64");
+ $top->attach(
+   Path        => "./docs/mime-sm.gif",
+   Type        => "image/gif",
+   Encoding    => "base64",
+ );
                                                                                 
  ### Attachment #3: text we'll create with text we have on-hand:
  $top->attach(Data => $contents);
                                                                                 
 The MailBox equivalent could be
 
- my $msg = Mail::Message->build
-   ( From     => 'me@myhost.com'
-   , To       => 'you@yourhost.com'
-   , Subject  => "Hello, nurse!"
+ my $msg = Mail::Message->build(
+   From     => 'me@myhost.com',
+   To       => 'you@yourhost.com',
+   Subject  => "Hello, nurse!",
 
-   , file     => "./testin/short.txt"
-   , file     => "./docs/mime-sm.gif"
-   , data     => $contents
-   );
+   file     => "./testin/short.txt",
+   file     => "./docs/mime-sm.gif",
+   data     => $contents,
+ );
 
 One of the simplifications is that M<MIME::Types> is used to lookup
 the right content type and optimal transfer encoding.  Good values

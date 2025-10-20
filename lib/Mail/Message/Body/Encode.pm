@@ -14,6 +14,7 @@ use MIME::Types    ();
 use File::Basename 'basename';
 use Encode         qw/find_encoding from_to encode_utf8/;
 use List::Util     qw/first/;
+use Scalar::Util   qw/blessed/;
 
 use Mail::Message::Field        ();
 use Mail::Message::Field::Full  ();
@@ -175,21 +176,20 @@ sub _char_enc($)
 
 sub encode(@)
 {   my ($self, %args) = @_;
-
     my $bodytype  = $args{result_type} || ref $self;
 
     ### The content type
 
     my $type_from = $self->type;
-    my $type_to   = $args{mime_type} || $type_from->clone->study;
-    $type_to      = Mail::Message::Field::Full->new('Content-Type' => $type_to)
-        unless ref $type_to;
+    my $type_to   = $args{mime_type}   || $type_from->clone->study;
+    blessed $type_to
+        or $type_to = Mail::Message::Field::Full->new('Content-Type' => $type_to);
 
     ### Detect specified transfer-encodings
 
     my $transfer  = $args{transfer_encoding} || $self->transferEncoding->clone;
-    $transfer     = Mail::Message::Field->new('Content-Transfer-Encoding' => $transfer)
-        unless ref $transfer;
+    blessed $transfer
+        or $transfer = Mail::Message::Field->new('Content-Transfer-Encoding' => $transfer);
 
     my $trans_was = lc $self->transferEncoding;
     my $trans_to  = lc $transfer;
@@ -198,6 +198,7 @@ sub encode(@)
 
     my $is_text   = $type_from =~ m!^text/!i;
     my ($char_was, $char_to, $from, $to);
+
     if($is_text)
     {   $char_was = $type_from->attribute('charset');  # sometimes missing
         $char_to  = $type_to->attribute('charset');    # usually missing
@@ -218,8 +219,7 @@ sub encode(@)
         if($char_to && $trans_to ne 'none' && $char_to eq 'PERL')
         {   # We cannot leave the body into the 'PERL' charset when transfer-
             # encoding is applied.
-            $self->log(WARNING => "Transfer-Encoding `$trans_to' requires "
-              . "explicit charset, defaulted to utf-8");
+            $self->log(WARNING => "Transfer-Encoding `$trans_to' requires explicit charset, defaulted to utf-8");
             $char_to = 'utf-8';
         }
 
@@ -273,10 +273,11 @@ sub encode(@)
             }
         }
 
+        my $text = $decoded->string;
         my $new_data
-          = $to   && $char_was eq 'PERL' ? $to->encode($decoded->string)
-          : $from && $char_to  eq 'PERL' ? $from->decode($decoded->string)
-          : $to && $from && $char_was ne $char_to ? $to->encode($from->decode($decoded->string))
+          = $to   && $char_was eq 'PERL' ? (utf8::is_utf8($text) ? $text : $to->encode($text))
+          : $from && $char_to  eq 'PERL' ? $from->decode($text)
+          : $to && $from && $char_was ne $char_to ? $to->encode($from->decode($text))
           : undef;
 
         $recoded
@@ -325,11 +326,13 @@ sub charsetDetect(%)
     # Only look for normal characters, first 1920 unicode characters
     # When there is any octet in 'utf-encoding'-space, but not an
     # legal utf8, than it's not utf8.
-    #XXX Use the fact that cp1252 does not define (0x81, 0x8d, 0x8f, 0x90, 0x9d) ?
     return 'utf-8'
-        if $text =~ m/[\0xC0-\xDF][\x80-\xBF]/   # 110xxxxx, 10xxxxxx
-        && $text !~ m/[\0xC0-\xFF][^\0x80-\xBF]/
-        && $text !~ m/[\0xC0-\xFF]\z/;
+        if $text =~ m/ [\xC0-\xDF][\x80-\xBF]    # 110xxxxx, 10xxxxxx
+                     | [\xE0-\xEF][\x80-\xBF]{2} # 1110xxxx, (10xxxxxx)²
+                     | [\xF0-\xF7][\x80-\xBF]{3} # 11110xxx, (10xxxxxx)3
+                     /x
+        && $text !~ m/[\xC0-\xFF][^\x80-\xBF]/
+        && $text !~ m/[\xC0-\xFF]\z/;
 
     # Produce 'us-ascii' when it suffices: it is the RFC compliant
     # default charset.

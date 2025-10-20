@@ -258,7 +258,7 @@ Whether the body is flagged modified, directly from its creation.
  my $body = Mail::Message::Body::String->new(file => \*IN,
     mime_type => 'text/html; charset="ISO-8859-1"');
 
- my $body = Mail::Message::Body::Lines->new(data => ['first', $second],
+ my $body = Mail::Message::Body::Lines->new(data => ["first\n", $second],
     charset => 'ISO-10646', transfer_encoding => 'none');
 
  my $body = Mail::Message::Body::Lines->new(data => \@lines,
@@ -412,11 +412,11 @@ body of any type.
 
 is equivalent with
 
- my $dec = $body->encode
-   ( mime_type         => 'text/plain'
-   , transfer_encoding => 'none'
-   , charset           => 'PERL'
-   );
+ my $dec = $body->encode(
+   mime_type         => 'text/plain',
+   transfer_encoding => 'none',
+   charset           => 'PERL',
+ );
 
 The C<$dec> which is returned is a body.  Ask with the M<mimeType()> method
 what is produced.  This C<$dec> body is B<not related to a header>.

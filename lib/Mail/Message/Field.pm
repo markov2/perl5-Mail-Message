@@ -304,9 +304,9 @@ a little faster because that's the way they are stored internally...
 sub folded { shift->notImplemented }
 
 =method body
-This method may be what you want, but usually, the M<foldedBody()> and
-M<unfoldedBody()> are what you are looking for.  This method is
-cultural heritage, and should be avoided.
+This method may not be what you want: the M<foldedBody()> and
+M<unfoldedBody()> are probably where you are looking for.  Those will
+return the full content of a field, even when it is structured.
 
 Returns the body of the field.  When this field is structured, it will
 be B<stripped> from everything what is behind the first semi-color (C<;>).
