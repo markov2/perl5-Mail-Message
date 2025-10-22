@@ -174,10 +174,9 @@ sub readHeader()
                 $line = $file->getline;
                 next LINE;
             }
-            else
-            {   $file->seek(-length $line, 1);
-                last LINE;
-            }
+
+            $file->seek(-length $line, 1);
+            last LINE;
         }
 
         length $body or $body = "\n";

@@ -8,7 +8,7 @@ use base 'Mail::Box::Parser';
 use strict;
 use warnings;
 
-use Mail::Message::Field;
+use Mail::Message::Field   ();
 
 =chapter NAME
 

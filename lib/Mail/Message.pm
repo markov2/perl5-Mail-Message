@@ -891,13 +891,13 @@ being modified.  See isModified().
 
 sub modified(;$)
 {   my $self = shift;
+    @_ or return $self->isModified;  # compatibility 2.036
 
-    return $self->isModified unless @_;  # compatibility 2.036
+    my $flag = $self->{MM_modified} = shift;
 
-    my $flag = shift;
-    $self->{MM_modified} = $flag;
     my $head = $self->head;
     $head->modified($flag) if $head;
+
     my $body = $self->body;
     $body->modified($flag) if $body;
 
@@ -1219,12 +1219,12 @@ Returns the $message which is the source of this message, which was
 created by a M<clone()> operation.
 =cut
 
-sub clonedFrom() { shift->{MM_cloned} }
+sub clonedFrom() { $_[0]->{MM_cloned} }
 
 #------------------------------------------
 # All next routines try to create compatibility with release < 2.0
-sub isParsed()   { not shift->isDelayed }
-sub headIsRead() { not shift->head->isDelayed }
+sub isParsed()   { not $_[0]->isDelayed }
+sub headIsRead() { not $_[0]->head->isDelayed }
 
 =method readFromParser $parser, [$bodytype]
 Read one message from file.  The $parser is opened on the file.  First
@@ -1239,12 +1239,8 @@ which returns a body-class based on the header.
 sub readFromParser($;$)
 {   my ($self, $parser, $bodytype) = @_;
 
-    my $head = $self->readHead($parser)
-     || Mail::Message::Head::Complete->new
-          ( message     => $self
-          , field_type  => $self->{MM_field_type}
-          , $self->logSettings
-          );
+    my $head = $self->readHead($parser) // Mail::Message::Head::Complete->new(
+        message => $self, field_type => $self->{MM_field_type}, $self->logSettings);
 
     my $body = $self->readBody($parser, $head, $bodytype)
         or return;
@@ -1260,16 +1256,11 @@ M<new(head_type)>.  The $parser is the access to the folder's file.
 =cut
 
 sub readHead($;$)
-{   my ($self, $parser) = (shift, shift);
+{   my ($self, $parser, $headtype) = @_;
+    $headtype //= $self->{MM_head_type} // 'Mail::Message::Head::Complete';
 
-    my $headtype = shift
-      || $self->{MM_head_type} || 'Mail::Message::Head::Complete';
-
-    $headtype->new
-      ( message     => $self
-      , field_type  => $self->{MM_field_type}
-      , $self->logSettings
-      )->read($parser);
+    $headtype->new(message => $self, field_type => $self->{MM_field_type}, $self->logSettings)
+        ->read($parser);
 }
 
 =method readBody $parser, $head, [$bodytype]
@@ -1289,7 +1280,7 @@ sub readBody($$;$$)
 {   my ($self, $parser, $head, $getbodytype) = @_;
 
     my $bodytype
-      = ! $getbodytype   ? ($self->{MM_body_type} || 'Mail::Message::Body::Lines')
+      = ! $getbodytype   ? ($self->{MM_body_type} // 'Mail::Message::Body::Lines')
       : ref $getbodytype ? $getbodytype->($self, $head)
       :                    $getbodytype;
 
@@ -1310,8 +1301,12 @@ sub readBody($$;$$)
         {   $bodytype = 'Mail::Message::Body::Multipart';
         }
         elsif($type eq 'message/rfc822')
-        {   $bodytype = 'Mail::Message::Body::Nested'
-                unless $bodytype->isNested;
+        {   # RFC2046 forbids the extras of RFC6532, but Outlook implemented it anyway:
+			# transfer encoding of this part.  In that case, do not use a ::Nested
+			my $enc = $head->get('Content-Transfer-Encoding') || 'none';
+
+			$bodytype = 'Mail::Message::Body::Nested'
+                if $enc =~ m/^(?:none|7bit|8bit|binary)$/i && ! $bodytype->isNested;
         }
 
         $body = $bodytype->new

@@ -22,9 +22,6 @@ BEGIN {
    {   plan skip_all => 'requires Mail::Box::Mbox.';
        exit 0;
    }
-   else
-   {   plan tests => 119;
-   }
 }
 
 #
@@ -69,7 +66,7 @@ die "Cannot find file with mailinglist examples ($fn)" unless -f $fn;
 
 my $folder = Mail::Box::Mbox->new(folder => $fn, extract => 'ALWAYS');
 ok(defined $folder,                   "open example folder");
-die unless defined $folder;
+defined $folder or die;
 
 my @msgs   = $folder->messages;
 my @expect =
@@ -232,3 +229,4 @@ for(my $nr = 0; $nr < @msgs; $nr++)
    is($lg->rfc, $exp{rfc},                  "$nr rfc");
 }
 
+done_testing;

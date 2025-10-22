@@ -162,6 +162,7 @@ unknown.  The decoded data is returned.
 The encoding or decoding of a message body encounters a character set which
 is not understood by Perl's M<Encode> module.
 
+=warning Content-Transfer-Encoding `$encoding' requires explicit charset, defaulted to utf-8
 =cut
 
 sub _char_enc($)
@@ -219,7 +220,7 @@ sub encode(@)
         if($char_to && $trans_to ne 'none' && $char_to eq 'PERL')
         {   # We cannot leave the body into the 'PERL' charset when transfer-
             # encoding is applied.
-            $self->log(WARNING => "Transfer-Encoding `$trans_to' requires explicit charset, defaulted to utf-8");
+            $self->log(WARNING => "Content-Transfer-Encoding `$trans_to' requires explicit charset, defaulted to utf-8");
             $char_to = 'utf-8';
         }
 
@@ -275,7 +276,7 @@ sub encode(@)
 
         my $text = $decoded->string;
         my $new_data
-          = $to   && $char_was eq 'PERL' ? (utf8::is_utf8($text) ? $text : $to->encode($text))
+          = $to   && $char_was eq 'PERL' ? $to->encode($text)
           : $from && $char_to  eq 'PERL' ? $from->decode($text)
           : $to && $from && $char_was ne $char_to ? $to->encode($from->decode($text))
           : undef;
