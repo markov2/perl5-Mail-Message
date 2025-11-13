@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::TransferEnc;
 use base 'Mail::Reporter';
@@ -8,15 +9,16 @@ use base 'Mail::Reporter';
 use strict;
 use warnings;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::TransferEnc - message transfer encoder/decoder
 
 =chapter SYNOPSIS
 
- my Mail::Message $msg = ...;
- my $decoded = $msg->decoded;
- my $encoded = $msg->encode(transfer => 'base64');
+  my Mail::Message $msg = ...;
+  my $decoded = $msg->decoded;
+  my $encoded = $msg->encode(transfer => 'base64');
 
 =chapter DESCRIPTION
 
@@ -25,33 +27,28 @@ used during transport of the message.  These packages, and all which are
 derived, are invoked by the message's M<Mail::Message::decoded()> and
 M<Mail::Message::encode()> methods:
 
- my $message = $folder->message(3);
- my $decoded_body = $message->decoded;
- my $encoded_body = $message->encode(transfer => 'base64');
+  my $message = $folder->message(3);
+  my $decoded_body = $message->decoded;
+  my $encoded_body = $message->encode(transfer => 'base64');
 
 Rules for transfer encodings are specified in RFC4289.  The full list
 of permissible content transfer encodings can be found at
-F<https://www.iana.org/assignments/transfer-encodings/transfer-encodings.xhtml>
+L<https://www.iana.org/assignments/transfer-encodings/transfer-encodings.xhtml>
 
 The following coders/decoders are currently supported (April 2025, the full
 list at IANA):
 
 =over 4
-
-=item * M<Mail::Message::TransferEnc::Base64>
-
+=item * Mail::Message::TransferEnc::Base64
 C<base64> for binary information.
 
-=item * M<Mail::Message::TransferEnc::SevenBit>
-
+=item * Mail::Message::TransferEnc::SevenBit
 C<7bit> for plain old ASCII characters only.
 
-=item * M<Mail::Message::TransferEnc::EightBit>
-
+=item * Mail::Message::TransferEnc::EightBit
 C<8bit> for extended character set data, not encoded.
 
-=item * M<Mail::Message::TransferEnc::QuotedPrint>
-
+=item * Mail::Message::TransferEnc::QuotedPrint
 C<quoted-printable> encdoded extended character set data.
 
 =back
@@ -60,15 +57,14 @@ C<quoted-printable> encdoded extended character set data.
 
 =cut
 
-my %encoder =
- ( base64 => 'Mail::Message::TransferEnc::Base64'
- , '7bit' => 'Mail::Message::TransferEnc::SevenBit'
- , '8bit' => 'Mail::Message::TransferEnc::EightBit'
- , 'quoted-printable' => 'Mail::Message::TransferEnc::QuotedPrint'
- );
+my %encoder = (
+	'base64' => 'Mail::Message::TransferEnc::Base64',
+	'7bit'   => 'Mail::Message::TransferEnc::SevenBit',
+	'8bit'   => 'Mail::Message::TransferEnc::EightBit',
+	'quoted-printable' => 'Mail::Message::TransferEnc::QuotedPrint',
+);
 
-#------------------------------------------
-
+#--------------------
 =section The Encoder
 
 =method create $type, %options
@@ -82,24 +78,23 @@ Compiling the required transfer encoding resulted in errors, which means
 that the decoder can not be used.
 
 =cut
- 
+
 sub create($@)
-{   my ($class, $type) = (shift, shift);
+{	my ($class, $type) = (shift, shift);
 
-    my $encoder = $encoder{lc $type};
-    unless($encoder)
-    {   $class->new(@_)->log(WARNING => "No decoder for transfer encoding $type.");
-        return;
-    }
+	my $encoder = $encoder{lc $type};
+	unless($encoder)
+	{	$class->new(@_)->log(WARNING => "No decoder for transfer encoding $type.");
+		return;
+	}
 
-    eval "require $encoder";
-    if($@)
-    {   $class->new(@_)->log(ERROR =>
-            "Decoder for transfer encoding $type does not work:\n$@");
-        return;
-    }
+	eval "require $encoder";
+	if($@)
+	{	$class->new(@_)->log(ERROR => "Decoder for transfer encoding $type does not work:\n$@");
+		return;
+	}
 
-    $encoder->new(@_);
+	$encoder->new(@_);
 }
 
 =c_method addTransferEncoder $type, $class
@@ -110,18 +105,18 @@ field.
 =cut
 
 sub addTransferEncoder($$)
-{   my ($class, $type, $encoderclass) = @_;
-    $encoder{lc $type} = $encoderclass;
-    $class;
+{	my ($class, $type, $encoderclass) = @_;
+	$encoder{lc $type} = $encoderclass;
+	$class;
 }
 
 =method name
 The name of the encoder.  Case is not significant.
 =cut
 
-sub name {shift->notImplemented}
+sub name { $_[0]->notImplemented }
 
-#------------------------------------------
+#--------------------
 =section Encoding
 
 =method check $body, %options
@@ -131,42 +126,36 @@ and returned.
 
 =option  result_type  CLASS
 =default result_type  <type of source body>
-
 The type of the body to be produced, when the checker decides to return
-modified data.  
+modified data.
 
 =cut
 
-sub check($@) {shift->notImplemented}
+sub check($@) { $_[0]->notImplemented }
 
 =method decode $body, %options
 Use the encoder to decode the content of $body.  A new body is returned.
 
 =option  result_type  CLASS
 =default result_type  <type of source body>
-
 The type of the body to be produced, when the decoder decides to return
 modified data.
-
-
 =cut
 
-sub decode($@) {shift->notImplemented}
+sub decode($@) { $_[0]->notImplemented }
 
 =method encode $body, %options
 Use the encoder to encode the content of $body.
 
 =option  result_type  CLASS
 =default result_type  <type of source body>
-
 The type of the body to be produced, when the decoder decides to return
 modified data.
-
 =cut
 
-sub encode($) {shift->notImplemented}
+sub encode($) { $_[0]->notImplemented }
 
-#------------------------------------------
+#--------------------
 =section Error handling
 
 =cut

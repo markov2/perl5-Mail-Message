@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Test;
 use base 'Exporter';
@@ -8,21 +9,12 @@ use base 'Exporter';
 use strict;
 use warnings;
 
-use File::Copy 'copy';
-use List::Util 'first';
-use IO::File;            # to overrule open()
-use File::Spec;
-use Cwd qw(getcwd);
-use Sys::Hostname qw(hostname);
+use File::Copy    qw/copy/;
+use List::Util    qw/first/;
+use IO::File;                # to overrule open()
 use Test::More;
 
-
-our @EXPORT =
-  qw/compare_message_prints reproducable_text
-     $raw_html_data
-     $crlf_platform
-    /;
-
+our @EXPORT = qw/compare_message_prints reproducable_text $raw_html_data $crlf_platform/;
 our $crlf_platform = $^O =~ m/mswin32/i;
 
 #
@@ -31,13 +23,13 @@ our $crlf_platform = $^O =~ m/mswin32/i;
 #
 
 sub compare_message_prints($$$)
-{   my ($first, $second, $label) = @_;
+{	my ($first, $second, $label) = @_;
 
-    if($crlf_platform)
-    {   s/Content-Length: (\d+)/Content-Length: <removed>/g for $first, $second;
-    }
+	if($crlf_platform)
+	{	s/Content-Length: (\d+)/Content-Length: <removed>/g for $first, $second;
+	}
 
-    is($first, $second, $label);
+	is($first, $second, $label);
 }
 
 #
@@ -46,13 +38,13 @@ sub compare_message_prints($$$)
 #
 
 sub reproducable_text($)
-{   my $text  = shift;
-    my @lines = split /^/m, $text;
-    foreach (@lines)
-    {   s/((?:references|message-id|date|content-length)\: ).*/$1<removed>/i;
-        s/boundary-\d+/boundary-<removed>/g;
-    }
-    join '', @lines;
+{	my $text  = shift;
+	my @lines = split /^/m, $text;
+	foreach (@lines)
+	{	s/((?:references|message-id|date|content-length)\: ).*/$1<removed>/i;
+		s/boundary-\d+/boundary-<removed>/g;
+	}
+	join '', @lines;
 }
 
 #

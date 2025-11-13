@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::TransferEnc::Base64;
 use base 'Mail::Message::TransferEnc';
@@ -10,15 +11,16 @@ use warnings;
 
 use MIME::Base64  qw/decode_base64 encode_base64/;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::TransferEnc::Base64 - encode/decode base64 message bodies
 
 =chapter SYNOPSIS
 
- my Mail::Message $msg = ...;
- my $decoded = $msg->decoded;
- my $encoded = $msg->encode(transfer => 'base64');
+  my Mail::Message $msg = ...;
+  my $decoded = $msg->decoded;
+  my $encoded = $msg->encode(transfer => 'base64');
 
 =chapter DESCRIPTION
 
@@ -41,8 +43,8 @@ four bytes.
 sub name() { 'base64' }
 
 sub check($@)
-{   my ($self, $body, %args) = @_;
-    $body;
+{	my ($self, $body, %args) = @_;
+	$body;
 }
 
 =method decode $body, %options
@@ -53,37 +55,28 @@ this data is ignored.
 =cut
 
 sub decode($@)
-{   my ($self, $body, %args) = @_;
+{	my ($self, $body, %args) = @_;
 
-    my $lines = decode_base64($body->string);
-    unless($lines)
-    {   $body->transferEncoding('none');
-        return $body;
-    }
- 
-    my $bodytype
-      = defined $args{result_type} ? $args{result_type}
-      : $body->isBinary            ? 'Mail::Message::Body::File'
-      :                              ref $body;
+	my $lines = decode_base64($body->string);
+	unless($lines)
+	{	$body->transferEncoding('none');
+		return $body;
+	}
 
-    $bodytype->new
-     ( based_on          => $body
-     , transfer_encoding => 'none'
-     , data              => $lines
-     );
+	my $bodytype = $args{result_type} || ($body->isBinary ? 'Mail::Message::Body::File' : ref $body);
+	$bodytype->new(based_on => $body, transfer_encoding => 'none', data => $lines);
 }
 
 sub encode($@)
-{   my ($self, $body, %args) = @_;
+{	my ($self, $body, %args) = @_;
+	my $bodytype = $args{result_type} || ref $body;
 
-    my $bodytype = $args{result_type} || ref $body;
-
-    $bodytype->new
-     ( based_on          => $body
-     , checked           => 1
-     , transfer_encoding => 'base64'
-     , data              => encode_base64($body->string)
-     );
+	$bodytype->new(
+		based_on          => $body,
+		checked           => 1,
+		transfer_encoding => 'base64',
+		data              => encode_base64($body->string),
+	);
 }
 
 1;

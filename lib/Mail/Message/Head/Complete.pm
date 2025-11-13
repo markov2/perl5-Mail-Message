@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Head::Complete;
 use base 'Mail::Message::Head';
@@ -8,21 +9,22 @@ use base 'Mail::Message::Head';
 use strict;
 use warnings;
 
-use Mail::Box::Parser;
-use Mail::Message::Head::Partial;
+use Mail::Box::Parser             ();
+use Mail::Message::Head::Partial  ();
 
 use Scalar::Util  qw/weaken blessed/;
 use List::Util    qw/sum/;
 use Sys::Hostname qw/hostname/;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Head::Complete - the header of one message
 
 =chapter SYNOPSIS
 
- my $head = Mail::Message::Head::Complete->new;
- See Mail::Message::Head
+  my $head = Mail::Message::Head::Complete->new;
+  See Mail::Message::Head
 
 =chapter DESCRIPTION
 
@@ -40,17 +42,17 @@ specified by @names.  See M<grepNames()> on the way these fields can be
 used.
 
 =example
- my $newhead = $head->clone('Subject', 'Received');
+  my $newhead = $head->clone('Subject', 'Received');
 
 =cut
 
 sub clone(;@)
-{   my $self   = shift;
-    my $copy   = ref($self)->new($self->logSettings);
+{	my $self   = shift;
+	my $copy   = ref($self)->new($self->logSettings);
 
-    $copy->addNoRealize($_->clone) for $self->grepNames(@_);
-    $copy->modified(1);
-    $copy;
+	$copy->addNoRealize($_->clone) for $self->grepNames(@_);
+	$copy->modified(1);
+	$copy;
 }
 
 =c_method build [PAIR|$field], ...
@@ -59,34 +61,33 @@ Undefined values are interpreted as empty field values, and therefore skipped.
 =cut
 
 sub build(@)
-{   my $class = shift;
-    my $self  = $class->new;
-    while(@_)
-    {   my $name = shift;
-        defined $name or next;
+{	my $class = shift;
+	my $self  = $class->new;
+	while(@_)
+	{	my $name = shift;
+		defined $name or next;
 
-        if($name->isa('Mail::Message::Field'))
-        {   $self->add($name);
-            next;
-        }
+		if($name->isa('Mail::Message::Field'))
+		{	$self->add($name);
+			next;
+		}
 
-        my $content = shift;
-        defined $content or next;
+		my $content = shift;
+		defined $content or next;
 
-        if(ref $content && $content->isa('Mail::Message::Field'))
-        {   $self->log(WARNING => "Field objects have an implied name ($name)");
-            $self->add($content);
-            next;
-        }
+		if(ref $content && $content->isa('Mail::Message::Field'))
+		{	$self->log(WARNING => "Field objects have an implied name ($name)");
+			$self->add($content);
+			next;
+		}
 
-        $self->add($name, $content);
-    }
+		$self->add($name, $content);
+	}
 
-    $self;
+	$self;
 }
 
-#------------------------------------------
-
+#--------------------
 =section The header
 =cut
 
@@ -111,16 +112,15 @@ Re-fold all fields from the header to contain at most $integer number of
 characters per line.
 
 =example re-folding a header
- $msg->head->wrap(78);
+  $msg->head->wrap(78);
 =cut
 
 sub wrap($)
-{   my ($self, $length) = @_;
-    $_->setWrapLength($length) for $self->orderedFields;
+{	my ($self, $length) = @_;
+	$_->setWrapLength($length) for $self->orderedFields;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Access to the header
 
 =method add $field | $line | <$name, $body, [$attrs]>
@@ -128,7 +128,7 @@ sub wrap($)
 Add a field to the header.  If a field is added more than once, all values
 are stored in the header, in the order they are added.
 
-When a $field object is specified (some M<Mail::Message::Field> instance), that
+When a $field object is specified (some Mail::Message::Field instance), that
 will be added.  Another possibility is to specify a raw header $line, or a
 header line nicely split-up in $name and $body, in which case the
 field constructor is called for you.
@@ -138,50 +138,50 @@ to be correctly folded.  Lines which are not terminated by a new-line will
 be folded when needed: new-lines will be added where required.  It is strongly
 advised to let MailBox do the folding for you.
 
-The return value of this method is the M<Mail::Message::Field> object
+The return value of this method is the Mail::Message::Field object
 which is created (or was specified).
 
 =examples
 
- my $head  = M<Mail::Message::Head>->new;
- $head->add('Subject: hi!');
- $head->add(From => 'me@home');
- my $field = Mail::Message::Field->new('To: you@there');
- $head->add($field);
- my Mail::Message::Field $s = $head->add(Sender => 'I');
+  my $head  = Mail::Message::Head->new;
+  $head->add('Subject: hi!');
+  $head->add(From => 'me@home');
+  my $field = Mail::Message::Field->new('To: you@there');
+  $head->add($field);
+  my Mail::Message::Field $s = $head->add(Sender => 'I');
 
 =cut
 
 sub add(@)
-{   my $self = shift;
+{	my $self = shift;
 
-    # Create object for this field.
+	# Create object for this field.
 
-    my $field
-      = @_==1 && blessed $_[0] ? shift     # A fully qualified field is added.
-      : ($self->{MMH_field_type} || 'Mail::Message::Field::Fast')->new(@_);
+	my $field
+	= @_==1 && blessed $_[0] ? shift     # A fully qualified field is added.
+	: ($self->{MMH_field_type} || 'Mail::Message::Field::Fast')->new(@_);
 
-    return if !defined $field;
+	return if !defined $field;
 
-    $field->setWrapLength;
+	$field->setWrapLength;
 
-    # Put it in place.
+	# Put it in place.
 
-    my $known = $self->{MMH_fields};
-    my $name  = $field->name;  # is already lower-cased
+	my $known = $self->{MMH_fields};
+	my $name  = $field->name;  # is already lower-cased
 
-    $self->addOrderedFields($field);
+	$self->addOrderedFields($field);
 
-    if(defined $known->{$name})
-    {   if(ref $known->{$name} eq 'ARRAY') { push @{$known->{$name}}, $field }
-        else { $known->{$name} = [ $known->{$name}, $field ] }
-    }
-    else
-    {   $known->{$name} = $field;
-    }
+	if(defined $known->{$name})
+	{	if(ref $known->{$name} eq 'ARRAY') { push @{$known->{$name}}, $field }
+		else { $known->{$name} = [ $known->{$name}, $field ] }
+	}
+	else
+	{	$known->{$name} = $field;
+	}
 
-    $self->{MMH_modified}++;
-    $field;
+	$self->{MMH_modified}++;
+	$field;
 }
 
 =method count $name
@@ -191,12 +191,12 @@ are usually present more than once.
 =cut
 
 sub count($)
-{   my $known = shift->{MMH_fields};
-    my $value = $known->{lc shift};
+{	my $known = shift->{MMH_fields};
+	my $value = $known->{lc shift};
 
-      ! defined $value ? 0
-    : ref $value       ? @$value
-    :                    1;
+	! defined $value ? 0
+	: ref $value       ? @$value
+	:                    1;
 }
 
 =method names
@@ -205,7 +205,7 @@ header.  Fields which were reset() to be empty will still be
 listed here.
 =cut
 
-sub names() {shift->knownNames}
+sub names() { $_[0]->knownNames }
 
 =method grepNames [@names|ARRAY|Regexps]
 Filter from all header fields those with names which start will any of the
@@ -217,29 +217,29 @@ case insensitive and attached to the front of the string only.  You may
 also specify one or more prepared regexes.
 
 =examples
- my @f  = $head->grepNames();       # same as $head->orderedFields
- my @f  = $head->grepNames('X-', 'Subject', ');
- my @to = $head->grepNames('To\b'); # will only select To
+  my @f  = $head->grepNames();       # same as $head->orderedFields
+  my @f  = $head->grepNames('X-', 'Subject', ');
+  my @to = $head->grepNames('To\b'); # will only select To
 =cut
 
 sub grepNames(@)
-{   my $self = shift;
-    my @take;
-    push @take, (ref $_ eq 'ARRAY' ? @$_ : $_) for @_;
+{	my $self = shift;
+	my @take;
+	push @take, (ref $_ eq 'ARRAY' ? @$_ : $_) for @_;
 
-    @take or return $self->orderedFields;
+	@take or return $self->orderedFields;
 
-    my $take;
-    if(@take==1 && ref $take[0] eq 'Regexp')
-    {   $take    = $take[0];   # one regexp prepared already
-    }
-    else
-    {   # I love this trick:
-        local $" = ')|(?:';
-        $take    = qr/^(?:(?:@take))/i;
-    }
+	my $take;
+	if(@take==1 && ref $take[0] eq 'Regexp')
+	{	$take    = $take[0];   # one regexp prepared already
+	}
+	else
+	{	# I love this trick:
+		local $" = ')|(?:';
+		$take    = qr/^(?:(?:@take))/i;
+	}
 
-    grep { $_->name =~ $take } $self->orderedFields;
+	grep { $_->name =~ $take } $self->orderedFields;
 }
 
 =method set $field | $line | <$name, $body, [$attrs]>
@@ -252,31 +252,31 @@ my @skip_none = qw/content-transfer-encoding content-disposition content-descrip
 my %skip_none = map +($_ => 1), @skip_none;
 
 sub set(@)
-{   my $self = shift;
-    @_!=1 || defined $_[0] or return;
+{	my $self = shift;
+	@_!=1 || defined $_[0] or return;
 
-    my $type = $self->{MMH_field_type} || 'Mail::Message::Field::Fast';
-    $self->{MMH_modified}++;
+	my $type = $self->{MMH_field_type} || 'Mail::Message::Field::Fast';
+	$self->{MMH_modified}++;
 
-    # Create object for this field.
-    my $field = @_==1 && blessed $_[0] ? shift->clone : $type->new(@_);
+	# Create object for this field.
+	my $field = @_==1 && blessed $_[0] ? shift->clone : $type->new(@_);
 
-    my $name  = $field->name;         # is already lower-cased
-    my $known = $self->{MMH_fields};
+	my $name  = $field->name;         # is already lower-cased
+	my $known = $self->{MMH_fields};
 
-    # Internally, non-existing content-info are in the body stored as 'none'
-    # The header will not contain these lines.
+	# Internally, non-existing content-info are in the body stored as 'none'
+	# The header will not contain these lines.
 
-    if($skip_none{$name} && $field->body eq 'none')
-    {   delete $known->{$name};
-        return $field;
-    }
+	if($skip_none{$name} && $field->body eq 'none')
+	{	delete $known->{$name};
+		return $field;
+	}
 
-    $field->setWrapLength;
-    $known->{$name} = $field;
+	$field->setWrapLength;
+	$known->{$name} = $field;
 
-    $self->addOrderedFields($field);
-    $field;
+	$self->addOrderedFields($field);
+	$field;
 }
 
 =method reset $name, @fields
@@ -290,7 +290,7 @@ together.  For instance, the C<'Received'> lines are part of resent
 groups, C<'X-Spam'> is past of a spam group, and C<List-Post> belongs
 to a list group.  You can delete a whole group with
 M<Mail::Message::Head::FieldGroup::delete()>, or with methods which
-are provided by M<Mail::Message::Head::Partial>.
+are provided by Mail::Message::Head::Partial.
 
 If FIELDS is empty, the corresponding $name fields will
 be removed. The location of removed fields in the header order will be
@@ -299,39 +299,39 @@ the remembered position.  This is equivalent to the M<delete()> method.
 
 =examples
 
- # reduce number of 'Keywords' lines to last 5)
- my @keywords = $head->get('Keywords');
- $head->reset('Keywords', @keywords[-5..-1]) if @keywords > 5;
+  # reduce number of 'Keywords' lines to last 5)
+  my @keywords = $head->get('Keywords');
+  $head->reset('Keywords', @keywords[-5..-1]) if @keywords > 5;
 
- # Reduce the number of Received lines to only the last added one.
- my @rgs = $head->resentGroups;
- shift @rgs;     # keep this one (later is added in front)
- $_->delete foreach @rgs;
+  # Reduce the number of Received lines to only the last added one.
+  my @rgs = $head->resentGroups;
+  shift @rgs;     # keep this one (later is added in front)
+  $_->delete foreach @rgs;
 
 =cut
 
 sub reset($@)
-{   my ($self, $name) = (shift, lc shift);
+{	my ($self, $name) = (shift, lc shift);
 
-    my $known = $self->{MMH_fields};
+	my $known = $self->{MMH_fields};
 
-    if(@_==0)
-    {   $self->{MMH_modified}++ if delete $known->{$name};
-        return ();
-    }
+	if(@_==0)
+	{	$self->{MMH_modified}++ if delete $known->{$name};
+		return ();
+	}
 
-    $self->{MMH_modified}++;
+	$self->{MMH_modified}++;
 
-    # Cloning required, otherwise double registrations will not be
-    # removed from the ordered list: that's controled by 'weaken'
+	# Cloning required, otherwise double registrations will not be
+	# removed from the ordered list: that's controled by 'weaken'
 
-    my @fields = map $_->clone, @_;
+	my @fields = map $_->clone, @_;
 
-    if(@_==1) { $known->{$name} = $fields[0] }
-    else      { $known->{$name} = [@fields]  }
+	if(@_==1) { $known->{$name} = $fields[0] }
+	else      { $known->{$name} = [@fields]  }
 
-    $self->addOrderedFields(@fields);
-    $self;
+	$self->addOrderedFields(@fields);
+	$self;
 }
 
 =method delete $name
@@ -361,27 +361,27 @@ for printing.  If the field is removed from the hash, the weak-ref is set to
 undef and the field not printed.
 
 However... it is easy to disturb this process.  Example:
- my $msg = ....;                 # subject ref-count = 1 + 0 = 1
- $msg->head->delete('Subject');  # subject ref-count =     0 = 0: clean-up
- $msg->print;                    # subject doesn't show: ok
+  my $msg = ....;                 # subject ref-count = 1 + 0 = 1
+  $msg->head->delete('Subject');  # subject ref-count =     0 = 0: clean-up
+  $msg->print;                    # subject doesn't show: ok
 
 But
- my $msg = ....;                 # subject ref-count = 1 + 0 = 1
- my $s = $msg->head->get('subject'); # ref-count = 1 + 1 + 0 = 2
- $msg->head->delete('Subject');  # subject ref-count = 1 + 0 = 1: no clean-up
- $msg->print;                    # subject DOES show: not ok
- undef $s;                       # ref-count becomes 0: clean-up
- $msg->print;                    # subject doesn't show: ok
+  my $msg = ....;                 # subject ref-count = 1 + 0 = 1
+  my $s = $msg->head->get('subject'); # ref-count = 1 + 1 + 0 = 2
+  $msg->head->delete('Subject');  # subject ref-count = 1 + 0 = 1: no clean-up
+  $msg->print;                    # subject DOES show: not ok
+  undef $s;                       # ref-count becomes 0: clean-up
+  $msg->print;                    # subject doesn't show: ok
 
 To avoid the latter situation, do not catch the field object, but only
 the field content.  SAVE are all methods which return the text:
- my $s = $msg->head->get('subject')->body;
- my $s = $msg->head->get('subject')->unfoldedBody;
- my $s = $msg->head->get('subject')->foldedBody;
- my $s = $msg->head->get('subject')->foldedBody;
- my $s = $msg->get('subject');
- my $s = $msg->subject;
- my $s = $msg->string;
+  my $s = $msg->head->get('subject')->body;
+  my $s = $msg->head->get('subject')->unfoldedBody;
+  my $s = $msg->head->get('subject')->foldedBody;
+  my $s = $msg->head->get('subject')->foldedBody;
+  my $s = $msg->get('subject');
+  my $s = $msg->subject;
+  my $s = $msg->string;
 
 =warning Cannot remove field $name from header: not found.
 You ask to remove a field which is not known in the header.  Using
@@ -391,48 +391,48 @@ in warnings: those methods check the existence of the field first.
 =cut
 
 sub removeField($)
-{   my ($self, $field) = @_;
-    my $name  = $field->name;
-    my $known = $self->{MMH_fields};
+{	my ($self, $field) = @_;
+	my $name  = $field->name;
+	my $known = $self->{MMH_fields};
 
-    if(!defined $known->{$name})
-    { ; }  # complain
-    elsif(ref $known->{$name} eq 'ARRAY')
-    {    for(my $i=0; $i < @{$known->{$name}}; $i++)
-         {
-             return splice @{$known->{$name}}, $i, 1
-                 if $known->{$name}[$i] eq $field;
-         }
-    }
-    elsif($known->{$name} eq $field)
-    {    return delete $known->{$name};
-    }
+	if(!defined $known->{$name})
+	{	; }  # complain
+	elsif(ref $known->{$name} eq 'ARRAY')
+	{	for(my $i=0; $i < @{$known->{$name}}; $i++)
+		{
+			return splice @{$known->{$name}}, $i, 1
+				if $known->{$name}[$i] eq $field;
+		}
+	}
+	elsif($known->{$name} eq $field)
+	{	return delete $known->{$name};
+	}
 
-    $self->log(WARNING => "Cannot remove field $name from header: not found.");
+	$self->log(WARNING => "Cannot remove field $name from header: not found.");
 
-    return;
+	return;
 }
 
 =method removeFields <STRING|Regexp>, ...
-The header object is turned into a M<Mail::Message::Head::Partial> object
+The header object is turned into a Mail::Message::Head::Partial object
 which has a set of fields removed.  Read about the implications and the
 possibilities in M<Mail::Message::Head::Partial::removeFields()>.
 =cut
 
 sub removeFields(@)
-{   my $self = shift;
-    (bless $self, 'Mail::Message::Head::Partial')->removeFields(@_);
+{	my $self = shift;
+	(bless $self, 'Mail::Message::Head::Partial')->removeFields(@_);
 }
 
 =method removeFieldsExcept <STRING|Regexp>, ...
-The header object is turned into a M<Mail::Message::Head::Partial> object
+The header object is turned into a Mail::Message::Head::Partial object
 which has a set of fields removed.  Read about the implications and the
 possibilities in M<Mail::Message::Head::Partial::removeFieldsExcept()>.
 =cut
 
 sub removeFieldsExcept(@)
-{   my $self = shift;
-    (bless $self, 'Mail::Message::Head::Partial')->removeFieldsExcept(@_);
+{	my $self = shift;
+	(bless $self, 'Mail::Message::Head::Partial')->removeFieldsExcept(@_);
 }
 
 =method removeContentInfo
@@ -440,60 +440,60 @@ Remove all body related fields from the header.  The header will become
 partial.
 =cut
 
-sub removeContentInfo() { shift->removeFields(qr/^Content-/, 'Lines') }
+sub removeContentInfo() { $_[0]->removeFields(qr/^Content-/, 'Lines') }
 
 =method removeResentGroups
 Removes all resent groups at once.  The header object is turned into
-a M<Mail::Message::Head::Partial> object.  Read about the implications and the
+a Mail::Message::Head::Partial object.  Read about the implications and the
 possibilities in M<Mail::Message::Head::Partial::removeResentGroups()>.
 =cut
 
 sub removeResentGroups(@)
-{   my $self = shift;
-    (bless $self, 'Mail::Message::Head::Partial')->removeResentGroups(@_);
+{	my $self = shift;
+	(bless $self, 'Mail::Message::Head::Partial')->removeResentGroups(@_);
 }
 
 =method removeListGroup
 Removes all fields related to mailing list administration at once.
-The header object is turned into a M<Mail::Message::Head::Partial>
+The header object is turned into a Mail::Message::Head::Partial
 object.  Read about the implications and the possibilities in
 M<Mail::Message::Head::Partial::removeListGroup()>.
 =cut
 
 sub removeListGroup(@)
-{   my $self = shift;
-    (bless $self, 'Mail::Message::Head::Partial')->removeListGroup(@_);
+{	my $self = shift;
+	(bless $self, 'Mail::Message::Head::Partial')->removeListGroup(@_);
 }
 
 =method removeSpamGroups
 Removes all fields which were added by various spam detection software
-at once.  The header object is turned into a M<Mail::Message::Head::Partial>
+at once.  The header object is turned into a Mail::Message::Head::Partial
 object.  Read about the implications and the possibilities in
 M<Mail::Message::Head::Partial::removeSpamGroups()>.
 =cut
 
 sub removeSpamGroups(@)
-{   my $self = shift;
-    (bless $self, 'Mail::Message::Head::Partial')->removeSpamGroups(@_);
+{	my $self = shift;
+	(bless $self, 'Mail::Message::Head::Partial')->removeSpamGroups(@_);
 }
 
 =method spamDetected
 Returns whether one of the spam groups defines a report about spam.  If there
 are not header fields in the message which relate to spam-detection
-software, C<undef> is returned.  The spamgroups which report spam are returned.
+software, undef is returned.  The spamgroups which report spam are returned.
 
 =examples
- $message->delete if $message->spamDetected;
+  $message->delete if $message->spamDetected;
 
- call_spamassassin($message)
-    unless defined $message->spamDetected;
+  defined $message->spamDetected
+     or call_spamassassin($message);
 
 =cut
 
 sub spamDetected()
-{   my $self = shift;
-    my @sgs = $self->spamGroups or return undef;
-    grep { $_->spamDetected } @sgs;
+{	my $self = shift;
+	my @sgs = $self->spamGroups or return undef;
+	grep { $_->spamDetected } @sgs;
 }
 
 =method print [$fh]
@@ -502,19 +502,19 @@ filehandle.  See M<printUndisclosed()> to limit the headers to include
 only the public headers.
 
 =examples
- $head->print(\*OUT);
- $head->print;
+  $head->print(\*OUT);
+  $head->print;         # to selected file
 
- my $fh = IO::File->new(...);
- $head->print($fh);
+  open my ($fh), '>:raw', $filename;
+  $head->print($fh);
 =cut
 
 sub print(;$)
-{   my $self = shift;
-    my $fh   = shift || select;
-    $_->print($fh) for $self->orderedFields;
-    $fh->print("\n");
-    $self;
+{	my $self = shift;
+	my $fh   = shift || select;
+	$_->print($fh) for $self->orderedFields;
+	$fh->print("\n");
+	$self;
 }
 
 =method printUndisclosed [$fh]
@@ -524,10 +524,10 @@ C<Bcc> and C<Resent-Bcc> lines are included.
 =cut
 
 sub printUndisclosed($)
-{   my ($self, $fh) = @_;
-    $_->print($fh) for grep $_->toDisclose, $self->orderedFields;
-    $fh->print("\n");
-    $self;
+{	my ($self, $fh) = @_;
+	$_->print($fh) for grep $_->toDisclose, $self->orderedFields;
+	$fh->print("\n");
+	$self;
 }
 
 =method printSelected $fh, <STRING|Regexp>, ...
@@ -537,28 +537,28 @@ STRING (case insensative) or Regexp are printed.  They will stay the in-order
 of the source header.
 
 =example printing only a subset of the fields
- $head->printSelected(STDOUT, qw/Subject From To/, qr/^x\-(spam|xyz)\-/i)
+  $head->printSelected(STDOUT, qw/Subject From To/, qr/^x\-(spam|xyz)\-/i)
 
 =cut
 
 sub printSelected($@)
-{   my ($self, $fh) = (shift, shift);
+{	my ($self, $fh) = (shift, shift);
 
-    foreach my $field ($self->orderedFields)
-    {   my $Name = $field->Name;
-        my $name = $field->name;
+	foreach my $field ($self->orderedFields)
+	{	my $Name = $field->Name;
+		my $name = $field->name;
 
-        my $found;
-        foreach my $pattern (@_)
-        {   $found = ref $pattern ? ($Name =~ $pattern) : ($name eq lc $pattern);
-            last if $found;
-        }
+		my $found;
+		foreach my $pattern (@_)
+		{	$found = ref $pattern ? ($Name =~ $pattern) : ($name eq lc $pattern);
+			last if $found;
+		}
 
-        if(!$found) { ; }
-        else        { $fh->print("\n") }
-    }
+		if(!$found) { ; }
+		else        { $fh->print("\n") }
+	}
 
-    $self;
+	$self;
 }
 
 =method string
@@ -566,18 +566,18 @@ Returns the whole header as one scalar (in scalar context) or list
 of lines (list context).  Triggers completion.
 =cut
 
-sub toString() { shift->string }
+sub toString() { $_[0]->string }
 sub string()
-{   my $self  = shift;
+{	my $self  = shift;
 
-    my @lines = map $_->string, $self->orderedFields;
-    push @lines, "\n";
+	my @lines = map $_->string, $self->orderedFields;
+	push @lines, "\n";
 
-    wantarray ? @lines : join('', @lines);
+	wantarray ? @lines : join('', @lines);
 }
 
 =method resentGroups
-Returns a list of M<Mail::Message::Head::ResentGroup> objects which
+Returns a list of Mail::Message::Head::ResentGroup objects which
 each represent one intermediate point in the message's transmission in
 the order as they appear in the header: the most recent one first.
 See also M<addResentGroup()> and M<removeResentGroups()>.
@@ -589,13 +589,13 @@ C<Received> field.
 =cut
 
 sub resentGroups()
-{   my $self = shift;
-    require Mail::Message::Head::ResentGroup;
-    Mail::Message::Head::ResentGroup->from($self);
+{	my $self = shift;
+	require Mail::Message::Head::ResentGroup;
+	Mail::Message::Head::ResentGroup->from($self);
 }
 
 =method addResentGroup $resent_group|$data
-Add a $resent_group (a M<Mail::Message::Head::ResentGroup> object) to
+Add a $resent_group (a Mail::Message::Head::ResentGroup object) to
 the header.  If you specify $data, that is used to create such group
 first.  If no C<Received> line is specified, it will be created
 for you.
@@ -605,49 +605,49 @@ of C<reply> or C<forward> actions: these lines trace the e-mail
 transport mechanism.
 
 =examples
- my $rg = Mail::Message::Head::ResentGroup->new(head => $head, ...);
- $head->addResentGroup($rg);
+  my $rg = Mail::Message::Head::ResentGroup->new(head => $head, ...);
+  $head->addResentGroup($rg);
 
- my $rg = $head->addResentGroup(From => 'me');
+  my $rg = $head->addResentGroup(From => 'me');
 =cut
 
 sub addResentGroup(@)
-{   my $self  = shift;
+{	my $self  = shift;
 
-    require Mail::Message::Head::ResentGroup;
-    my $rg = @_==1 ? (shift) : Mail::Message::Head::ResentGroup->new(@_);
+	require Mail::Message::Head::ResentGroup;
+	my $rg = @_==1 ? (shift) : Mail::Message::Head::ResentGroup->new(@_);
 
-    my @fields = $rg->orderedFields;
-    my $order  = $self->{MMH_order};
+	my @fields = $rg->orderedFields;
+	my $order  = $self->{MMH_order};
 
-    # Look for the first line which relates to resent groups
-    my $i;
-    for($i=0; $i < @$order; $i++)
-    {   next unless defined $order->[$i];
-        last if $rg->isResentGroupFieldName($order->[$i]->name);
-    }
+	# Look for the first line which relates to resent groups
+	my $i;
+	for($i=0; $i < @$order; $i++)
+	{	defined $order->[$i] or next;
+		last if $rg->isResentGroupFieldName($order->[$i]->name);
+	}
 
-    my $known = $self->{MMH_fields};
-    while(@fields)
-    {   my $f    = pop @fields;
+	my $known = $self->{MMH_fields};
+	while(@fields)
+	{	my $f    = pop @fields;
 
-        # Add to the order of fields
-        splice @$order, $i, 0, $f;
-        weaken( $order->[$i] );
-        my $name = $f->name;
+		# Add to the order of fields
+		splice @$order, $i, 0, $f;
+		weaken( $order->[$i] );
+		my $name = $f->name;
 
-        # Adds *before* in the list for get().
-           if(!defined $known->{$name})      {$known->{$name} = $f}
-        elsif(ref $known->{$name} eq 'ARRAY'){unshift @{$known->{$name}},$f}
-        else                       {$known->{$name} = [$f, $known->{$name}]}
-    }
+		# Adds *before* in the list for get().
+		   if(!defined $known->{$name})      { $known->{$name} = $f }
+		elsif(ref $known->{$name} eq 'ARRAY'){ unshift @{$known->{$name}}, $f }
+		else                       { $known->{$name} = [$f, $known->{$name}] }
+	}
 
-    $rg->messageHead($self);
+	$rg->messageHead($self);
 
-    # Oh, the header has changed!
-    $self->modified(1);
+	# Oh, the header has changed!
+	$self->modified(1);
 
-    $rg;
+	$rg;
 }
 
 =method listGroup
@@ -656,24 +656,24 @@ the information about mailing list software used to transport the
 message.  See also M<addListGroup()> and M<removeListGroup()>.
 
 =example use of listGroup()
- if(my $lg = $msg->head->listGroup)
- {  $lg->print(\*STDERR);
-    $lg->delete;
- }
+  if(my $lg = $msg->head->listGroup)
+  {  $lg->print(\*STDERR);
+     $lg->delete;
+  }
 
- $msg->head->removeListGroup;
+  $msg->head->removeListGroup;
 =cut
 
 sub listGroup()
-{   my $self = shift;
-    eval "require 'Mail::Message::Head::ListGroup'";
-    Mail::Message::Head::ListGroup->from($self);
+{	my $self = shift;
+	eval "require 'Mail::Message::Head::ListGroup'";
+	Mail::Message::Head::ListGroup->from($self);
 }
 
 =method addListGroup $object
 A I<list group> is a set of header fields which contain data about a
 mailing list which was used to transmit the message.  See
-M<Mail::Message::Head::ListGroup> for details about the implementation
+Mail::Message::Head::ListGroup for details about the implementation
 of the $object.
 
 When you have a list group prepared, you can add it later using this
@@ -681,17 +681,17 @@ method.  You will get your private copy of the list group data in
 return, because the same group can be used for multiple messages.
 
 =example of adding a list group to a header
- my $lg = M<Mail::Message::Head::ListGroup>->new(...);
- my $own_lg = $msg->head->addListGroup($lg);
+  my $lg = Mail::Message::Head::ListGroup->new(...);
+  my $own_lg = $msg->head->addListGroup($lg);
 =cut
 
 sub addListGroup($)
-{   my ($self, $lg) = @_;
-    $lg->attach($self);
+{	my ($self, $lg) = @_;
+	$lg->attach($self);
 }
 
 =method spamGroups [$names]
-Returns a list of M<Mail::Message::Head::SpamGroup> objects, each collecting
+Returns a list of Mail::Message::Head::SpamGroup objects, each collecting
 some lines which contain spam fighting information.  When any $names are
 given, then only these groups are returned.
 See also M<addSpamGroup()> and M<removeSpamGroups()>.
@@ -701,24 +701,24 @@ returned.  With more $names or without $names, a list will be returned
 (which defaults to the length of the list in scalar context).
 
 =example use of listGroup()
- my @sg = $msg->head->spamGroups;
- $sg[0]->print(\*STDERR);
- $sg[-1]->delete;
+  my @sg = $msg->head->spamGroups;
+  $sg[0]->print(\*STDERR);
+  $sg[-1]->delete;
 
- my $sg = $msg->head->spamGroups('SpamAssassin');
+  my $sg = $msg->head->spamGroups('SpamAssassin');
 =cut
 
 sub spamGroups(@)
-{   my $self = shift;
-    require Mail::Message::Head::SpamGroup;
-    my @types = @_ ? (types => \@_) : ();
-    my @sgs   = Mail::Message::Head::SpamGroup->from($self, @types);
-    wantarray || @_ != 1 ? @sgs : $sgs[0];
+{	my $self = shift;
+	require Mail::Message::Head::SpamGroup;
+	my @types = @_ ? (types => \@_) : ();
+	my @sgs   = Mail::Message::Head::SpamGroup->from($self, @types);
+	wantarray || @_ != 1 ? @sgs : $sgs[0];
 }
 
 =method addSpamGroup $object
 A I<spam fighting group> is a set of header fields which contains data
-which is used to fight spam.  See M<Mail::Message::Head::SpamGroup>
+which is used to fight spam.  See Mail::Message::Head::SpamGroup
 for details about the implementation of the $object.
 
 When you have a spam group prepared, you can add it later using this
@@ -726,17 +726,16 @@ method.  You will get your private copy of the spam group data in
 return, because the same group can be used for multiple messages.
 
 =example of adding a spam group to a header
- my $sg = M<Mail::Message::Head::SpamGroup>->new(...);
- my $own_sg = $msg->head->addSpamGroup($sg);
+  my $sg = Mail::Message::Head::SpamGroup->new(...);
+  my $own_sg = $msg->head->addSpamGroup($sg);
 =cut
 
 sub addSpamGroup($)
-{   my ($self, $sg) = @_;
-    $sg->attach($self);
+{	my ($self, $sg) = @_;
+	$sg->attach($self);
 }
 
-#------------------------------------------
-
+#--------------------
 =section About the body
 
 =method timestamp
@@ -750,7 +749,7 @@ on your system (see perldoc -f time), and as such usable for the C<gmtime>
 and C<localtime> methods.
 =cut
 
-sub timestamp() {shift->guessTimestamp || time}
+sub timestamp() { $_[0]->guessTimestamp || time }
 
 =method recvstamp
 Returns an indication about when the message was sent, but only using the
@@ -760,41 +759,40 @@ trust the sender.
 
 Many spam producers fake a date, which mess up the order of receiving
 things.  The timestamp which is produced is derived from the Received
-headers, if they are present, and C<undef> otherwise.
+headers, if they are present, and undef otherwise.
 
 The timestamp is encoded as C<time> is on your system (see perldoc -f
 time), and as such usable for the C<gmtime> and C<localtime> methods.
 
 =example of time-sorting folders with received messages
- my $folder = $mgr->open('InBox');
- my @messages = sort {$a->recvstamp <=> $b->recvstamp}
-                   $folder->messages;
+  my $folder = $mgr->open('InBox');
+  my @messages = sort {$a->recvstamp <=> $b->recvstamp}
+                    $folder->messages;
 
 =example of time-sorting messages of mixed origin
- my $folder = $mgr->open('MyFolder');
+  my $folder = $mgr->open('MyFolder');
 
- # Pre-calculate timestamps to be sorted (for speed)
- my @stamps = map { [ ($_->timestamp || 0), $_ ] }
-                     $folder->messages;
+  # Pre-calculate timestamps to be sorted (for speed)
+  my @stamps = map +[ ($_->timestamp || 0), $_ ],
+    $folder->messages;
 
- my @sorted
-   = map { $_->[1] }      # get the message for the stamp
-       sort {$a->[0] <=> $b->[0]}   # stamps are numerics
-          @stamps;
+  my @sorted =
+    map { $_->[1] }      # get the message for the stamp
+      sort {$a->[0] <=> $b->[0]}   # stamps are numerics
+         @stamps;
 
 =cut
 
 sub recvstamp()
-{   my $self = shift;
+{	my $self = shift;
+	return $self->{MMH_recvstamp} if exists $self->{MMH_recvstamp};
 
-    return $self->{MMH_recvstamp} if exists $self->{MMH_recvstamp};
+	my $recvd = $self->get('received', 0)
+		or return $self->{MMH_recvstamp} = undef;
 
-    my $recvd = $self->get('received', 0) or
-        return $self->{MMH_recvstamp} = undef;
+	my $stamp = Mail::Message::Field->dateToTimestamp($recvd->comment);
 
-    my $stamp = Mail::Message::Field->dateToTimestamp($recvd->comment);
-
-    $self->{MMH_recvstamp} = defined $stamp && $stamp > 0 ? $stamp : undef;
+	$self->{MMH_recvstamp} = defined $stamp && $stamp > 0 ? $stamp : undef;
 }
 
 =method guessTimeStamp
@@ -808,38 +806,37 @@ supply that information.
 =cut
 
 sub guessTimestamp()
-{   my $self = shift;
-    return $self->{MMH_timestamp} if exists $self->{MMH_timestamp};
+{	my $self = shift;
+	return $self->{MMH_timestamp} if exists $self->{MMH_timestamp};
 
-    my $stamp;
-    if(my $date = $self->get('date'))
-    {   $stamp = Mail::Message::Field->dateToTimestamp($date);
-    }
+	my $stamp;
+	if(my $date = $self->get('date'))
+	{	$stamp = Mail::Message::Field->dateToTimestamp($date);
+	}
 
-    unless($stamp)
-    {   foreach (reverse $self->get('received'))
-        {   $stamp = Mail::Message::Field->dateToTimestamp($_->comment);
-            last if $stamp;
-        }
-    }
+	unless($stamp)
+	{	foreach (reverse $self->get('received'))
+		{	$stamp = Mail::Message::Field->dateToTimestamp($_->comment);
+			last if $stamp;
+		}
+	}
 
-    $self->{MMH_timestamp} = defined $stamp && $stamp > 0 ? $stamp : undef;
+	$self->{MMH_timestamp} = defined $stamp && $stamp > 0 ? $stamp : undef;
 }
 
 sub guessBodySize()
-{   my $self = shift;
+{	my $self = shift;
 
-    my $cl = $self->get('Content-Length');
-    return $1 if defined $cl && $cl =~ m/(\d+)/;
+	my $cl = $self->get('Content-Length');
+	return $1 if defined $cl && $cl =~ m/(\d+)/;
 
-    my $lines = $self->get('Lines');   # 40 chars per lines
-    return $1 * 40   if defined $lines && $lines =~ m/(\d+)/;
+	my $lines = $self->get('Lines');   # 40 chars per lines
+	return $1 * 40 if defined $lines && $lines =~ m/(\d+)/;
 
-    undef;
+	undef;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Internals
 
 =method createFromLine
@@ -850,11 +847,11 @@ one.
 =cut
 
 sub createFromLine()
-{   my $self   = shift;
-    my $sender = $self->message->sender;
-    my $stamp  = $self->recvstamp || $self->timestamp || time;
-    my $addr   = defined $sender ? $sender->address : 'unknown';
-    "From $addr ".(gmtime $stamp)."\n"
+{	my $self   = shift;
+	my $sender = $self->message->sender;
+	my $stamp  = $self->recvstamp || $self->timestamp || time;
+	my $addr   = defined $sender ? $sender->address : 'unknown';
+	"From $addr ".(gmtime $stamp)."\n"
 }
 
 =method createMessageId
@@ -867,8 +864,8 @@ message-threads.  See M<messageIdPrefix()>.
 my $msgid_creator;
 
 sub createMessageId()
-{   $msgid_creator ||= $_[0]->messageIdPrefix;
-    $msgid_creator->(@_);
+{	$msgid_creator ||= $_[0]->messageIdPrefix;
+	$msgid_creator->(@_);
 }
 
 =ci_method messageIdPrefix [$prefix, [$hostname]|CODE]
@@ -907,36 +904,33 @@ but no subroutine is defined yet, one will be created.
 =cut
 
 sub messageIdPrefix(;$$)
-{   my $thing = shift;
-    return $msgid_creator
-       unless @_ || !defined $msgid_creator;
+{	my $thing = shift;
+	return $msgid_creator
+		if defined $msgid_creator && !@_;
 
-    return $msgid_creator = shift
-       if @_==1 && ref $_[0] eq 'CODE';
+	return $msgid_creator = shift
+		if @_==1 && ref $_[0] eq 'CODE';
 
-    my $prefix   = shift || "mailbox-$$";
+	my $prefix   = shift || "mailbox-$$";
 
-    my $hostname = shift;
-    if(!defined $hostname)
-    {   eval "require Net::Domain";
-        $@ or $hostname = Net::Domain::hostfqdn();
-    }
-    $hostname ||= hostname || 'localhost';
+	my $hostname = shift;
+	if(!defined $hostname)
+	{	eval "require Net::Domain";
+		$@ or $hostname = Net::Domain::hostfqdn();
+	}
+	$hostname ||= hostname || 'localhost';
 
-    eval "require Time::HiRes";
-    if(Time::HiRes->can('gettimeofday'))
-    {
-        return $msgid_creator
-          = sub { my ($sec, $micro) = Time::HiRes::gettimeofday();
-                  "$prefix-$sec-$micro\@$hostname";
-                };
-    }
+	eval "require Time::HiRes";
+	if(Time::HiRes->can('gettimeofday'))
+	{
+		return $msgid_creator = sub {
+			my ($sec, $micro) = Time::HiRes::gettimeofday();
+			"$prefix-$sec-$micro\@$hostname";
+		};
+	}
 
-    my $unique_id = time;
-    $msgid_creator
-      = sub { $unique_id++;
-              "$prefix-$unique_id\@$hostname";
-            };
+	my $unique_id  = time;
+	$msgid_creator = sub { $unique_id++; "$prefix-$unique_id\@$hostname" };
 }
 
 1;

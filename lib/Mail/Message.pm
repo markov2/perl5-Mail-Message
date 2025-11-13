@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message;
 use base 'Mail::Reporter';
@@ -17,52 +18,53 @@ use Mail::Message::Body::Multipart ();
 use Mail::Message::Body::Nested    ();
 
 use Carp;
-use Scalar::Util   qw(weaken blessed);
+use Scalar::Util   qw/weaken blessed/;
 
 BEGIN {
-    unless($ENV{HARNESS_ACTIVE}) {   # no tests during upgrade
-        # v3 splits Mail::Box in a few distributions
+	unless($ENV{HARNESS_ACTIVE}) {   # no tests during upgrade
+		# v3 splits Mail::Box in a few distributions
 		eval { require Mail::Box };
 		my $v = $Mail::Box::VERSION || 3;
 		$v >= 3 or die "You need to upgrade the Mail::Box module";
-    }
+	}
 }
 
+#--------------------
 =chapter NAME
 
 Mail::Message - general message object
 
 =chapter SYNOPSIS
 
- use M<Mail::Box::Manager>;
- my $mgr    = Mail::Box::Manager->new;
- my $folder = $mgr->open(folder => 'InBox');
- my $msg    = $folder->message(2);    # $msg is a Mail::Message now
+  use Mail::Box::Manager;
+  my $mgr    = Mail::Box::Manager->new;
+  my $folder = $mgr->open(folder => 'InBox');
+  my $msg    = $folder->message(2);    # $msg is a Mail::Message now
 
- my $subject = $msg->subject;         # The message's subject
- my @cc      = $msg->cc;              # List of Mail::Address'es
+  my $subject = $msg->subject;         # The message's subject
+  my @cc      = $msg->cc;              # List of Mail::Address'es
 
- my Mail::Message::Head $head = $msg->head;
- my Mail::Message::Body $body = $msg->decoded;
- $msg->decoded->print($outfile);
+  my Mail::Message::Head $head = $msg->head;
+  my Mail::Message::Body $body = $msg->decoded;
+  $msg->decoded->print($outfile);
 
- # Send a simple email
- Mail::Message->build
-   ( To             => 'you@example.com'
-   , From           => 'me@example.com'
-   , Subject        => "My subject"
-   , data           => "Some plain text content"
-   )->send(via => 'postfix');
+  # Send a simple email
+  Mail::Message->build(
+    To             => 'you@example.com',
+    From           => 'me@example.com',
+    Subject        => "My subject",
+    data           => "Some plain text content"
+  )->send(via => 'postfix');
 
- my $reply_msg = Mail::Message->reply(...);
- my $frwd_msg  = Mail::Message->forward(...);
+  my $reply_msg = Mail::Message->reply(...);
+  my $frwd_msg  = Mail::Message->forward(...);
 
 =chapter DESCRIPTION
 
 A C<Mail::Message> object is a container for MIME-encoded message information,
 as defined by RFC2822.  Everything what is not specificaly related to storing
 the messages in mailboxes (folders) is implemented in this class.  Methods
-which are related to folders is implemented in the M<Mail::Box::Message>
+which are related to folders is implemented in the Mail::Box::Message
 extension.
 
 The main methods are M<get()>, to get information from a message header
@@ -82,8 +84,6 @@ Those package add functionality to all kinds of message objects.
 
 our $crlf_platform = $^O =~ m/win32/i;
 
-#------------------------------------------
-
 =c_method new %options
 
 =option  body $object
@@ -93,21 +93,20 @@ before the message is constructed.  The $object must be a sub-class
 of Mail::Message::Body.  See also M<body()> and M<storeBody()>.
 
 =option  body_type $class
-=default body_type M<Mail::Message::Body::Lines>
+=default body_type Mail::Message::Body::Lines
 Default type of body to be created for M<readBody()>.
 
 =option  head $object
 =default head undef
 Instantiate the message with a head which has been created somewhere
 before the message is constructed.  The $object must be a (sub-)class
-of M<Mail::Message::Head>. See also M<head()>.
+of Mail::Message::Head. See also M<head()>.
 
 =option  field_type $class
 =default field_type undef
 
 =option  head_type $class
-=default head_type M<Mail::Message::Head::Complete>
-
+=default head_type Mail::Message::Head::Complete
 Default type of head to be created for M<readHead()>.
 
 =option  messageId $id
@@ -135,50 +134,50 @@ Is the file deleted from the start?
 
 =option  labels ARRAY|HASH
 =default labels +{}
-Initial values of the labels.  In case of M<Mail::Box::Message>'s, this
+Initial values of the labels.  In case of Mail::Box::Message's, this
 shall reflect the state the message is in.  For newly constructed
-M<Mail::Message>'s, this may be anything you want, because M<coerce()>
+Mail::Message's, this may be anything you want, because M<coerce()>
 will take care of the folder specifics once the message is added to one.
 
 =cut
 
 sub init($)
-{   my ($self, $args) = @_;
-    $self->SUPER::init($args);
+{	my ($self, $args) = @_;
+	$self->SUPER::init($args);
 
-    # Field initializations also in coerce()
-    $self->{MM_modified} = $args->{modified}  || 0;
-    $self->{MM_trusted}  = $args->{trusted}   || 0;
+	# Field initializations also in coerce()
+	$self->{MM_modified} = $args->{modified}  || 0;
+	$self->{MM_trusted}  = $args->{trusted}   || 0;
 
-    # Set the header
+	# Set the header
 
-    my $head;
-    if(defined($head = $args->{head})) { $self->head($head) }
-    elsif(my $msgid = $args->{messageId} || $args->{messageID})
-    {   $self->takeMessageId($msgid);
-    }
+	my $head;
+	if(defined($head = $args->{head})) { $self->head($head) }
+	elsif(my $msgid = $args->{messageId} || $args->{messageID})
+	{	$self->takeMessageId($msgid);
+	}
 
-    # Set the body
-    if(my $body = $args->{body})
-    {   $self->{MM_body} = $body;
-        $body->message($self);
-    }
+	# Set the body
+	if(my $body = $args->{body})
+	{	$self->{MM_body} = $body;
+		$body->message($self);
+	}
 
-    $self->{MM_body_type} = $args->{body_type}
-       if defined $args->{body_type};
+	$self->{MM_body_type} = $args->{body_type}
+		if defined $args->{body_type};
 
-    $self->{MM_head_type} = $args->{head_type}
-       if defined $args->{head_type};
+	$self->{MM_head_type} = $args->{head_type}
+		if defined $args->{head_type};
 
-    $self->{MM_field_type} = $args->{field_type}
-       if defined $args->{field_type};
+	$self->{MM_field_type} = $args->{field_type}
+		if defined $args->{field_type};
 
-    my $labels = $args->{labels} || [];
-    my @labels = ref $labels eq 'ARRAY' ? @$labels : %$labels;
-    push @labels, deleted => $args->{deleted} if exists $args->{deleted};
-    $self->{MM_labels} = { @labels };
+	my $labels = $args->{labels} || [];
+	my @labels = ref $labels eq 'ARRAY' ? @$labels : %$labels;
+	push @labels, deleted => $args->{deleted} if exists $args->{deleted};
+	$self->{MM_labels} = { @labels };
 
-    $self;
+	$self;
 }
 
 =method clone %options
@@ -189,7 +188,7 @@ copied with the message, but the delete and modified flags are not.
 
 BE WARNED: the clone of any kind of message (or a message part)
 will B<always> be a C<Mail::Message> object.  For example, a
-M<Mail::Box::Message>'s clone is detached from the folder of its original.
+Mail::Box::Message's clone is detached from the folder of its original.
 When you use M<Mail::Box::addMessage()> with the cloned message at hand,
 then the clone will automatically be coerced into the right message type
 to be added.
@@ -197,7 +196,7 @@ to be added.
 See also M<Mail::Box::Message::copyTo()> and M<Mail::Box::Message::moveTo()>.
 
 =option  shallow BOOLEAN
-=default shallow <false>
+=default shallow false
 When a shallow clone is made, the header and body of the message will not
 be cloned, but shared.  This is quite dangerous: for instance in some
 folder types, the header fields are used to store folder flags.  When
@@ -209,54 +208,44 @@ when M<Mail::Box::Message::moveTo()> is used and you are sure that the
 original message cannot get undeleted after the move.
 
 =option  shallow_head BOOLEAN
-=default shallow_head <false>
+=default shallow_head false
 Only the head uses is reused, not the body.  This is probably a bad choice,
 because the header fields can be updated, for instance when labels change.
 
 =option  shallow_body BOOLEAN
-=default shallow_body <false>
+=default shallow_body false
 A rather safe bet, because you are not allowed to modify the body of a
 message: you may only set a new body with M<body()>.
 
 =example
- $copy = $msg->clone;
+  $copy = $msg->clone;
 
 =cut
 
 sub clone(@)
-{   my ($self, %args) = @_;
+{	my ($self, %args) = @_;
 
-    # First clone body, which may trigger head load as well.  If head is
-    # triggered first, then it may be decided to be lazy on the body at
-    # moment.  And then the body would be triggered.
+	# First clone body, which may trigger head load as well.  If head is
+	# triggered first, then it may be decided to be lazy on the body at
+	# moment.  And then the body would be triggered.
 
-    my ($head, $body) = ($self->head, $self->body);
-    $head = $head->clone
-       unless $args{shallow} || $args{shallow_head};
+	my ($head, $body) = ($self->head, $self->body);
+	$head = $head->clone unless $args{shallow} || $args{shallow_head};
+	$body = $body->clone unless $args{shallow} || $args{shallow_body};
+	my $clone  = Mail::Message->new(head => $head, body => $body, $self->logSettings);
 
-    $body = $body->clone
-       unless $args{shallow} || $args{shallow_body};
+	my $labels = $self->labels;
+	my %labels = %$labels;
+	delete $labels{deleted};
+	$clone->{MM_labels} = \%labels;
 
-    my $clone = Mail::Message->new
-     ( head  => $head
-     , body  => $body
-     , $self->logSettings
-     );
+	$clone->{MM_cloned} = $self;
+	weaken($clone->{MM_cloned});
 
-    my $labels = $self->labels;
-    my %labels = %$labels;
-    delete $labels{deleted};
-
-    $clone->{MM_labels} = \%labels;
-
-    $clone->{MM_cloned} = $self;
-    weaken($clone->{MM_cloned});
-
-    $clone;
+	$clone;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Constructing a message
 
 =section The message
@@ -267,33 +256,33 @@ is used mainly for recognizing discussion threads.
 =cut
 
 sub messageId() { $_[0]->{MM_message_id} || $_[0]->takeMessageId}
-sub messageID() {shift->messageId}   # compatibility
+sub messageID() { $_[0]->messageId }   # compatibility
 
 =method container
 If the message is a part of another message, C<container> returns the
 reference to the containing body.
 =examples
 
- my Mail::Message $msg = ...
- return unless $msg->body->isMultipart;
- my $part   = $msg->body->part(2);
+  my Mail::Message $msg = ...
+  unless $msg->body->isMultipart or return;
+  my $part   = $msg->body->part(2);
 
- return unless $part->body->isMultipart;
- my $nested = $part->body->part(3);
+  $part->body->isMultipart or return;
+  my $nested = $part->body->part(3);
 
- $nested->container;  # returns $msg->body
- $nested->toplevel;   # returns $msg
- $msg->container;     # returns undef
- $msg->toplevel;      # returns $msg
- $msg->isPart;        # returns false
- $part->isPart;       # returns true
+  $nested->container;  # returns $msg->body
+  $nested->toplevel;   # returns $msg
+  $msg->container;     # returns undef
+  $msg->toplevel;      # returns $msg
+  $msg->isPart;        # returns false
+  $part->isPart;       # returns true
 =cut
 
 sub container() { undef } # overridden by Mail::Message::Part
 
 =method isPart
 Returns true if the message is a part of another message.  This is
-the case for M<Mail::Message::Part> extensions of C<Mail::Message>.
+the case for Mail::Message::Part extensions of C<Mail::Message>.
 =cut
 
 sub isPart() { 0 } # overridden by Mail::Message::Part
@@ -309,9 +298,9 @@ see RFC2060 section 6.4.5.
 =cut
 
 sub partNumber()
-{   my $self = shift;
-    my $cont = $self->container;
-    $cont ? $cont->partNumber : undef;
+{	my $self = shift;
+	my $cont = $self->container;
+	$cont ? $cont->partNumber : undef;
 }
 
 =method toplevel
@@ -319,15 +308,15 @@ Returns a reference to the main message, which will be the current
 message if the message is not part of another message.
 =cut
 
-sub toplevel() { shift } # overridden by Mail::Message::Part
+sub toplevel() { $_[0] } # overridden by Mail::Message::Part
 
 =method isDummy
 Dummy messages are used to fill holes in linked-list and such, where only
 a message-id is known, but not the place of the header of body data.
 
-This method is also available for M<Mail::Message::Dummy> objects,
-where this will return C<true>.  On any extension of C<Mail::Message>,
-this will return C<false>.
+This method is also available for Mail::Message::Dummy objects,
+where this will return true.  On any extension of C<Mail::Message>,
+this will return false.
 =cut
 
 sub isDummy() { 0 }
@@ -343,26 +332,23 @@ sub endsOnNewline() { $_[0]->body->endsOnNewline }
 =method print [$fh]
 Print the message to the FILE-HANDLE, which defaults to the selected
 filehandle, without the encapsulation sometimes required by a folder
-type, like M<write()> does.
+  $message->print(\*STDERR);  # to the error output
+  $message->print;            # to the selected file
 
-=examples
- $message->print(\*STDERR);  # to the error output
- $message->print;            # to the selected file
-
- my $out = IO::File->new('out', 'w');
- $message->print($out);      # no encapsulation: no folder
- $message->write($out);      # with encapsulation: is folder.
+  my $out = IO::File->new('out', 'w');
+  $message->print($out);      # no encapsulation: no folder
+  $message->write($out);      # with encapsulation: is folder.
 =cut
 
 sub print(;$)
-{   my $self = shift;
-    my $out  = shift || select;
+{	my $self = shift;
+	my $out  = shift || select;
 
-    $self->head->print($out);
-    my $body = $self->body;
-    $body->print($out) if $body;
+	$self->head->print($out);
+	my $body = $self->body;
+	$body->print($out) if $body;
 	$body->endsOnNewline or $out->print("\n");
-    $self;
+	$self;
 }
 
 =method write [$fh]
@@ -377,19 +363,19 @@ their body which starts with 'From ' will have an 'E<gt>' added in front.
 =cut
 
 sub write(;$)
-{   my $self = shift;
-    my $out  = shift || select;
+{	my $self = shift;
+	my $out  = shift || select;
 
-    $self->head->print($out);
-    $self->body->print($out);
-    $self;
+	$self->head->print($out);
+	$self->body->print($out);
+	$self;
 }
 
 =method send [$mailer], %options
 Transmit the message to anything outside this Perl program.  Returns
 false when sending failed even after retries.
 
-The optional $mailer is a M<Mail::Transport::Send> object.  When the
+The optional $mailer is a Mail::Transport::Send object.  When the
 $mailer is not specified, one will be created and kept as default for
 the next messages as well.
 
@@ -400,17 +386,17 @@ M<Mail::Transport::Send::send()>.  That object also provides a C<trySend()>
 method which gives more low-level control.
 
 =example
- $message->send;
+  $message->send;
 
 is short (but little less flexibile) for
 
- my $mailer = M<Mail::Transport::SMTP>->new(@smtpopts);
- $mailer->send($message, @sendopts);
+  my $mailer = Mail::Transport::SMTP->new(@smtpopts);
+  $mailer->send($message, @sendopts);
 
-See examples/send.pl in the distribution of M<Mail::Box>.
+See examples/send.pl in the distribution of Mail::Box.
 
 =example
- $message->send(via => 'sendmail')
+  $message->send(via => 'sendmail')
 
 =error No default mailer found to send message.
 The message M<send()> mechanism had not enough information to automatically
@@ -422,29 +408,28 @@ explicitly using the C<via> options.
 my $default_mailer;
 
 sub send(@)
-{   my $self = shift;
+{	my $self = shift;
 
 	# Loosely coupled module
-    require Mail::Transport::Send;
+	require Mail::Transport::Send;
 
-    my $mailer;
-    $default_mailer = $mailer = shift
-        if ref $_[0] && $_[0]->isa('Mail::Transport::Send');
+	my $mailer;
+	$default_mailer = $mailer = shift
+		if ref $_[0] && $_[0]->isa('Mail::Transport::Send');
 
-    my %args = @_;
-    if( ! $args{via} && defined $default_mailer )
-    {   $mailer = $default_mailer;
-    }
-    else
-    {   my $via = delete $args{via} || 'sendmail';
-        $default_mailer = $mailer = Mail::Transport->new(via => $via, %args);
-    }
+	my %args = @_;
+	if( ! $args{via} && defined $default_mailer )
+	{	$mailer = $default_mailer;
+	}
+	else
+	{	my $via = delete $args{via} || 'sendmail';
+		$default_mailer = $mailer = Mail::Transport->new(via => $via, %args);
+	}
 
-    $mailer->send($self, %args);
+	$mailer->send($self, %args);
 }
 
 =method size
-
 Returns an estimated size of the whole message in bytes.  In many occasions,
 the functions which process the message further, for instance M<send()>
 or M<print()> will need to add/change header lines or add CR characters,
@@ -457,55 +442,51 @@ character (like UNIX, MacOS, and sometimes Cygwin), and not two characters
 a system which uses CR and LF to end a single line (all Windows versions),
 the result in that file will be at least M<nrLines()> larger than this
 method returns.
-
 =cut
 
 sub size()
-{   my $self = shift;
-    $self->head->size + $self->body->size;
+{	my $self = shift;
+	$self->head->size + $self->body->size;
 }
 
-#------------------------------------------
-
+#--------------------
 =section The header
 
 =method head [$head]
 Return (optionally after setting) the $head of this message.
-The head must be an (sub-)class of M<Mail::Message::Head>.
+The head must be an (sub-)class of Mail::Message::Head.
 When the head is added, status information is taken from it
 and transformed into labels.  More labels can be added by the
 LABELS hash.  They are added later.
 
 =example
- my $header = M<Mail::Message::Head>->new;
- $msg->head($header);    # set
- my $head = $msg->head;  # get
+  my $header = Mail::Message::Head->new;
+  $msg->head($header);    # set
+  my $head = $msg->head;  # get
 =cut
 
 sub head(;$)
-{   my $self = shift;
-    return $self->{MM_head} unless @_;
+{	my $self = shift;
+	@_ or return $self->{MM_head};
 
-    my $head = shift;
-    unless(defined $head)
-    {   delete $self->{MM_head};
-        return undef;
-    }
+	my $head = shift;
+	unless(defined $head)
+	{	delete $self->{MM_head};
+		return undef;
+	}
 
-    $self->log(INTERNAL => "wrong type of head ($head) for message $self")
-        unless ref $head && $head->isa('Mail::Message::Head');
+	blessed $head && $head->isa('Mail::Message::Head')
+		or $self->log(INTERNAL => "wrong type of head ($head) for message $self");
 
-    $head->message($self);
+	$head->message($self);
 
-    if(my $old = $self->{MM_head})
-    {   $self->{MM_modified}++ unless $old->isDelayed;
-    }
+	if(my $old = $self->{MM_head})
+	{	$self->{MM_modified}++ unless $old->isDelayed;
+	}
 
-    $self->{MM_head} = $head;
-
-    $self->takeMessageId unless $head->isDelayed;
-
-    $head;
+	$self->{MM_head} = $head;
+	$self->takeMessageId unless $head->isDelayed;
+	$head;
 }
 
 =method get $fieldname
@@ -522,49 +503,49 @@ want to be smart, doing the better (but slower) job.
 
 =example the get() short-cut for header fields
 
- print $msg->get('Content-Type'), "\n";
+  print $msg->get('Content-Type'), "\n";
 
 Is equivalent to:
 
- print $msg->head->get('Content-Type')->body, "\n";
+  print $msg->head->get('Content-Type')->body, "\n";
 
 =cut
 
 sub get($)
-{   my $self  = shift;
-    my $field = $self->head->get(shift) || return undef;
-    $field->body;
+{	my $self  = shift;
+	my $field = $self->head->get(shift) or return undef;
+	$field->body;
 }
 
 =method study $fieldname
 Study the content of a field, like M<get()> does, with as main difference
-that a M<Mail::Message::Field::Full> object is returned.  These objects
+that a Mail::Message::Field::Full object is returned.  These objects
 stringify to an utf8 decoded representation of the data contained in
 the field, where M<get()> does not decode.  When the field does not exist,
-then C<undef> is returned.  See M<Mail::Message::Field::study()>.
+then undef is returned.  See M<Mail::Message::Field::study()>.
 
 =example the study() short-cut for header fields
- print $msg->study('to'), "\n";
+  print $msg->study('to'), "\n";
 
 Is equivalent to:
 
- print $msg->head->study('to'), "\n";       # and
- print $msg->head->get('to')->study, "\n";
+  print $msg->head->study('to'), "\n";       # and
+  print $msg->head->get('to')->study, "\n";
 
 or better:
- if(my $to = $msg->study('to')) { print "$to\n" }
- if(my $to = $msg->get('to')) { print $to->study, "\n" }
+  if(my $to = $msg->study('to')) { print "$to\n" }
+  if(my $to = $msg->get('to')) { print $to->study, "\n" }
 =cut
 
 sub study($)
-{  my $head = shift->head or return;
-   scalar $head->study(@_);    # return only last
+{	my $head = $_[0]->head or return;
+	scalar $head->study(@_);    # return only last
 }
 
 =method from
 Returns the addresses from the senders.  It is possible to have more than
 one address specified in the C<From> field of the message, according
-to the specification. Therefore a list of M<Mail::Address> objects is
+to the specification. Therefore a list of Mail::Address objects is
 returned, which usually has length 1.
 
 If you need only one address from a sender, for instance to create a
@@ -572,82 +553,79 @@ If you need only one address from a sender, for instance to create a
 M<sender()>.
 
 =example using from() to get all sender addresses
-
- my @from = $message->from;
+  my @from = $message->from;
 =cut
 
 sub from()
-{  my @from = shift->head->get('From') or return ();
-   map $_->addresses, @from;
+{	my @from = shift->head->get('From') or return ();
+	map $_->addresses, @from;
 }
 
 =method sender
 Returns exactly one address, which is the originator of this message.
-The returned M<Mail::Address> object is taken from the C<Sender> header
+The returned Mail::Address object is taken from the C<Sender> header
 field, unless that field does not exists, in which case the first
 address from the C<From> field is taken.  If none of both provide
-an address, C<undef> is returned.
+an address, undef is returned.
 
 =example using sender() to get exactly one sender address
- my $sender = $message->sender;
- print "Reply to: ", $sender->format, "\n" if defined $sender;
+  my $sender = $message->sender;
+  print "Reply to: ", $sender->format, "\n" if defined $sender;
 
 =cut
 
 sub sender()
-{   my $self   = shift;
-    my $sender = $self->head->get('Sender') || $self->head->get('From')
-               || return ();
-
-    ($sender->addresses)[0];                 # first specified address
+{	my $self   = shift;
+	my $sender = $self->head->get('Sender') || $self->head->get('From');
+	$sender ? ($sender->addresses)[0] : ();     # first specified address
 }
 
 =method to
 Returns the addresses which are specified on the C<To> header line (or lines).
-A list of M<Mail::Address> objects is returned.  The people addressed
+A list of Mail::Address objects is returned.  The people addressed
 here are the targets of the content, and should read it contents
 carefully.
 
 =examples using to() to get all primar destination addresses
 
- my @to = $message->to;
+  my @to = $message->to;
 =cut
 
-sub to() { map $_->addresses, shift->head->get('To') }
+sub to() { map $_->addresses, $_[0]->head->get('To') }
 
 =method cc
 Returns the addresses which are specified on the C<Cc> header line (or lines)
-A list of M<Mail::Address> objects is returned.  C<Cc> stands for
+A list of Mail::Address objects is returned.  C<Cc> stands for
 I<Carbon Copy>; the people addressed on this line receive the message
 informational, and are usually not expected to reply on its content.
 =cut
 
-sub cc() { map $_->addresses, shift->head->get('Cc') }
+sub cc() { map $_->addresses, $_[0]->head->get('Cc') }
 
 =method bcc
 Returns the addresses which are specified on the C<Bcc> header line (or lines)
-A list of M<Mail::Address> objects is returned.
+A list of Mail::Address objects is returned.
 C<Bcc> stands for I<Blind Carbon Copy>: destinations of the message which are
 not listed in the messages actually sent.  So, this field will be empty
 for received messages, but may be present in messages you construct yourself.
 =cut
 
-sub bcc() { map $_->addresses, shift->head->get('Bcc') }
+sub bcc() { map $_->addresses, $_[0]->head->get('Bcc') }
 
 =method date
 Method has been removed for reasons of consistency.  Use M<timestamp()>
 or C<< $msg->head->get('Date') >>.
 
 =method destinations
-Returns a list of M<Mail::Address> objects which contains the combined
+Returns a list of Mail::Address objects which contains the combined
 info of active C<To>, C<Cc>, and C<Bcc> addresses.  Double addresses are
 removed if detectable.
 =cut
 
 sub destinations()
-{   my $self = shift;
-    my %to = map +(lc($_->address) => $_), $self->to, $self->cc, $self->bcc;
-    values %to;
+{	my $self = shift;
+	my %to = map +(lc($_->address) => $_), $self->to, $self->cc, $self->bcc;
+	values %to;
 }
 
 =method subject
@@ -655,11 +633,11 @@ Returns the message's subject, or the empty string.  The subject may
 have encoded characters in it; use M<study()> to get rit of that.
 
 =example using subject() to get the message's subject
- print $msg->subject;
- print $msg->study('subject');
+  print $msg->subject;
+  print $msg->study('subject');
 =cut
 
-sub subject() { shift->get('subject') // '' }
+sub subject() { $_[0]->get('subject') // '' }
 
 =method guessTimestamp
 Return an estimate on the time this message was sent.  The data is
@@ -667,16 +645,16 @@ derived from the header, where it can be derived from the C<date> and
 C<received> lines.  For MBox-like folders you may get the date from
 the from-line as well.
 
-This method may return C<undef> if the header is not parsed or only
+This method may return undef if the header is not parsed or only
 partially known.  If you require a time, then use the M<timestamp()>
 method, described below.
 
 =example using guessTimestamp() to get a transmission date
- print "Receipt ", ($message->timestamp || 'unknown'), "\n";
+  print "Receipt ", ($message->timestamp || 'unknown'), "\n";
 
 =cut
 
-sub guessTimestamp() { shift->head->guessTimestamp }
+sub guessTimestamp() { $_[0]->head->guessTimestamp }
 
 =method timestamp
 Get a good timestamp for the message, doesn't matter how much work it is.
@@ -691,12 +669,11 @@ To start, the received headers are tried for a date (see
 M<Mail::Message::Head::Complete::recvstamp()>) and only then the C<Date>
 field.  In very rare cases, only with some locally produced messages,
 no stamp can be found.
-
 =cut
 
 sub timestamp()
-{   my $head = shift->head;
-    $head->recvstamp || $head->timestamp;
+{	my $head = $_[0]->head;
+	$head->recvstamp || $head->timestamp;
 }
 
 =method nrLines
@@ -704,12 +681,11 @@ Returns the number of lines used for the whole message.
 =cut
 
 sub nrLines()
-{   my $self = shift;
-    $self->head->nrLines + $self->body->nrLines;
+{	my $self = shift;
+	$self->head->nrLines + $self->body->nrLines;
 }
 
-#-------------------------------------------
-
+#--------------------
 =section The body
 
 =method body [$body]
@@ -722,62 +698,62 @@ for normal use unless you understand the consequences: you change
 the message content without changing the message-ID.  The right
 way to go is via
 
- $message = M<Mail::Message>->buildFromBody($body);  # or
- $message = M<Mail::Message>->build($body);          # or
- $message = $origmsg->forward(body => $body);
+  $message = Mail::Message->buildFromBody($body);  # or
+  $message = Mail::Message->build($body);          # or
+  $message = $origmsg->forward(body => $body);
 
-The $body must be an (sub-)class of M<Mail::Message::Body>.  In this case,
+The $body must be an (sub-)class of Mail::Message::Body.  In this case,
 information from the specified body will be copied into the header.  The
 body object will be encoded if needed, because messages written to file
 or transmitted shall not contain binary data.  The converted body
 is returned.
 
-When $body is C<undef>, the current message body will be dissected from
+When $body is undef, the current message body will be dissected from
 the message.  All relation will be cut.  The body is returned, and
 can be connected to a different message.
 
 =examples
 
- my $body      = $msg->body;
- my @encoded   = $msg->body->lines;
+  my $body      = $msg->body;
+  my @encoded   = $msg->body->lines;
 
- my $new       = M<Mail::Message::Body>->new(mime_type => 'text/html');
- my $converted = $msg->body($new);
+  my $new       = Mail::Message::Body->new(mime_type => 'text/html');
+  my $converted = $msg->body($new);
 
 =cut
-  
+
 sub body(;$@)
-{   my $self = shift;
-    return $self->{MM_body} unless @_;
+{	my $self = shift;
+	@_ or return $self->{MM_body};
 
-    my $head = $self->head;
-    $head->removeContentInfo if defined $head;
+	my $head = $self->head;
+	$head->removeContentInfo if defined $head;
 
-    my ($rawbody, %args) = @_;
-    unless(defined $rawbody)
-    {   # Disconnect body from message.
-        my $body = delete $self->{MM_body};
-        $body->message(undef) if defined $body;
-        return $body;
-    }
+	my ($rawbody, %args) = @_;
+	unless(defined $rawbody)
+	{	# Disconnect body from message.
+		my $body = delete $self->{MM_body};
+		$body->message(undef) if defined $body;
+		return $body;
+	}
 
-    blessed $rawbody && $rawbody->isa('Mail::Message::Body')
-        or $self->log(INTERNAL => "wrong type of body for message $rawbody");
+	blessed $rawbody && $rawbody->isa('Mail::Message::Body')
+		or $self->log(INTERNAL => "wrong type of body for message $rawbody");
 
-    # Bodies of real messages must be encoded for safe transmission.
-    # Message parts will get encoded on the moment the whole multipart
-    # is transformed into a real message.
+	# Bodies of real messages must be encoded for safe transmission.
+	# Message parts will get encoded on the moment the whole multipart
+	# is transformed into a real message.
 
-    my $body = $self->isPart ? $rawbody : $rawbody->encoded;
-    $body->contentInfoTo($self->head);
+	my $body = $self->isPart ? $rawbody : $rawbody->encoded;
+	$body->contentInfoTo($self->head);
 
-    my $oldbody = $self->{MM_body};
-    return $body if defined $oldbody && $body==$oldbody;
+	my $oldbody = $self->{MM_body};
+	return $body if defined $oldbody && $body==$oldbody;
 
-    $body->message($self);
-    $body->modified(1) if defined $oldbody;
+	$body->message($self);
+	$body->modified(1) if defined $oldbody;
 
-    $self->{MM_body} = $body;
+	$self->{MM_body} = $body;
 }
 
 =method decoded %options
@@ -786,20 +762,20 @@ Short for C<< $msg->body->decoded >>  All %options are passed-on.
 =cut
 
 sub decoded(@)
-{   my $body = shift->body->load;
-    $body ? $body->decoded(@_) : undef;
+{	my $body = shift->body->load;
+	$body ? $body->decoded(@_) : undef;
 }
 
 =method encode %options
 Encode the message to a certain format.  Read the details in the
-dedicated manual page M<Mail::Message::Body::Encode>.  The %options which
+dedicated manual page Mail::Message::Body::Encode.  The %options which
 can be specified here are those of the M<Mail::Message::Body::encode()>
-method.  
+method.
 =cut
 
 sub encode(@)
-{   my $body = shift->body->load;
-    $body ? $body->encode(@_) : undef;
+{	my $body = shift->body->load;
+	$body ? $body->encode(@_) : undef;
 }
 
 =method isMultipart
@@ -811,7 +787,7 @@ need to read the body of the message to detect this.
 sub isMultipart() { $_[0]->head->isMultipart }
 
 =method isNested
-Returns C<true> for C<message/rfc822> messages and message parts.
+Returns true for C<message/rfc822> messages and message parts.
 =cut
 
 sub isNested() { $_[0]->body->isNested }
@@ -822,10 +798,10 @@ defined.  The parameters will be stripped off.
 =cut
 
 sub contentType()
-{   my $head = shift->head;
-    my $ct   = (defined $head ? $head->get('Content-Type', 0) : undef) // '';
-    $ct      =~ s/\s*\;.*//;
-    length $ct ? $ct : 'text/plain';
+{	my $head = shift->head;
+	my $ct   = (defined $head ? $head->get('Content-Type', 0) : undef) // '';
+	$ct      =~ s/\s*\;.*//;
+	length $ct ? $ct : 'text/plain';
 }
 
 =method parts [<'ALL'|'ACTIVE'|'DELETED'|'RECURSE'|$filter>]
@@ -837,7 +813,7 @@ which are encapsulated in the body of a message.  To abstract this
 concept: this method will return you all header-body combinations
 which are stored within this message B<except> the multipart and
 message/rfc822 wrappers.  Objects returned are C<Mail::Message>'s and
-M<Mail::Message::Part>'s.
+Mail::Message::Part's.
 
 The option default to 'ALL', which will return the message itself for
 single-parts, the nested content of a message/rfc822 object, respectively
@@ -848,40 +824,39 @@ you have to test yourself.
 
 'ACTIVE' and 'DELETED' check for the deleted flag on messages and
 message parts.  The $filter is a code reference, which is called for
-each part of the message; each part as C<RECURSE> would return.
+each part of the message; each part as P<RECURSE> would return.
 
 =examples
- my @parts = $msg->parts;           # $msg not multipart: returns ($msg)
- my $parts = $msg->parts('ACTIVE'); # returns ($msg)
+  my @parts = $msg->parts;           # $msg not multipart: returns ($msg)
+  my $parts = $msg->parts('ACTIVE'); # returns ($msg)
 
- $msg->delete;
- my @parts = $msg->parts;           # returns ($msg)
- my $parts = $msg->parts('ACTIVE'); # returns ()
+  $msg->delete;
+  my @parts = $msg->parts;           # returns ($msg)
+  my $parts = $msg->parts('ACTIVE'); # returns ()
 
 =cut
 
 sub parts(;$)
-{   my $self    = shift;
-    my $what    = shift || 'ACTIVE';
+{	my $self    = shift;
+	my $what    = shift || 'ACTIVE';
 
-    my $body    = $self->body;
-    my $recurse = $what eq 'RECURSE' || ref $what;
+	my $body    = $self->body;
+	my $recurse = $what eq 'RECURSE' || ref $what;
 
-    my @parts
-     = $body->isNested     ? $body->nested->parts($what)
-     : $body->isMultipart  ? $body->parts($recurse ? 'RECURSE' : ())
-     :                       $self;
+	my @parts
+	  = $body->isNested     ? $body->nested->parts($what)
+	  : $body->isMultipart  ? $body->parts($recurse ? 'RECURSE' : ())
+	  :    $self;
 
-      ref $what eq 'CODE' ? (grep $what->($_), @parts)
-    : $what eq 'ACTIVE'   ? (grep !$_->isDeleted, @parts)
-    : $what eq 'DELETED'  ? (grep $_->isDeleted, @parts)
-    : $what eq 'ALL'      ? @parts
-    : $recurse            ? @parts
-    : confess "Select parts via $what?";
+	  ref $what eq 'CODE' ? (grep $what->($_), @parts)
+	: $what eq 'ACTIVE'   ? (grep !$_->isDeleted, @parts)
+	: $what eq 'DELETED'  ? (grep $_->isDeleted, @parts)
+	: $what eq 'ALL'      ? @parts
+	: $recurse            ? @parts
+	:    confess "Select parts via $what?";
 }
 
-#------------------------------------------
-
+#--------------------
 =section Flags
 
 =method modified [BOOLEAN]
@@ -890,18 +865,18 @@ being modified.  See isModified().
 =cut
 
 sub modified(;$)
-{   my $self = shift;
-    @_ or return $self->isModified;  # compatibility 2.036
+{	my $self = shift;
+	@_ or return $self->isModified;  # compatibility 2.036
 
-    my $flag = $self->{MM_modified} = shift;
+	my $flag = $self->{MM_modified} = shift;
 
-    my $head = $self->head;
-    $head->modified($flag) if $head;
+	my $head = $self->head;
+	$head->modified($flag) if $head;
 
-    my $body = $self->body;
-    $body->modified($flag) if $body;
+	my $body = $self->body;
+	$body->modified($flag) if $body;
 
-    $flag;
+	$flag;
 }
 
 =method isModified
@@ -911,22 +886,22 @@ are changes in header lines, when a new body is set to the message
 =cut
 
 sub isModified()
-{   my $self = shift;
-    return 1 if $self->{MM_modified};
+{	my $self = shift;
+	return 1 if $self->{MM_modified};
 
-    my $head = $self->head;
-    if($head && $head->isModified)
-    {   $self->{MM_modified}++;
-        return 1;
-    }
+	my $head = $self->head;
+	if($head && $head->isModified)
+	{	$self->{MM_modified}++;
+		return 1;
+	}
 
-    my $body = $self->body;
-    if($body && $body->isModified)
-    {   $self->{MM_modified}++;
-        return 1;
-    }
+	my $body = $self->body;
+	if($body && $body->isModified)
+	{	$self->{MM_modified}++;
+		return 1;
+	}
 
-    0;
+	0;
 }
 
 =method label $label|PAIRS
@@ -943,22 +918,21 @@ letters to the message filename.  But the MailBox labels are always the
 same.
 
 =examples
- print $message->label('seen');
- if($message->label('seen')) {...};
- $message->label(seen => 1);
+  print $message->label('seen');
+  if($message->label('seen')) {...};
+  $message->label(seen => 1);
 
- $message->label(deleted => 1);  # same as $message->delete
+  $message->label(deleted => 1);  # same as $message->delete
 
 =cut
 
 sub label($;$@)
-{   my $self   = shift;
-    return $self->{MM_labels}{$_[0]} unless @_ > 1;
-    my $return = $_[1];
+{	my $self   = shift;
+	@_ > 1 or return $self->{MM_labels}{$_[0]};
 
-    my %labels = @_;
-    @{$self->{MM_labels}}{keys %labels} = values %labels;
-    $return;
+	my %labels = @_;
+	@{$self->{MM_labels}}{keys %labels} = values %labels;
+	$_[1];
 }
 
 =method labels
@@ -972,31 +946,31 @@ that they will not all evaluate to true, although most of them will.
 =cut
 
 sub labels()
-{   my $self = shift;
-    wantarray ? keys %{$self->{MM_labels}} : $self->{MM_labels};
+{	my $self = shift;
+	wantarray ? keys %{$self->{MM_labels}} : $self->{MM_labels};
 }
 
 =method isDeleted
 Short-cut for
- $msg->label('deleted')
+  $msg->label('deleted')
 
 For some folder types, you will get the time of deletion in return.  This
 depends on the implementation.
 
 =examples
- next if $message->isDeleted;
+  next if $message->isDeleted;
 
- if(my $when = $message->isDeleted) {
-    print scalar localtime $when;
- }
+  if(my $when = $message->isDeleted) {
+     print scalar localtime $when;
+  }
 
 =cut
 
-sub isDeleted() { shift->label('deleted') }
+sub isDeleted() { $_[0]->label('deleted') }
 
 =method delete
 Flag the message to be deleted, which is a shortcut for
- $msg->label(deleted => time);
+  $msg->label(deleted => time);
 The real deletion only takes place on a synchronization of the folder.
 See M<deleted()> as well.
 
@@ -1006,16 +980,16 @@ When the same message is deleted more than once, the first time stamp
 will stay.
 
 =examples
- $message->delete;
- $message->deleted(1);  # exactly the same
- $message->label(deleted => 1);
- delete $message;
+  $message->delete;
+  $message->deleted(1);  # exactly the same
+  $message->label(deleted => 1);
+  delete $message;
 =cut
 
 sub delete()
-{  my $self = shift;
-   my $old = $self->label('deleted');
-   $old || $self->label(deleted => time);
+{	my $self = shift;
+	my $old = $self->label('deleted');
+	$old || $self->label(deleted => time);
 }
 
 =method deleted [BOOLEAN]
@@ -1024,20 +998,20 @@ returns the same as M<isDeleted()>, which is preferred.  When a true
 value is given, M<delete()> is called.
 
 =examples
- $message->deleted(1);          # delete
- $message->delete;              # delete (preferred)
+  $message->deleted(1);          # delete
+  $message->delete;              # delete (preferred)
 
- $message->deleted(0);          # undelete
+  $message->deleted(0);          # undelete
 
- if($message->deleted) {...}    # check
- if($message->isDeleted) {...}  # check (preferred)
+  if($message->deleted) {...}    # check
+  if($message->isDeleted) {...}  # check (preferred)
 =cut
 
 sub deleted(;$)
-{   my $self = shift;
+{	my $self = shift;
 
-    @_ ? $self->label(deleted => shift)
-       : $self->label('deleted')   # compat 2.036
+	@_ ? $self->label(deleted => shift)
+		: $self->label('deleted')   # compat 2.036
 }
 
 =method labelsToStatus
@@ -1050,28 +1024,20 @@ there is a real change of flags, so not for each call to M<label()>.
 =cut
 
 sub labelsToStatus()
-{   my $self    = shift;
-    my $head    = $self->head;
-    my $labels  = $self->labels;
+{	my $self    = shift;
+	my $head    = $self->head;
+	my $labels  = $self->labels;
 
-    my $status  = $head->get('status') || '';
-    my $newstatus
-      = $labels->{seen}    ? 'RO'
-      : $labels->{old}     ? 'O'
-      : '';
+	my $status     = $head->get('status') || '';
+	my $newstatus  = $labels->{seen} ? 'RO' : $labels->{old} ? 'O' : '';
 
-    $head->set(Status => $newstatus)
-        if $newstatus ne $status;
+	my $xstatus    = $head->get('x-status') || '';
+	my $newxstatus = ($labels->{replied} ? 'A' : '') . ($labels->{flagged} ? 'F' : '');
 
-    my $xstatus = $head->get('x-status') || '';
-    my $newxstatus
-      = ($labels->{replied} ? 'A' : '')
-      . ($labels->{flagged} ? 'F' : '');
+	$head->set(Status => $newstatus) if $newstatus ne $status;
+	$head->set('X-Status' => $newxstatus) if $newxstatus ne $xstatus;
 
-    $head->set('X-Status' => $newxstatus)
-        if $newxstatus ne $xstatus;
-
-    $self;
+	$self;
 }
 
 =method statusToLabels
@@ -1080,30 +1046,23 @@ description in the DETAILS chapter.
 =cut
 
 sub statusToLabels()
-{   my $self    = shift;
-    my $head    = $self->head;
+{	my $self    = shift;
+	my $head    = $self->head;
 
-    if(my $status  = $head->get('status'))
-    {   $status = $status->foldedBody;
-        $self->label
-         ( seen    => (index($status, 'R') >= 0)
-         , old     => (index($status, 'O') >= 0)
-	 );
-    }
+	if(my $status  = $head->get('status'))
+	{	$status = $status->foldedBody;
+		$self->label(seen => (index($status, 'R') >= 0), old => (index($status, 'O') >= 0));
+	}
 
-    if(my $xstatus = $head->get('x-status'))
-    {   $xstatus = $xstatus->foldedBody;
-        $self->label
-         ( replied => (index($xstatus, 'A') >= 0)
-         , flagged => (index($xstatus, 'F') >= 0)
-	 );
-    }
+	if(my $xstatus = $head->get('x-status'))
+	{	$xstatus = $xstatus->foldedBody;
+		$self->label(replied => (index($xstatus, 'A') >= 0), flagged => (index($xstatus, 'F') >= 0));
+	}
 
-    $self;
+	$self;
 }
 
-#------------------------------------------
-
+#--------------------
 =section The whole message as text
 
 =section Internals
@@ -1113,37 +1072,37 @@ Coerce a $message into a Mail::Message.  In some occasions, for instance
 where you add a message to a folder, this coercion is automatically
 called to ensure that the correct message type is stored.
 
-The coerced message is returned on success, otherwise C<undef>.  The
+The coerced message is returned on success, otherwise undef.  The
 coerced message may be a reblessed version of the original message
 or a new object.  In case the message has to be specialized, for
-instance from a general Mail::Message into a M<Mail::Box::Mbox::Message>,
-no copy is needed.  However, to coerce a M<Mail::Internet> object into
+instance from a general Mail::Message into a Mail::Box::Mbox::Message,
+no copy is needed.  However, to coerce a Mail::Internet object into
 a Mail::Message, a lot of copying and converting will take place.
 
 Valid MESSAGEs which can be coerced into Mail::Message objects
 are of type
 
 =over 4
-=item * Any type of M<Mail::Box::Message>
-=item * M<MIME::Entity> objects, using M<Mail::Message::Convert::MimeEntity>
-=item * M<Mail::Internet> objects, using M<Mail::Message::Convert::MailInternet>
-=item * M<Email::Simple> objects, using M<Mail::Message::Convert::EmailSimple>
-=item * M<Email::Abstract> objects
+=item * Any type of Mail::Box::Message
+=item * MIME::Entity objects, using Mail::Message::Convert::MimeEntity
+=item * Mail::Internet objects, using Mail::Message::Convert::MailInternet
+=item * Email::Simple objects, using Mail::Message::Convert::EmailSimple
+=item * Email::Abstract objects
 =back
 
-M<Mail::Message::Part>'s, which are extensions of C<Mail::Message>'s,
-can also be coerced directly from a M<Mail::Message::Body>.
+Mail::Message::Part's, which are extensions of C<Mail::Message>'s,
+can also be coerced directly from a Mail::Message::Body.
 
 =examples
- my $folder  = Mail::Box::Mbox->new;
- my $message = Mail::Message->build(...);
+  my $folder  = Mail::Box::Mbox->new;
+  my $message = Mail::Message->build(...);
 
- my $coerced = Mail::Box::Mbox::Message->coerce($message);
- $folder->addMessage($coerced);
+  my $coerced = Mail::Box::Mbox::Message->coerce($message);
+  $folder->addMessage($coerced);
 
 Simpler replacement for the previous two lines:
 
- my $coerced = $folder->addMessage($message);
+  my $coerced = $folder->addMessage($message);
 
 =error coercion starts with some object
 =error Cannot coerce a $class object into a $class object
@@ -1154,74 +1113,72 @@ my $mime_entity_converter;
 my $email_simple_converter;
 
 sub coerce($@)
-{   my ($class, $message) = @_;
+{	my ($class, $message) = @_;
 
-    blessed $message
-        or die "coercion starts with some object";
+	blessed $message
+		or die "coercion starts with some object";
 
 	return $message
 		if ref $message eq $class;
 
-    if($message->isa(__PACKAGE__)) {
-        $message->head->modified(1);
-        $message->body->modified(1);
-        return bless $message, $class;
+	if($message->isa(__PACKAGE__)) {
+		$message->head->modified(1);
+		$message->body->modified(1);
+		return bless $message, $class;
 	}
 
-    if($message->isa('MIME::Entity'))
-    {   unless($mime_entity_converter)
-        {   eval {require Mail::Message::Convert::MimeEntity};
-                confess "Install MIME::Entity" if $@;
-            $mime_entity_converter = Mail::Message::Convert::MimeEntity->new;
-        }
+	if($message->isa('MIME::Entity'))
+	{	unless($mime_entity_converter)
+		{	eval {require Mail::Message::Convert::MimeEntity};
+			$@ and confess "Install MIME::Entity";
+			$mime_entity_converter = Mail::Message::Convert::MimeEntity->new;
+		}
 
-        $message = $mime_entity_converter->from($message)
-            or return;
-    }
+		$message = $mime_entity_converter->from($message)
+			or return;
+	}
 
-    elsif($message->isa('Mail::Internet'))
-    {   unless($mail_internet_converter)
-        {   eval {require Mail::Message::Convert::MailInternet};
-            confess "Install Mail::Internet" if $@;
-            $mail_internet_converter = Mail::Message::Convert::MailInternet->new;
-        }
+	elsif($message->isa('Mail::Internet'))
+	{	unless($mail_internet_converter)
+		{	eval {require Mail::Message::Convert::MailInternet};
+			$@ and confess "Install Mail::Internet";
+			$mail_internet_converter = Mail::Message::Convert::MailInternet->new;
+		}
 
-        $message = $mail_internet_converter->from($message)
-            or return;
-    }
+		$message = $mail_internet_converter->from($message)
+			or return;
+	}
 
-    elsif($message->isa('Email::Simple'))
-    {   unless($email_simple_converter)
-        {   eval {require Mail::Message::Convert::EmailSimple};
-            confess "Install Email::Simple" if $@;
-            $email_simple_converter = Mail::Message::Convert::EmailSimple->new;
-        }
+	elsif($message->isa('Email::Simple'))
+	{	unless($email_simple_converter)
+		{	eval {require Mail::Message::Convert::EmailSimple};
+			$@ and confess "Install Email::Simple";
+			$email_simple_converter = Mail::Message::Convert::EmailSimple->new;
+		}
 
-        $message = $email_simple_converter->from($message)
-            or return;
-    }
+		$message = $email_simple_converter->from($message)
+			or return;
+	}
 
-    elsif($message->isa('Email::Abstract'))
-    {   return $class->coerce($message->object);
-    }
+	elsif($message->isa('Email::Abstract'))
+	{	return $class->coerce($message->object);
+	}
 
-    else
-    {   $class->log(INTERNAL =>  "Cannot coerce a ". ref($message)
-              . " object into a ". __PACKAGE__." object");
-    }
+	else
+	{	$class->log(INTERNAL =>  "Cannot coerce a ". ref($message) . " object into a ". __PACKAGE__." object");
+	}
 
-    $message->{MM_modified}  ||= 0;
-    bless $message, $class;
+	$message->{MM_modified}  ||= 0;
+	bless $message, $class;
 }
 
 =method clonedFrom
-Returns the $message which is the source of this message, which was
-created by a M<clone()> operation.
+Returns the message which is the original of this message, when this
+was created by a M<clone()> operation.
 =cut
 
 sub clonedFrom() { $_[0]->{MM_cloned} }
 
-#------------------------------------------
 # All next routines try to create compatibility with release < 2.0
 sub isParsed()   { not $_[0]->isDelayed }
 sub headIsRead() { not $_[0]->head->isDelayed }
@@ -1237,17 +1194,17 @@ which returns a body-class based on the header.
 =cut
 
 sub readFromParser($;$)
-{   my ($self, $parser, $bodytype) = @_;
+{	my ($self, $parser, $bodytype) = @_;
 
-    my $head = $self->readHead($parser) // Mail::Message::Head::Complete->new(
-        message => $self, field_type => $self->{MM_field_type}, $self->logSettings);
+	my $head = $self->readHead($parser) // Mail::Message::Head::Complete->new(
+		message => $self, field_type => $self->{MM_field_type}, $self->logSettings);
 
-    my $body = $self->readBody($parser, $head, $bodytype)
-        or return;
+	my $body = $self->readBody($parser, $head, $bodytype)
+		or return;
 
-    $self->head($head);
-    $self->storeBody($body);
-    $self;
+	$self->head($head);
+	$self->storeBody($body);
+	$self;
 }
 
 =method readHead $parser, [$class]
@@ -1256,11 +1213,11 @@ M<new(head_type)>.  The $parser is the access to the folder's file.
 =cut
 
 sub readHead($;$)
-{   my ($self, $parser, $headtype) = @_;
-    $headtype //= $self->{MM_head_type} // 'Mail::Message::Head::Complete';
+{	my ($self, $parser, $headtype) = @_;
+	$headtype //= $self->{MM_head_type} // 'Mail::Message::Head::Complete';
 
-    $headtype->new(message => $self, field_type => $self->{MM_field_type}, $self->logSettings)
-        ->read($parser);
+	$headtype->new(message => $self, field_type => $self->{MM_field_type}, $self->logSettings)
+		->read($parser);
 }
 
 =method readBody $parser, $head, [$bodytype]
@@ -1277,51 +1234,42 @@ argument.
 =cut
 
 sub readBody($$;$$)
-{   my ($self, $parser, $head, $getbodytype) = @_;
+{	my ($self, $parser, $head, $getbodytype) = @_;
 
-    my $bodytype
-      = ! $getbodytype   ? ($self->{MM_body_type} // 'Mail::Message::Body::Lines')
-      : ref $getbodytype ? $getbodytype->($self, $head)
-      :                    $getbodytype;
+	my $bodytype
+	  = ! $getbodytype   ? ($self->{MM_body_type} // 'Mail::Message::Body::Lines')
+	  : ref $getbodytype ? $getbodytype->($self, $head)
+	  :    $getbodytype;
 
-    my $body;
-    if($bodytype->isDelayed)
-    {   $body = $bodytype->new
-          ( message => $self
-          , charset => undef     # we do not know, autodetect after transfer decode
-          , $self->logSettings
-          );
-    }
-    else
-    {   my $ct   = $head->get('Content-Type', 0);
-        my $type = defined $ct ? lc($ct->body) : 'text/plain';
+	my $body;
+	if($bodytype->isDelayed)
+	{	# autodetect charset after transfer decoding.
+		$body = $bodytype->new(message => $self, charset => undef, $self->logSettings);
+	}
+	else
+	{	my $ct   = $head->get('Content-Type', 0);
+		my $type = defined $ct ? lc($ct->body) : 'text/plain';
 
-        # Be sure you have acceptable bodies for multiparts and nested.
-        if(substr($type, 0, 10) eq 'multipart/' && !$bodytype->isMultipart)
-        {   $bodytype = 'Mail::Message::Body::Multipart';
-        }
-        elsif($type eq 'message/rfc822')
-        {   # RFC2046 forbids the extras of RFC6532, but Outlook implemented it anyway:
+		# Be sure you have acceptable bodies for multiparts and nested.
+		if(substr($type, 0, 10) eq 'multipart/' && !$bodytype->isMultipart)
+		{	$bodytype = 'Mail::Message::Body::Multipart';
+		}
+		elsif($type eq 'message/rfc822')
+		{	# RFC2046 forbids the extras of RFC6532, but Outlook implemented it anyway:
 			# transfer encoding of this part.  In that case, do not use a ::Nested
 			my $enc = $head->get('Content-Transfer-Encoding') || 'none';
 
 			$bodytype = 'Mail::Message::Body::Nested'
-                if $enc =~ m/^(?:none|7bit|8bit|binary)$/i && ! $bodytype->isNested;
-        }
+				if $enc =~ m/^(?:none|7bit|8bit|binary)$/i && ! $bodytype->isNested;
+		}
 
-        $body = $bodytype->new
-          ( message => $self
-          , checked => $self->{MM_trusted}
-          , charset => undef
-          , $self->logSettings
-          );
+		$body = $bodytype->new(message => $self, checked => $self->{MM_trusted}, charset => undef, $self->logSettings);
+		$body->contentInfoFrom($head);
+	}
 
-        $body->contentInfoFrom($head);
-    }
-
-    my $lines   = $head->get('Lines');  # usually off-by-one
-    my $size    = $head->guessBodySize;
-    $body->read($parser, $head, $getbodytype, $size, $lines);
+	my $lines   = $head->get('Lines');  # usually off-by-one
+	my $size    = $head->guessBodySize;
+	$body->read($parser, $head, $getbodytype, $size, $lines);
 }
 
 =method storeBody $body
@@ -1331,10 +1279,10 @@ to the message.  No conversions, no checking.
 =cut
 
 sub storeBody($)
-{   my ($self, $body) = @_;
-    $self->{MM_body} = $body;
-    $body->message($self);
-    $body;
+{	my ($self, $body) = @_;
+	$self->{MM_body} = $body;
+	$body->message($self);
+	$body;
 }
 
 =method isDelayed
@@ -1343,30 +1291,30 @@ true or false, dependent on the body type.
 =cut
 
 sub isDelayed()
-{    my $body = shift->body;
-     !$body || $body->isDelayed;
+{	my $body = shift->body;
+	!$body || $body->isDelayed;
 }
 
 =method takeMessageId [STRING]
-Take the message-id from the STRING, or create one when the C<undef>
-is specified.  If not STRING nor C<undef> is given, the current header
+Take the message-id from the STRING, or create one when the undef
+is specified.  If not STRING nor undef is given, the current header
 of the message is requested for the value of the C<'Message-ID'> field.
 
-Angles (if present) are removed from the id. 
+Angles (if present) are removed from the id.
 =cut
 
 sub takeMessageId(;$)
-{   my $self  = shift;
-    my $msgid = (@_ ? shift : $self->get('Message-ID')) || '';
+{	my $self  = shift;
+	my $msgid = (@_ ? shift : $self->get('Message-ID')) || '';
 
-    if($msgid =~ m/\<([^>]*)\>/s)
-    {   $msgid = $1 =~ s/\s//grs;
-    }
- 
-    $self->{MM_message_id} = $msgid || $self->head->createMessageId;
+	if($msgid =~ m/\<([^>]*)\>/s)
+	{	$msgid = $1 =~ s/\s//grs;
+	}
+
+	$self->{MM_message_id} = $msgid || $self->head->createMessageId;
 }
 
-#------------------------------------------
+#--------------------
 =section Error handling
 
 =ci_method shortSize [$value]
@@ -1376,16 +1324,15 @@ and Kilobytes).  Without $value, the size of the message head is used.
 =cut
 
 sub shortSize(;$)
-{   my $self = shift;
-    my $size = shift;
-    $size = $self->head->guessBodySize unless defined $size;
+{	my $self = shift;
+	my $size = shift // $self->head->guessBodySize;
 
-      !defined $size     ? '?'
-    : $size < 1_000      ? sprintf "%3d "  , $size
-    : $size < 10_000     ? sprintf "%3.1fK", $size/1024
-    : $size < 1_000_000  ? sprintf "%3.0fK", $size/1024
-    : $size < 10_000_000 ? sprintf "%3.1fM", $size/(1024*1024)
-    :                      sprintf "%3.0fM", $size/(1024*1024);
+	  !defined $size     ? '?'
+	: $size < 1_000      ? sprintf "%3d "  , $size
+	: $size < 10_000     ? sprintf "%3.1fK", $size/1024
+	: $size < 1_000_000  ? sprintf "%3.0fK", $size/1024
+	: $size < 10_000_000 ? sprintf "%3.1fM", $size/(1024*1024)
+	:                      sprintf "%3.0fM", $size/(1024*1024);
 }
 
 =method shortString
@@ -1395,18 +1342,17 @@ now, it only reports size and subject.
 =cut
 
 sub shortString()
-{   my $self    = shift;
-    sprintf "%4s %-30.30s", $self->shortSize, $self->subject;
+{	my $self    = shift;
+	sprintf "%4s %-30.30s", $self->shortSize, $self->subject;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Cleanup
 
 =method destruct
 Remove the information contained in the message object.  This will be
 ignored when more than one reference to the same message object exists,
-because the method has the same effect as assigning C<undef> to the
+because the method has the same effect as assigning undef to the
 variable which contains the reference.  Normal garbage collection will
 call C<DESTROY()> when possible.
 
@@ -1415,16 +1361,15 @@ located in folders: their M<Mail::Box::Message::destruct()> works quite
 differently.
 
 =example of Mail::Message destruct
- my $msg = M<Mail::Message>->read;
- $msg->destruct;
- $msg = undef;    # same
+  my $msg = Mail::Message->read;
+  $msg->destruct;
+  $msg = undef;    # same
 
 =cut
 
 sub destruct() { $_[0] = undef }
 
-#------------------------------------------
-
+#--------------------
 =chapter DETAILS
 
 =section Structure of a Message
@@ -1441,9 +1386,9 @@ the message, when it was transported, how it was transported, etc.
 Headers can grow quite large.
 
 In MailBox, each message object manages exactly one header object
-(a M<Mail::Message::Head>) and one body object (a M<Mail::Message::Body>).
+(a Mail::Message::Head) and one body object (a Mail::Message::Body).
 The header contains a list of header fields, which are represented by
-M<Mail::Message::Field> objects.
+Mail::Message::Field objects.
 
 =subsection The body
 
@@ -1460,76 +1405,76 @@ transport and relations to other messages.
 
 The general idea about the structure of a message is
 
- M<Mail::Message>
-  |  |
-  |  `-has-one--M<Mail::Message::Body>
-  |
-  `----has-one--M<Mail::Message::Head>
-                  |
-                  `-has-many--M<Mail::Message::Field>
+  Mail::Message
+   |  |
+   |  `-has-one--Mail::Message::Body
+   |
+   `----has-one--Mail::Message::Head
+                   |
+                   `-has-many--Mail::Message::Field
 
 However: there are about 7 kinds of body objects, 3 kinds of headers and
 3 kinds of fields.  You will usually not see too much of these kinds,
 because they are merely created for performance reasons and can be used
 all the same, with the exception of the multipart bodies.
 
-A multipart body is either a M<Mail::Message::Body::Multipart>
-(mime type C<multipart/*>) or a M<Mail::Message::Body::Nested>
+A multipart body is either a Mail::Message::Body::Multipart
+(mime type C<multipart/*>) or a Mail::Message::Body::Nested
 (mime type C<message/rfc822>).  These bodies are more complex:
 
- M<Mail::Message::Body::Multipart>
-  |
-  `-has-many--M<Mail::Message::Part>
-               |  |
-               |  `-has-one--M<Mail::Message::Body>
-               |
-               `----has-one--M<Mail::Message::Head>
+  Mail::Message::Body::Multipart
+   |
+   `-has-many--Mail::Message::Part
+                |  |
+                |  `-has-one--Mail::Message::Body
+                |
+                `----has-one--Mail::Message::Head
 
 Before you try to reconstruct multiparts or nested messages yourself,
-you can better take a look at M<Mail::Message::Construct::Rebuild>.
+you can better take a look at Mail::Message::Construct::Rebuild.
 
 =section Message class implementation
 
 The class structure of messages is very close to that of folders.  For
-instance, a M<Mail::Box::File::Message> relates to a M<Mail::Box::File>
+instance, a Mail::Box::File::Message relates to a Mail::Box::File
 folder.
 
-As extra level of inheritance, it has a M<Mail::Message>, which
+As extra level of inheritance, it has a Mail::Message, which
 is a message without location.  And there is a special case of
-message: M<Mail::Message::Part> is a message encapsulated in a
+message: Mail::Message::Part is a message encapsulated in a
 multipart body.
 
 The message types are:
 
- M<Mail::Box::Mbox::Message>            M<Mail::Box::POP3::Message>
- |  M<Mail::Box::Dbx::Message>      M<Mail::Box::IMAP4::Message>  |
- |  |                                                    |  |
- M<Mail::Box::File::Message>             M<Mail::Box::Net::Message>
-         |                                      |
-         |       M<Mail::Box::Maildir::Message>    |
-         |       |   M<Mail::Box::MH::Message>     |
-         |       |   |                          |
-         |       M<Mail::Box::Dir::Message>        |
-         |                |                     |
-         `------------.   |   .-----------------'
-                      |   |   |
-                   M<Mail::Box::Message>    M<Mail::Message::Part>
-                          |                     |
-                          |       .-------------'
-                          |       |
-                      M<Mail::Message>
-                          |
-                          |
-                    M<Mail::Reporter> (general base class)
+  Mail::Box::Mbox::Message            Mail::Box::POP3::Message
+  |  Mail::Box::Dbx::Message      Mail::Box::IMAP4::Message  |
+  |  |                                                    |  |
+  Mail::Box::File::Message             Mail::Box::Net::Message
+          |                                      |
+          |       Mail::Box::Maildir::Message    |
+          |       |   Mail::Box::MH::Message     |
+          |       |   |                          |
+          |       Mail::Box::Dir::Message        |
+          |                |                     |
+          `------------.   |   .-----------------'
+                       |   |   |
+                    Mail::Box::Message    Mail::Message::Part
+                           |                     |
+                           |       .-------------'
+                           |       |
+                       Mail::Message
+                           |
+                           |
+                     Mail::Reporter (general base class)
 
-By far most folder features are implemented in M<Mail::Box>, so
+By far most folder features are implemented in Mail::Box, so
 available to all folder types.  Sometimes, features which appear
 in only some of the folder types are simulated for folders that miss
 them, like sub-folder support for MBOX.
 
 Two strange other message types are defined:
-the M<Mail::Message::Dummy>, which fills holes in
-M<Mail::Box::Thread::Node> lists, and a M<Mail::Box::Message::Destructed>,
+the Mail::Message::Dummy, which fills holes in
+Mail::Box::Thread::Node lists, and a Mail::Box::Message::Destructed,
 this is an on purpose demolished message to reduce memory consumption.
 
 =section Labels
@@ -1617,15 +1562,27 @@ Mbox folders have no special means of storing information about messages
 adding fields to the message header when something special comes up.
 This feature is also enabled for POP3, although whether that works
 depends on the POP server.
+A mail user agent (MUA) will set this flag when the user has opened the
+message once.
+
+=back
+
+=subsection Status and X-Status fields
+
+Mbox folders have no special means of storing information about messages
+(except the message separator line), and therefore have to revert to
+adding fields to the message header when something special comes up.
+This feature is also enabled for POP3, although whether that works
+depends on the POP server.
 
 All applications which can handle mbox folders support the C<Status> and
 C<X-Status> field convensions.  The following encoding is used:
 
- Flag   Field       Label
- R      Status   => seen    (Read)
- O      Status   => old     (not recent)
- A      X-Status => replied (Answered)
- F      X-Status => flagged
+  Flag   Field       Label
+  R      Status   => seen    (Read)
+  O      Status   => old     (not recent)
+  A      X-Status => replied (Answered)
+  F      X-Status => flagged
 
 There is no special flag for C<deleted>, which most other folders support:
 messages flagged to be deleted will never be written to a folder file when

@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::Fast;
 use base 'Mail::Message::Field';
@@ -10,13 +11,14 @@ use warnings;
 
 use Scalar::Util  qw/blessed/;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Field::Fast - one line of a message header
 
 =chapter SYNOPSIS
 
- See M<Mail::Message::Field>
+  See Mail::Message::Field
 
 =chapter DESCRIPTION
 
@@ -26,10 +28,8 @@ things up.  Be gentle with me, and consider that each message contains
 many of these lines, so speed is very important here.
 
 =chapter METHODS
-
 =cut
 
-#------------------------------------------
 #
 # The DATA is stored as:   [ NAME, FOLDED-BODY ]
 # The body is kept in a folded fashion, where each line starts with
@@ -45,27 +45,24 @@ Therefor it has no logging or tracing facilities.
 The method can be used in one of the following ways:
 
 =over 4
-
-=item * B<new> LINE
-
+=item * B<new> $line
 Pass a LINE as it could be found in a file: a (possibly folded) line
 which is terminated by a new-line.
 
-=item * B<new> NAME, (BODY|OBJECTS), [ATTRIBUTES]
-
+=item * B<new> $name, ($body|$object|\@objects), [\@attributes]
 A set of values which shape the line.
-
 =back
 
-Create a new header field object.  Specify the whole LINE at once, and
-it will be split-up for you.  I case you already have the parts of the
-header line, you may specify them separately as NAME and BODY.
+Create a new header field object.  Specify the whole $line (encoded
+octets) at once, and it will be split-up for you.  I case you already
+have the parts of the header line, you may specify them separately as
+$name and field $body.
 
-In case you specify a single OBJECT, or a reference to an array of
+In case you specify a single @object, or an ARRAY of @objects
 OBJECTS, these objects are processed to become suitable to fill a
 field, usually by simple strification.  When you specify one or more
-M<Mail::Address> objects, these are transformed into a string using
-their C<format> method.  You may also add one M<Mail::Message::Field>,
+Mail::Address objects, these are transformed into a string using
+their C<format> method.  You may also add one Mail::Message::Field,
 whose body is taken.  In case of an array, the elements are joined into
 one string with a comma.
 
@@ -76,31 +73,30 @@ quoted if needed and everything formatted as the protocol demands.
 
 =examples
 
- my $mime = Mail::Message::Field->new(
-  'Content-Type: text/plain; charset=US-ASCII');
+  my $mime = Mail::Message::Field->new(
+    'Content-Type: text/plain; charset=US-ASCII');
 
- my $mime = Mail::Message::Field->new(
-  'Content-Type' => 'text/plain; charset=US-ASCII');
+  my $mime = Mail::Message::Field->new(
+    'Content-Type' => 'text/plain; charset=US-ASCII');
 
- my $mime = Mail::Message::Field->new(
-  'Content-Type' => 'text/plain', 'charset=US-ASCII');
+  my $mime = Mail::Message::Field->new(
+    'Content-Type' => 'text/plain', 'charset=US-ASCII');
 
- my $mime = Mail::Message::Field->new(
-  'Content-Type' => 'text/plain', charset => 'Latin1');
+  my $mime = Mail::Message::Field->new(
+    'Content-Type' => 'text/plain', charset => 'Latin1');
 
- my $mime = Mail::Message::Field->new(
-  To => Mail::Address->new('My', 'me@example.com');
+  my $mime = Mail::Message::Field->new(
+    To => Mail::Address->new('My', 'me@example.com');
 
- my $mime = Mail::Message::Field->new(
-  Cc => [ Mail::Address->new('You', 'you@example.com')
-        , Mail::Address->new('His', 'he@example.com')
-        ]);
+  my $mime = Mail::Message::Field->new( Cc => [
+    Mail::Address->new('You', 'you@example.com'),
+    Mail::Address->new('His', 'he@example.com')
+  ]);
 
 But in practice, you can simply call
 
- my $head = Mail::Message::Head->new;
- $head->add( 'Content-Type' => 'text/plain'
-           , charset => 'utf8');
+  my $head = Mail::Message::Head->new;
+  $head->add( 'Content-Type' => 'text/plain', charset => 'utf8');
 
 which implicitly calls this constructor (when needed).  You can specify
 the same things for M<Mail::Message::Head::Complete::add()> as this
@@ -108,70 +104,67 @@ C<new> accepts.
 
 =default log   <disabled>
 =default trace <disabled>
-
 =cut
 
 sub new($;$@)
-{   my $class = shift;
+{	my $class = shift;
 
-    my ($name, $body) = $class->consume(@_==1 ? (shift) : (shift, shift));
-    return () unless defined $body;
+	my ($name, $body) = $class->consume(@_==1 ? (shift) : (shift, shift));
+	defined $body or return ();
 
-    my $self = bless [$name, $body], $class;
+	my $self = bless +[$name, $body], $class;
 
-    # Attributes
-    $self->comment(shift)             if @_==1;   # one attribute line
-    $self->attribute(shift, shift) while @_ > 1;  # attribute pairs
-
-    $self;
+	# Attributes
+	$self->comment(shift)             if @_==1;   # one attribute line
+	$self->attribute(shift, shift) while @_ > 1;  # attribute pairs
+	$self;
 }
 
 sub clone()
-{   my $self = shift;
-    bless [ @$self ], ref $self;
+{	my $self = shift;
+	bless +[ @$self ], ref $self;
 }
 
 sub length()
-{   my $self = shift;
-    length($self->[0]) + 1 + length($self->[1]);
+{	my $self = shift;
+	length($self->[0]) + 1 + length($self->[1]);
 }
 
 sub name() { lc shift->[0] }
-sub Name() { shift->[0] }
+sub Name() { $_[0]->[0] }
 
 sub folded()
-{   my $self = shift;
-    return $self->[0].':'.$self->[1]
-        unless wantarray;
+{	my $self = shift;
+	wantarray or return $self->[0] .':'. $self->[1];
 
-    my @lines = $self->foldedBody;
-    my $first = $self->[0]. ':'. shift @lines;
-    ($first, @lines);
+	my @lines = $self->foldedBody;
+	my $first = $self->[0]. ':'. shift @lines;
+	($first, @lines);
 }
 
 sub unfoldedBody($;@)
-{   my $self = shift;
+{	my $self = shift;
 
-    $self->[1] = $self->fold($self->[0], @_)
-       if @_;
+	$self->[1] = $self->fold($self->[0], @_)
+		if @_;
 
-    $self->unfold($self->[1]);
+	$self->unfold($self->[1]);
 }
 
 sub foldedBody($)
-{   my ($self, $body) = @_;
-    if(@_==2) { $self->[1] = $body }
-    else      { $body = $self->[1] }
-     
-    wantarray ? (split m/^/, $body) : $body;
+{	my ($self, $body) = @_;
+	if(@_==2) { $self->[1] = $body }
+	else      { $body = $self->[1] }
+
+	wantarray ? (split m/^/, $body) : $body;
 }
 
 # For performance reasons only
 sub print(;$)
-{   my $self = shift;
-    my $fh   = shift || select;
-    $fh->print($self->[0].':'.$self->[1]);
-    $self;
+{	my $self = shift;
+	my $fh   = shift || select;
+	$fh->print($self->[0].':'.$self->[1]);
+	$self;
 }
 
 1;

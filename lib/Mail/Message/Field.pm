@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field;
 use base 'Mail::Reporter';
@@ -9,9 +10,9 @@ use strict;
 use warnings;
 
 use Carp;
-use Mail::Address;
-use Date::Format 'strftime';
-use IO::Handle;
+use Mail::Address    ();
+use IO::Handle       ();
+use Date::Format     qw/strftime/;
 
 our %_structured;  # not to be used directly: call isStructured!
 my $default_wrap_length = 78;
@@ -24,15 +25,15 @@ Mail::Message::Field - one line of a message header
 
 =chapter SYNOPSIS
 
- my $field = Mail::Message::Field->new(From => 'fish@tux.aq');
- print $field->name;
- print $field->body;
- print $field->comment;
- print $field->content;  # body & comment
- $field->print(\*OUT);
- print $field->string;
- print "$field\n";
- print $field->attribute('charset') || 'us-ascii';
+  my $field = Mail::Message::Field->new(From => 'fish@tux.aq');
+  print $field->name;
+  print $field->body;
+  print $field->comment;
+  print $field->content;  # body & comment
+  $field->print(\*OUT);
+  print $field->string;
+  print "$field\n";
+  print $field->attribute('charset') || 'us-ascii';
 
 =chapter DESCRIPTION
 
@@ -44,102 +45,91 @@ These objects each store one header line, and facilitates access routines to
 the information hidden in it.  Also, you may want to have a look at the
 added methods of a message:
 
- my @from    = $message->from;
- my $sender  = $message->sender;
- my $subject = $message->subject;
- my $msgid   = $message->messageId;
+  my @from    = $message->from;
+  my $sender  = $message->sender;
+  my $subject = $message->subject;
+  my $msgid   = $message->messageId;
 
- my @to      = $message->to;
- my @cc      = $message->cc;
- my @bcc     = $message->bcc;
- my @dest    = $message->destinations;
+  my @to      = $message->to;
+  my @cc      = $message->cc;
+  my @bcc     = $message->bcc;
+  my @dest    = $message->destinations;
 
- my $other   = $message->get('Reply-To');
+  my $other   = $message->get('Reply-To');
 
 =chapter OVERLOADED
 
-=overload ""
-
-(stringification) produces the unfolded body of the field, which may
-be what you expect.  This is what makes what the field object seems
-to be a simple string. The string is produced by M<unfoldedBody()>.
+=overload "" stringification
+Produces the unfolded body of the field, which may be what you expect.
+This is what makes what the field object seems to be a simple string. The
+string is produced by M<unfoldedBody()>.
 
 =example
 
- print $msg->get('subject');  # via overloading
- print $msg->get('subject')->unfoldedBody; # same
+  print $msg->get('subject');  # via overloading
+  print $msg->get('subject')->unfoldedBody; # same
 
- my $subject = $msg->get('subject') || 'your mail';
- print "Re: $subject\n";
+  my $subject = $msg->get('subject') || 'your mail';
+  print "Re: $subject\n";
 
-=overload 0+
-
-(numification) When the field is numeric, the value will be returned.
+=overload 0+ numification
+When the field is numeric, the value will be returned.
 The result is produced by M<toInt()>.  If the value is not correct,
 a C<0> is produced, to simplify calculations.
 
-=overload bool
+=overload bool boolean
 Always true, to make it possible to say C<if($field)>.
 
-=overload cmp
-(string comparison) Compare the unfolded body of a field with another
-field or a string, using the buildin C<cmp>.
+=overload cmp string comparison
+Compare the unfolded body of a field with another field or a string,
+using the buildin C<cmp>.
 
-=overload <=>
-(numeric comparison) Compare the integer field contents with something
-else.
+=overload <=> numeric comparison
+Compare the integer field contents with something else.
 
 =example
- if($msg->get('Content-Length') > 10000) ...
- if($msg->size > 10000) ... ; # same, but better
+  if($msg->get('Content-Length') > 10000) ...
+  if($msg->size > 10000) ... ; # same, but better
 
 =cut
 
 use overload
-   qq("")  => sub { $_[0]->unfoldedBody }
- , '0+'    => sub { $_[0]->toInt || 0 }
- , bool    => sub {1}
- , cmp     => sub { $_[0]->unfoldedBody cmp "$_[1]" }
- , '<=>'   => sub { $_[2] ? $_[1] <=> $_[0]->toInt : $_[0]->toInt <=> $_[1] }
- , fallback => 1;
+	qq("")  => sub { $_[0]->unfoldedBody },
+	'0+'    => sub { $_[0]->toInt || 0 },
+	bool    => sub {1},
+	cmp     => sub { $_[0]->unfoldedBody cmp "$_[1]" },
+	'<=>'   => sub { $_[2] ? $_[1] <=> $_[0]->toInt : $_[0]->toInt <=> $_[1] },
+	fallback => 1;
 
-#------------------------------------------
-
+#--------------------
 =chapter METHODS
 
 =section Constructors
 
 =c_method new $data
-
-See M<Mail::Message::Field::Fast::new()>,
-M<Mail::Message::Field::Flex::new()>,
-and M<Mail::Message::Field::Full::new()>.
-By default, a C<Fast> field is produced.
-
+See M<Mail::Message::Field::Fast::new()>, M<Mail::Message::Field::Flex::new()>, and
+M<Mail::Message::Field::Full::new()>.  By default, a C<Fast> field is produced.
 =cut
 
 sub new(@)
-{   my $class = shift;
-    if($class eq __PACKAGE__)  # bootstrap
-    {   require Mail::Message::Field::Fast;
-        return Mail::Message::Field::Fast->new(@_);
-    }
-    $class->SUPER::new(@_);
+{	my $class = shift;
+	if($class eq __PACKAGE__)  # bootstrap
+	{	require Mail::Message::Field::Fast;
+		return Mail::Message::Field::Fast->new(@_);
+	}
+	$class->SUPER::new(@_);
 }
-
 
 =method clone
 Create a copy of this field object.
 =cut
 
-#------------------------------------------
-
+#--------------------
 =section The field
 
 =method length
 Returns the total length of the field in characters, which includes the
 field's name, body and folding characters.
-
 =cut
 
 sub length { length shift->folded }
@@ -151,29 +141,27 @@ and the like, what they do not share with unstructured fields, like
 the C<Subject> field.
 
 =examples
- my $field = Mail::Message::Field->new(From => 'me');
- if($field->isStructured)
+  my $field = Mail::Message::Field->new(From => 'me');
+  if($field->isStructured)
 
- Mail::Message::Field->isStructured('From');
+  Mail::Message::Field->isStructured('From');
 
 =cut
 
 BEGIN {
-%_structured = map { (lc($_) => 1) }
-  qw/To Cc Bcc From Date Reply-To Sender
-     Resent-Date Resent-From Resent-Sender Resent-To Return-Path
-     List-Help List-Post List-Unsubscribe Mailing-List
-     Received References Message-ID In-Reply-To
-     Content-Type Content-Disposition Content-ID
-     Delivered-To
-     MIME-Version
-     Precedence
-     Status/;
-} 
+	%_structured = map +(lc($_) => 1), qw/
+		To Cc Bcc From Date Reply-To Sender
+		Resent-Date Resent-From Resent-Sender Resent-To Return-Path
+		List-Help List-Post List-Unsubscribe Mailing-List
+		Received References Message-ID In-Reply-To Delivered-To
+		Content-Type Content-Disposition Content-ID
+		MIME-Version Precedence Status
+	/;
+}
 
 sub isStructured(;$)
-{   my $name  = ref $_[0] ? shift->name : $_[1];
-    exists $_structured{lc $name};
+{	my $name  = ref $_[0] ? shift->name : $_[1];
+	exists $_structured{lc $name};
 }
 
 =method print [$fh]
@@ -183,9 +171,9 @@ lines.  The $fh defaults to the selected handle.
 =cut
 
 sub print(;$)
-{   my $self = shift;
-    my $fh   = shift || select;
-    $fh->print(scalar $self->folded);
+{	my $self = shift;
+	my $fh   = shift || select;
+	$fh->print(scalar $self->folded);
 }
 
 =method string [$wrap]
@@ -196,36 +184,37 @@ place (without changing the folding stored inside the field).
 
 sub toString(;$) {shift->string(@_)}
 sub string(;$)
-{   my $self  = shift;
-    return $self->folded unless @_;
+{	my $self  = shift;
+	return $self->folded unless @_;
 
-    my $wrap  = shift || $default_wrap_length;
-    my $name  = $self->Name;
-    my @lines = $self->fold($name, $self->unfoldedBody, $wrap);
-    $lines[0] = $name . ':' . $lines[0];
-    wantarray ? @lines : join('', @lines);
+	my $wrap  = shift || $default_wrap_length;
+	my $name  = $self->Name;
+	my @lines = $self->fold($name, $self->unfoldedBody, $wrap);
+	$lines[0] = $name . ':' . $lines[0];
+	wantarray ? @lines : join('', @lines);
 }
 
 =method toDisclose
 Returns whether this field can be disclosed to other people, for instance
-when sending the message to another party.  Returns a C<true> or C<false>
+when sending the message to another party.  Returns a true or false
 condition.
 See also M<Mail::Message::Head::Complete::printUndisclosed()>.
 =cut
 
 sub toDisclose()
-{   shift->name !~ m!^(?: (?:x-)?status
-                      |   (?:resent-)?bcc
-                      |   Content-Length
-                      |   x-spam-
-                      ) $!x;
+{	$_[0]->name !~ m! ^
+		(?: (?:x-)?status
+		|   (?:resent-)?bcc
+		|   content-length
+		|   x-spam-
+		) $ !x;
 }
 
 =method nrLines
 Returns the number of lines needed to display this header-line.
 =cut
 
-sub nrLines() { my @l = shift->foldedBody; scalar @l }
+sub nrLines() { my @l = $_[0]->foldedBody; scalar @l }
 
 =method size
 Returns the number of bytes needed to display this header-line, Same
@@ -234,8 +223,7 @@ as M<length()>.
 
 *size = \&length;
 
-#------------------------------------------
-
+#--------------------
 =section Access to the name
 
 =method name
@@ -251,12 +239,12 @@ As instance method, the current field's name is correctly formatted
 and returned.  When a STRING is used, that one is formatted.
 
 =examples
- print Mail::Message::Field->Name('content-type')
-   # -->  Content-Type
+  print Mail::Message::Field->Name('content-type')
+    # -->  Content-Type
 
- my $field = $head->get('date');
- print $field->Name;
-   # -->  Date
+  my $field = $head->get('date');
+  print $field->Name;
+    # -->  Date
 
 =cut
 
@@ -267,21 +255,18 @@ and returned.  When a STRING is used, that one is formatted.
 # if it does not contain a vowel and isn't the well-known 'Cc' or
 # 'Bcc' headers.
 
-my %wf_lookup
-  = qw/mime MIME  ldap LDAP  soap SOAP  swe SWE
-       bcc Bcc  cc Cc  id ID/;
+my %wf_lookup = qw/mime MIME  ldap LDAP  soap SOAP  swe SWE  bcc Bcc  cc Cc  id ID/;
 
 sub wellformedName(;$)
-{   my $thing = shift;
-    my $name = @_ ? shift : $thing->name;
+{	my $thing = shift;
+	my $name = @_ ? shift : $thing->name;
 
-    join '-',
-       map { $wf_lookup{lc $_} || ( /[aeiouyAEIOUY]/ ? ucfirst lc : uc ) }
-          split /\-/, $name, -1;
+	join '-',
+		map { $wf_lookup{lc $_} || ( /[aeiouyAEIOUY]/ ? ucfirst lc : uc ) }
+		split /\-/, $name, -1;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Access to the body
 
 =method folded
@@ -295,13 +280,13 @@ In scalar context, the lines are delived into one string, which is
 a little faster because that's the way they are stored internally...
 
 =examples
- my @lines = $field->folded;
- print $field->folded;
- print scalar $field->folded; # faster
+  my @lines = $field->folded;
+  print $field->folded;
+  print scalar $field->folded; # faster
 
 =cut
 
-sub folded { shift->notImplemented }
+sub folded { $_[0]->notImplemented }
 
 =method body
 This method may not be what you want: the M<foldedBody()> and
@@ -310,16 +295,16 @@ return the full content of a field, even when it is structured.
 
 Returns the body of the field.  When this field is structured, it will
 be B<stripped> from everything what is behind the first semi-color (C<;>).
-In any case, the string is unfolded.  
+In any case, the string is unfolded.
 Whether the field is structured is defined by M<isStructured()>.
 =cut
 
 sub body()
-{   my $self = shift;
-    my $body = $self->unfoldedBody;
-    $self->isStructured or return $body;
+{	my $self = shift;
+	my $body = $self->unfoldedBody;
+	$self->isStructured or return $body;
 
-    my ($first) = $body =~ m/^((?:"[^"]*"|'[^']*'|[^;])*)/;
+	my ($first) = $body =~ m/^((?:"[^"]*"|'[^']*'|[^;])*)/;
 	$first =~ s/\s+$//r;
 }
 
@@ -332,7 +317,7 @@ The optional $body argument changes the field's body.  The folding of the
 argument must be correct.
 =cut
 
-sub foldedBody { shift->notImplemented }
+sub foldedBody { $_[0]->notImplemented }
 
 =method unfoldedBody [$body, [$wrap]]
 Returns the body as one single line, where all folding information (if
@@ -344,12 +329,12 @@ folding size.
 
 =examples
 
- my $body = $field->unfoldedBody;
- print "$field";   # via overloading
+  my $body = $field->unfoldedBody;
+  print "$field";   # via overloading
 
 =cut
 
-sub unfoldedBody { shift->notImplemented }
+sub unfoldedBody { $_[0]->notImplemented }
 
 =ci_method stripCFWS [STRING]
 Remove the I<comments> and I<folding white spaces> from the STRING.  Without
@@ -364,40 +349,40 @@ example.
 =cut
 
 sub stripCFWS($)
-{   my $thing  = shift;
+{	my $thing  = shift;
 
-    # get (folded) data
-    my $string = @_ ? shift : $thing->foldedBody;
+	# get (folded) data
+	my $string = @_ ? shift : $thing->foldedBody;
 
-    # remove comments
-    my $r          = '';
-    my $in_dquotes = 0;
-    my $open_paren = 0;
+	# remove comments
+	my $r          = '';
+	my $in_dquotes = 0;
+	my $open_paren = 0;
 
-    my @s = split m/([()"])/, $string;
-    while(@s)
-    {   my $s = shift @s;
+	my @s = split m/([()"])/, $string;
+	while(@s)
+	{	my $s = shift @s;
 
-           if(CORE::length($r)&& substr($r, -1) eq "\\")  { $r .= $s }
-        elsif($s eq '"')   { $in_dquotes = not $in_dquotes; $r .= $s }
-        elsif($s eq '(' && !$in_dquotes) { $open_paren++ }
-        elsif($s eq ')' && !$in_dquotes) { $open_paren-- }
-        elsif($open_paren) {}  # in comment
-        else               { $r .= $s }
-    }
+			if(CORE::length($r)&& substr($r, -1) eq "\\")  { $r .= $s }
+		elsif($s eq '"')   { $in_dquotes = not $in_dquotes; $r .= $s }
+		elsif($s eq '(' && !$in_dquotes) { $open_paren++ }
+		elsif($s eq ')' && !$in_dquotes) { $open_paren-- }
+		elsif($open_paren) {}  # in comment
+		else               { $r .= $s }
+	}
 
-    # beautify and unfold at the same time
-    $r =~ s/\s+/ /grs =~ s/\s+$//r =~ s/^\s+//r;
+	# beautify and unfold at the same time
+	$r =~ s/\s+/ /grs =~ s/\s+$//r =~ s/^\s+//r;
 }
 
-#------------------------------------------
+#--------------------
 =section Access to the content
 
 =method comment [STRING]
 
 Returns the unfolded comment (part after a semi-colon) in a structureed
 header-line. optionally after setting it to a new STRING first.
-When C<undef> is specified as STRING, the comment is removed.
+When undef is specified as STRING, the comment is removed.
 Whether the field is structured is defined by M<isStructured()>.
 
 The I<comment> part of a header field often contains C<attributes>.  Often
@@ -406,20 +391,20 @@ it is preferred to use M<attribute()> on them.
 =cut
 
 sub comment(;$)
-{   my $self = shift;
-    $self->isStructured or return undef;
+{	my $self = shift;
+	$self->isStructured or return undef;
 
-    my $body = $self->unfoldedBody;
+	my $body = $self->unfoldedBody;
 
-    if(@_)
-    {   my $comment = shift;
-        $body    =~ s/\s*\;.*//;
-        $body   .= "; $comment" if defined $comment && CORE::length($comment);
-        $self->unfoldedBody($body);
-        return $comment;
-    }
- 
-    $body =~ s/.*?\;\s*// ? $body : '';
+	if(@_)
+	{	my $comment = shift;
+		$body    =~ s/\s*\;.*//;
+		$body   .= "; $comment" if defined $comment && CORE::length($comment);
+		$self->unfoldedBody($body);
+		return $comment;
+	}
+
+	$body =~ s/.*?\;\s*// ? $body : '';
 }
 
 sub content() { shift->unfoldedBody }  # Compatibility
@@ -427,30 +412,30 @@ sub content() { shift->unfoldedBody }  # Compatibility
 =method attribute $name, [$value]
 Get the value of an attribute, optionally after setting it to a new value.
 Attributes are part of some header lines, and hide themselves in the
-comment field.  If the attribute does not exist, then C<undef> is
+comment field.  If the attribute does not exist, then undef is
 returned.  The attribute is still encoded.
 
 =examples
 
- my $field = Mail::Message::Field->new(
-  'Content-Type: text/plain; charset="us-ascii"');
+  my $field = Mail::Message::Field->new(
+   'Content-Type: text/plain; charset="us-ascii"');
 
- print $field->attribute('charset');
-   # --> us-ascii
+  print $field->attribute('charset');
+    # --> us-ascii
 
- print $field->attribute('bitmap') || 'no'
-   # --> no
+  print $field->attribute('bitmap') || 'no'
+    # --> no
 
- $field->atrribute(filename => '/tmp/xyz');
- $field->print;
-   # --> Content-Type: text/plain; charset="us-ascii";
-   #       filename="/tmp/xyz"
-   # Automatically folded, and no doubles created.
+  $field->atrribute(filename => '/tmp/xyz');
+  $field->print;
+    # --> Content-Type: text/plain; charset="us-ascii";
+    #       filename="/tmp/xyz"
+    # Automatically folded, and no doubles created.
 
 =cut
 
 sub attribute($;$)
-{   my ($self, $attr) = (shift, shift);
+{	my ($self, $attr) = (shift, shift);
 
 	# Although each attribute can appear only once, some (intentionally)
 	# broken messages do repeat them.  See github issue 20.  Apple Mail and
@@ -459,29 +444,28 @@ sub attribute($;$)
 	my %attrs = $self->attributes;
 	@_ or return $attrs{$attr};
 
-    # set the value
-    my $value = shift;
-    my $body  = $self->unfoldedBody;
+	# set the value
+	my $value = shift;
+	my $body  = $self->unfoldedBody;
 
-    unless(defined $value)  # remove attribute
-    {   for($body)
-        {      s/\b$attr\s*=\s*"(?>[^\\"]|\\.)*"//i
-            or s/\b$attr\s*=\s*[;\s]*//i;
-        }
-        $self->unfoldedBody($body);
-        return undef;
-    }
+	unless(defined $value)  # remove attribute
+	{	for($body)
+		{	s/\b$attr\s*=\s*"(?>[^\\"]|\\.)*"//i or s/\b$attr\s*=\s*[;\s]*//i;
+		}
+		$self->unfoldedBody($body);
+		return undef;
+	}
 
-    my $quoted = $value =~ s/(["\\])/\\$1/gr;
+	my $quoted = $value =~ s/(["\\])/\\$1/gr;
 
-    for($body)
-    {       s/\b$attr\s*=\s*"(?>[^\\"]|\\.){0,1000}"/$attr="$quoted"/i
-         or s/\b$attr\s*=\s*[^;\s]*/$attr="$quoted"/i
-         or do { $_ .= qq(; $attr="$quoted") }
-    }
+	for($body)
+	{	   s/\b$attr\s*=\s*"(?>[^\\"]|\\.){0,1000}"/$attr="$quoted"/i
+		or s/\b$attr\s*=\s*[^;\s]*/$attr="$quoted"/i
+		or do { $_ .= qq(; $attr="$quoted") }
+	}
 
-    $self->unfoldedBody($body);
-    $value;
+	$self->unfoldedBody($body);
+	$value;
 }
 
 =method attributes
@@ -489,24 +473,19 @@ Returns a list of key-value pairs, where the values are not yet decoded.
 Keys may appear more than once.
 
 =example
- my @pairs = $head->get('Content-Disposition')->attributes;
+  my @pairs = $head->get('Content-Disposition')->attributes;
 =cut
 
 sub attributes()
-{   my $self  = shift;
-    my $body  = $self->unfoldedBody;
+{	my $self  = shift;
+	my $body  = $self->unfoldedBody;
 
-    my @attrs;
-    while($body =~ m/\b(\w+)\s*\=\s*
-                       ( "( (?: [^"]|\\" )* )"
-                       | '( (?: [^']|\\' )* )'
-                       | ([^;\s]*)
-                       )
-                    /xig)
-    {   push @attrs, $1 => $+;
-    }
+	my @attrs;
+	while($body =~ m/ \b(\w+)\s*\=\s* ( "( (?: [^"]|\\" )* )" | '( (?: [^']|\\' )* )' | ([^;\s]*) ) /xig)
+	{	push @attrs, $1 => $+;
+	}
 
-    @attrs;
+	@attrs;
 }
 
 =method toInt
@@ -520,12 +499,12 @@ weird characters.
 =cut
 
 sub toInt()
-{   my $self = shift;
-    $self->body =~ m/^\s*(\d+)\s*$/
-        and return $1;
+{	my $self = shift;
+	$self->body =~ m/^\s*(\d+)\s*$/
+		and return $1;
 
-    $self->log(WARNING => "Field content is not numerical: ". $self->toString);
-    undef;
+	$self->log(WARNING => "Field content is not numerical: ". $self->toString);
+	undef;
 }
 
 =ci_method toDate [$time]
@@ -540,14 +519,14 @@ runs automatically.
 
 =examples
 
- my $now = time;
- Mail::Message::Field->toDate($now);
- Mail::Message::Field->toDate(time);
+  my $now = time;
+  Mail::Message::Field->toDate($now);
+  Mail::Message::Field->toDate(time);
 
- Mail::Message::Field->toDate(localtime);
- Mail::Message::Field->toDate;      # same
- # returns something like:
- #     Wed, 28 Aug 2002 10:40:25 +0200
+  Mail::Message::Field->toDate(localtime);
+  Mail::Message::Field->toDate;      # same
+  # returns something like:
+  #     Wed, 28 Aug 2002 10:40:25 +0200
 
 =cut
 
@@ -555,33 +534,33 @@ my @weekday = qw/Sun Mon Tue Wed Thu Fri Sat Sun/;
 my @month   = qw/Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec/;
 
 sub toDate(@)
-{   my $class  = shift;
-    my @time   = @_== 0 ? localtime() : @_==1 ? localtime(shift) : @_;
-    my $format = "$weekday[$time[6]], %d $month[$time[4]] %Y %H:%M:%S %z";
-    my $time   = strftime $format, @time;
+{	my $class  = shift;
+	my @time   = @_== 0 ? localtime() : @_==1 ? localtime(shift) : @_;
+	my $format = "$weekday[$time[6]], %d $month[$time[4]] %Y %H:%M:%S %z";
+	my $time   = strftime $format, @time;
 
-    # for C libs which do not (GNU compliantly) support %z
-    $time =~ s/ (\%z|[A-Za-z ]+)$/_tz_offset($1)/re;
+	# for C libs which do not (GNU compliantly) support %z
+	$time =~ s/ (\%z|[A-Za-z ]+)$/_tz_offset($1)/re;
 }
 
 sub _tz_offset($)
-{  my $zone = shift;
-   require Time::Zone;
+{	my $zone = shift;
+	require Time::Zone;
 
-   my $diff = $zone eq '%z' ? Time::Zone::tz_local_offset() : Time::Zone::tz_offset($zone);
-   my $minutes = int((abs($diff)+0.01) / 60);     # float rounding errors
-   my $hours   = int(($minutes+0.01) / 60);
-   $minutes   -= $hours * 60;
-   sprintf +($diff < 0 ? " -%02d%02d" : " +%02d%02d"), $hours, $minutes;
+	my $diff = $zone eq '%z' ? Time::Zone::tz_local_offset() : Time::Zone::tz_offset($zone);
+	my $minutes = int((abs($diff)+0.01) / 60);     # float rounding errors
+	my $hours   = int(($minutes+0.01) / 60);
+	$minutes   -= $hours * 60;
+	sprintf +($diff < 0 ? " -%02d%02d" : " +%02d%02d"), $hours, $minutes;
 }
 
 =method addresses
-Returns a list of M<Mail::Address> objects, which represent the
+Returns a list of Mail::Address objects, which represent the
 e-mail addresses found in this header line.
 
 =example
- my @addr = $message->head->get('to')->addresses;
- my @addr = $message->to;
+  my @addr = $message->head->get('to')->addresses;
+  my @addr = $message->to;
 
 =cut
 
@@ -589,26 +568,25 @@ sub addresses() { Mail::Address->parse(shift->unfoldedBody) }
 
 =method study
 Study the header field in detail: turn on the full parsing and detailed
-understanding of the content of the fields.  M<Mail::Message::Field::Fast>
-and M<Mail::Message::Field::Fast> objects will be transformed into any
-M<Mail::Message::Field::Full> object.
+understanding of the content of the fields.  Mail::Message::Field::Fast
+and Mail::Message::Field::Fast objects will be transformed into any
+Mail::Message::Field::Full object.
 
 =examples
 
- my $subject = $msg->head->get('subject')->study;
- my $subject = $msg->head->study('subject');  # same
- my $subject = $msg->study('subject');        # same
+  my $subject = $msg->head->get('subject')->study;
+  my $subject = $msg->head->study('subject');  # same
+  my $subject = $msg->study('subject');        # same
 
 =cut
 
 sub study()
-{   my $self = shift;
-    require Mail::Message::Field::Full;
-    Mail::Message::Field::Full->new(scalar $self->folded);
+{	my $self = shift;
+	require Mail::Message::Field::Full;
+	Mail::Message::Field::Full->new(scalar $self->folded);
 }
 
-#------------------------------------------
-
+#--------------------
 =section Other methods
 
 =ci_method dateToTimestamp STRING
@@ -619,17 +597,17 @@ a timestamp like is produced by the C<time> function.
 =cut
 
 sub dateToTimestamp($)
-{   my $string = $_[0]->stripCFWS($_[1]);
+{	my $string = $_[0]->stripCFWS($_[1]);
 
-    # in RFC822, FWSes can appear within the time.
-    $string =~ s/(\d\d)\s*\:\s*(\d\d)\s*\:\s*(\d\d)/$1:$2:$3/;
+	# in RFC822, FWSes can appear within the time.
+	$string =~ s/(\d\d)\s*\:\s*(\d\d)\s*\:\s*(\d\d)/$1:$2:$3/;
 
-    require Date::Parse;
-    Date::Parse::str2time($string, 'GMT');
+	require Date::Parse;
+	Date::Parse::str2time($string, 'GMT');
 }
 
 
-#------------------------------------------
+#--------------------
 =section Internals
 
 =method consume $line | <$name,<$body|$objects>>
@@ -650,30 +628,30 @@ or transfer agents, and therefore mutulate or extinguish your message.
 =cut
 
 sub consume($;$)
-{   my $self = shift;
-    my ($name, $body) = defined $_[1] ? @_ : split(/\s*\:\s*/, (shift), 2);
+{	my $self = shift;
+	my ($name, $body) = defined $_[1] ? @_ : split(/\s*\:\s*/, (shift), 2);
 
-    $name !~ m/[^\041-\071\073-\176]/
-        or Mail::Reporter->log(WARNING => "Illegal character in field name $name");
+	$name !~ m/[^\041-\071\073-\176]/
+		or Mail::Reporter->log(WARNING => "Illegal character in field name $name");
 
-    #
-    # Compose the body.
-    #
+	#
+	# Compose the body.
+	#
 
-    if(ref $body)                 # Objects or array
-    {   my $flat = $self->stringifyData($body) // return ();
-        $body = $self->fold($name, $flat);
-    }
-    elsif($body !~ s/\n+$/\n/g)   # Added by user...
-    {   $body = $self->fold($name, $body);
-    }
-    else                          # Created by parser
-    {   # correct erroneous wrap-seperators (dos files under UNIX)
-        $body =~ s/[\012\015]+/\n/g;
-        $body =~ s/^[ \t]*/ /;  # start with one blank, folding kept unchanged
-    }
+	if(ref $body)                 # Objects or array
+	{	my $flat = $self->stringifyData($body) // return ();
+		$body = $self->fold($name, $flat);
+	}
+	elsif($body !~ s/\n+$/\n/g)   # Added by user...
+	{	$body = $self->fold($name, $body);
+	}
+	else                          # Created by parser
+	{	# correct erroneous wrap-seperators (dos files under UNIX)
+		$body =~ s/[\012\015]+/\n/g;
+		$body =~ s/^[ \t]*/ /;  # start with one blank, folding kept unchanged
+	}
 
-    ($name, $body);
+	($name, $body);
 }
 
 =method stringifyData STRING|ARRAY|$objects
@@ -682,34 +660,34 @@ ascii fields.  The process is explained in L</Specifying field data>.
 =cut
 
 sub stringifyData($)
-{  my ($self, $arg) = (shift, shift);
-   my @addr;
-   foreach my $obj (ref $arg eq 'ARRAY' ? @$arg : ($arg))
-   {   defined $obj or next;
+{	my ($self, $arg) = (shift, shift);
+	my @addr;
+	foreach my $obj (ref $arg eq 'ARRAY' ? @$arg : ($arg))
+	{	defined $obj or next;
 
-       if(!ref $obj)                  { push @addr, $obj; next }
-       if($obj->isa('Mail::Address')) { push @addr, $obj->format; next }
+		if(!ref $obj)                  { push @addr, $obj; next }
+		if($obj->isa('Mail::Address')) { push @addr, $obj->format; next }
 
-       if($obj->isa('Mail::Identity') || $obj->isa('User::Identity'))
-       {   require Mail::Message::Field::Address;
-           push @addr, Mail::Message::Field::Address->coerce($obj)->string;
-       }
-       elsif($obj->isa('User::Identity::Collection::Emails'))
-       {   my @roles = $obj->roles or next;
-           require Mail::Message::Field::AddrGroup;
-           my $group = Mail::Message::Field::AddrGroup->coerce($obj);
-           push @addr, $group->string if $group;
-       }
-       elsif($obj->isa('Mail::Message::Field'))
-       {   my $folded = join ' ', $obj->foldedBody;
-           push @addr, $folded =~ s/^ //r =~ s/\n\z//r;
-       }
-       else
-       {   push @addr, "$obj";    # any other object is stringified
-       }
-   }
+		if($obj->isa('Mail::Identity') || $obj->isa('User::Identity'))
+		{	require Mail::Message::Field::Address;
+			push @addr, Mail::Message::Field::Address->coerce($obj)->string;
+		}
+		elsif($obj->isa('User::Identity::Collection::Emails'))
+		{	my @roles = $obj->roles or next;
+			require Mail::Message::Field::AddrGroup;
+			my $group = Mail::Message::Field::AddrGroup->coerce($obj);
+			push @addr, $group->string if $group;
+		}
+		elsif($obj->isa('Mail::Message::Field'))
+		{	my $folded = join ' ', $obj->foldedBody;
+			push @addr, $folded =~ s/^ //r =~ s/\n\z//r;
+		}
+		else
+		{	push @addr, "$obj";    # any other object is stringified
+		}
+	}
 
-   @addr ? join(', ',@addr) : undef;
+	@addr ? join(', ',@addr) : undef;
 }
 
 =method setWrapLength [$length]
@@ -718,17 +696,17 @@ wrapping is performed with M<fold()> and the results stored within
 the field object.
 
 =examples refolding the field
- $field->setWrapLength(99);
+  $field->setWrapLength(99);
 
 =cut
 
 sub setWrapLength(;$)
-{   my $self = shift;
+{	my $self = shift;
 
-    $self->foldedBody(scalar $self->fold($self->Name, $self->unfoldedBody, $_[0]))
-        if @_;
+	$self->foldedBody(scalar $self->fold($self->Name, $self->unfoldedBody, $_[0]))
+		if @_;
 
-    $self;
+	$self;
 }
 
 =method defaultWrapLength [$length]
@@ -738,8 +716,8 @@ the current value is returned.  The default is 78.
 =cut
 
 sub defaultWrapLength(;$)
-{   my $self = shift;
-    @_ ? ($default_wrap_length = shift) : $default_wrap_length;
+{	my $self = shift;
+	@_ ? ($default_wrap_length = shift) : $default_wrap_length;
 }
 
 =ci_method fold $name, $body, [$maxchars]
@@ -757,42 +735,42 @@ at least it should be a few characters shorter than the line wrap.
 =cut
 
 sub fold($$;$)
-{   my $thing = shift;
-    my $name  = shift;
-    my $line  = shift;
-    my $wrap  = shift || $default_wrap_length;
-    $line   //= '';
+{	my $thing = shift;
+	my $name  = shift;
+	my $line  = shift;
+	my $wrap  = shift || $default_wrap_length;
+	$line   //= '';
 
-    $line    =~ s/\n(\s)/$1/gms;            # Remove accidental folding
-    CORE::length($line) or return " \n";    # empty field
+	$line    =~ s/\n(\s)/$1/gms;            # Remove accidental folding
+	CORE::length($line) or return " \n";    # empty field
 
-    my $lname = CORE::length($name);
-    $lname <= $wrap -5  # Cannot find a real limit in the spec
-        or $thing->log(ERROR => "Field name too long (max ".($wrap-5)."), in '$name'");
+	my $lname = CORE::length($name);
+	$lname <= $wrap -5  # Cannot find a real limit in the spec
+		or $thing->log(ERROR => "Field name too long (max ".($wrap-5)."), in '$name'"), return ();
 
-    my @folded;
-    while(1)
-    {   my $max = $wrap - (@folded ? 1 : $lname + 2);
-        my $min = $max >> 2;
-        last if CORE::length($line) < $max;
+	my @folded;
+	while(1)
+	{	my $max = $wrap - (@folded ? 1 : $lname + 2);
+		my $min = $max >> 2;
+		last if CORE::length($line) < $max;
 
-           $line =~ s/^ ( .{$min,$max}   # $max to 30 chars
-                         [;,]            # followed at a ; or ,
-                        )[ \t]           # and then a WSP
-                     //x
-        || $line =~ s/^ ( .{$min,$max} ) # $max to 30 chars
-                        [ \t]            # followed by a WSP
-                     //x
-        || $line =~ s/^ ( .{$max,}? )    # longer, but minimal chars
-                        [ \t]            # followed by a WSP
-                     //x
-        || $line =~ s/^ (.*) //x;        # everything
+			$line =~ s/^ ( .{$min,$max}   # $max to 30 chars
+			              [;,]            # followed at a ; or ,
+			             )[ \t]           # and then a WSP
+			          //x
+		||	$line =~ s/^ ( .{$min,$max} ) # $max to 30 chars
+			             [ \t]            # followed by a WSP
+			          //x
+		||	$line =~ s/^ ( .{$max,}? )    # longer, but minimal chars
+			             [ \t]            # followed by a WSP
+			          //x
+		||	$line =~ s/^ (.*) //x;        # everything
 
-        push @folded, " $1\n";
-    }
+		push @folded, " $1\n";
+	}
 
-    push @folded, " $line\n" if CORE::length($line);
-    wantarray ? @folded : join('', @folded);
+	push @folded, " $line\n" if CORE::length($line);
+	wantarray ? @folded : join('', @folded);
 }
 
 =method unfold STRING
@@ -802,17 +780,17 @@ Possible leading blanks on the first line are removed as well.
 =cut
 
 sub unfold($)
-{   my $string = $_[1];
-    for($string)
-    {   s/\r?\n(\s)/$1/gs;  # remove FWS
-        s/\r?\n/ /gs;
-        s/^\s+//;
-        s/\s+$//;
-    }
-    $string;
+{	my $string = $_[1];
+	for($string)
+	{	s/\r?\n(\s)/$1/gs;  # remove FWS
+		s/\r?\n/ /gs;
+		s/^\s+//;
+		s/\s+$//;
+	}
+	$string;
 }
 
-#------------------------------------------
+#--------------------
 =section Error handling
 
 =chapter DETAILS
@@ -820,7 +798,7 @@ sub unfold($)
 =section Field syntax
 
 Fields are stored in the header of a message, which are represented by
-M<Mail::Message::Head> objects. A field is a combination of a I<name>,
+Mail::Message::Head objects. A field is a combination of a I<name>,
 I<body>, and I<attributes>.  Especially the term "body" is cause for
 confusion: sometimes the attributes are considered to be part of the body.
 
@@ -833,15 +811,15 @@ cannot contain blanks.
 
 Correct fields:
 
- Field: hi!
- Content-Type: text/html; charset=latin1
- 
+  Field: hi!
+  Content-Type: text/html; charset=latin1
+
 Incorrect fields, but accepted:
 
- Field : wrong, blank before colon
- Field:                 # wrong, empty
- Field:not nice, blank preferred after colon
- One Two: wrong, blank in name
+  Field : wrong, blank before colon
+  Field:                 # wrong, empty
+  Field:not nice, blank preferred after colon
+  One Two: wrong, blank in name
 
 =subsection Folding fields
 
@@ -864,11 +842,11 @@ want the unfolded value.
 
 =examples of field folding
 
- Subject: this is a short line, and not folded
+  Subject: this is a short line, and not folded
 
- Subject: this subject field is much longer, and therefore
-  folded into multiple
-  lines, although one more than needed.
+  Subject: this subject field is much longer, and therefore
+   folded into multiple
+   lines, although one more than needed.
 
 =subsection Structured fields
 
@@ -891,9 +869,9 @@ of handling comments correctly in all circumstances.
 
 =examples of field comments
 
- To: mailbox (Mail::Box mailinglist) <mailbox@overmeer.net>
- Date: Thu, 13 Sep 2001 09:40:48 +0200 (CEST)
- Subject: goodbye (was: hi!)
+  To: mailbox (Mail::Box mailinglist) <mailbox@overmeer.net>
+  Date: Thu, 13 Sep 2001 09:40:48 +0200 (CEST)
+  Subject: goodbye (was: hi!)
 
 On the first line, the text "Mail::Box mailinglist" is used as comment.
 Be warned that rfc2822 explicitly states that comments in e-mail address
@@ -919,7 +897,7 @@ which solution suites your needs best.
 
 The C<get()> interface is copied from other Perl modules which can
 handle e-mail messages.  Many applications which simply replace
-M<Mail::Internet> objects by M<Mail::Message> objects will work
+Mail::Internet objects by Mail::Message objects will work
 without modification.
 
 There is more than one get method.  The exact results depend on which
@@ -942,10 +920,10 @@ is lost.
 
 =examples of using get()
 
- print $msg->get('subject') || 'no subject';
- print $msg->head->get('subject') || 'no subject';
+  print $msg->get('subject') || 'no subject';
+  print $msg->head->get('subject') || 'no subject';
 
- my @to = $msg->head->get('to');
+  my @to = $msg->head->get('to');
 
 =subsection Using study() field
 
@@ -961,12 +939,12 @@ context.
 
 =examples of using study()
 
- print $msg->study('subject') || 'no subject';
- my @rec  = $msg->head->study('Received');
+  print $msg->study('subject') || 'no subject';
+  my @rec  = $msg->head->study('Received');
 
- my $from = $msg->head->get('From')->study;
- my $from = $msg->head->study('From');  # same
- my @addr = $from->addresses;
+  my $from = $msg->head->get('From')->study;
+  my $from = $msg->head->study('From');  # same
+  my @addr = $from->addresses;
 
 =subsection Using resent groups
 
@@ -982,10 +960,10 @@ or correctly constructed.
 
 =examples of using resent groups
 
- my $rgs = $msg->head->resentGroups;
- $rgs[0]->delete if @rgs;
+  my $rgs = $msg->head->resentGroups;
+  $rgs[0]->delete if @rgs;
 
- $msg->head->removeResentGroups;
+  $msg->head->removeResentGroups;
 
 =section The field's data
 
@@ -1040,23 +1018,23 @@ directly.
 
 =examples of simplified field access
 
- print $message->subject;
- print $message->get('subject') || '';  # same
+  print $message->subject;
+  print $message->get('subject') || '';  # same
 
- my @from = $message->from; # returns addresses
- $message->reply->send if $message->sender;
+  my @from = $message->from; # returns addresses
+  $message->reply->send if $message->sender;
 
 The C<sender> method will return the address specified in the C<Sender>
-field, or the first named in the C<From> field.  It will return C<undef>
+field, or the first named in the C<From> field.  It will return undef
 in case no address is known.
 
 =subsection Specifying field data
 
 Field data can be anything, strongly dependent on the type
 of field at hand. If you decide to construct the fields very
-carefully via some M<Mail::Message::Field::Full> extension (like via
-M<Mail::Message::Field::Addresses> objects), then you will have protection
-build-in.  However, you can bluntly create any M<Mail::Message::Field>
+carefully via some Mail::Message::Field::Full extension (like via
+Mail::Message::Field::Addresses objects), then you will have protection
+build-in.  However, you can bluntly create any Mail::Message::Field
 object based on some data.
 
 When you create a field, you may specify a string, object, or an array
@@ -1073,24 +1051,24 @@ The string must be following the (complicated) rules of the rfc2822, and
 is made field content as specified.  When the string is not terminated
 by a new-line (C<"\n">) it will be folded according to the standard rules.
 
-=item * a M<Mail::Address> object
+=item * a Mail::Address object
 The most used Perl object to parse and produce address lines.  This object
 does not understand character set encodings in phrases.
 
-=item * a M<Mail::Identity> object
-As part of the M<User::Identity> distribution, this object has full
+=item * a Mail::Identity object
+As part of the User::Identity distribution, this object has full
 understanding of the meaning of one e-mail address, related to a person.
 All features defined by rfc2822 are implemented.
 
-=item * a M<User::Identity> object
-A person is specified, which may have more than one M<Mail::Identity>'s
+=item * a User::Identity object
+A person is specified, which may have more than one Mail::Identity's
 defined.  Some methods, like M<Mail::Message::reply()> and
 M<Mail::Message::forward()> try to select the right e-mail address
 smart (see their method descriptions), but in other cases the first
 e-mail address found is used.
 
-=item * a M<User::Identity::Collection::Emails> object
-All M<Mail::Identity> objects in the collection will be included in
+=item * a User::Identity::Collection::Emails object
+All Mail::Identity objects in the collection will be included in
 the field as a group carying the name of the collection.
 
 =item * any other object
@@ -1106,42 +1084,40 @@ comma's inbetween, you will have to process the array yourself.
 
 =examples specifying simple field data
 
- my $f = Mail::Message::Field->new(Subject => 'hi!');
- my $b = Mail::Message->build(Subject => 'monkey');
+  my $f = Mail::Message::Field->new(Subject => 'hi!');
+  my $b = Mail::Message->build(Subject => 'monkey');
 
 =exampless specifying e-mail addresses for a field
 
- use Mail::Address;
- my $fish = Mail::Address->new('Mail::Box', 'fish@tux.aq');
- print $fish->format;   # ==> Mail::Box <fish@tux.aq>
- my $exa  = Mail::Address->new(undef, 'me@example.com');
- print $exa->format;    # ==> me@example.com
+  use Mail::Address;
+  my $fish = Mail::Address->new('Mail::Box', 'fish@tux.aq');
+  print $fish->format;   # ==> Mail::Box <fish@tux.aq>
+  my $exa  = Mail::Address->new(undef, 'me@example.com');
+  print $exa->format;    # ==> me@example.com
 
- my $b = $msg->build(To => "you@example.com");
- my $b = $msg->build(To => $fish);
- my $b = $msg->build(To => [ $fish, $exa ]);
+  my $b = $msg->build(To => "you@example.com");
+  my $b = $msg->build(To => $fish);
+  my $b = $msg->build(To => [ $fish, $exa ]);
 
- my @all = ($fish, "you@example.com", $exa);
- my $b = $msg->build(To => \@all);
- my $b = $msg->build(To => [ "xyz", @all ]);
+  my @all = ($fish, "you@example.com", $exa);
+  my $b = $msg->build(To => \@all);
+  my $b = $msg->build(To => [ "xyz", @all ]);
 
 =examples specifying identities for a field
 
- use User::Identity;
- my $patrik = User::Identity->new
-  ( name      => 'patrik'
-  , full_name => "Patrik Fältström"  # from rfc
-  , charset   => "ISO-8859-1"
+  use User::Identity;
+  my $patrik = User::Identity->new(
+    name      => 'patrik',
+    full_name => "Patrik Fältström",  # from rfc
+    charset   => "ISO-8859-1",
   );
- $patrik->add
-  ( email    => "him@home.net"
-  );
+  $patrik->add(email => "him@home.net");
 
- my $b = $msg->build(To => $patrik);
+  my $b = $msg->build(To => $patrik);
 
- $b->get('To')->print;
-   # ==> =?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?=
-   #     <him@home.net>
+  $b->get('To')->print;
+    # ==> =?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?=
+    #     <him@home.net>
 
 =section Field class implementation
 
@@ -1150,7 +1126,7 @@ fast, the flexible, and the full understander:
 
 =over 4
 
-=item * M<Mail::Message::Field::Fast>
+=item * Mail::Message::Field::Fast
 
 C<Fast> objects are not derived from a C<Mail::Reporter>.  The consideration
 is that fields are so often created, and such a small objects at the same
@@ -1160,12 +1136,12 @@ The fast field implementation uses an array to store the data: that
 will be faster than using a hash.  Fast fields are not easily inheritable,
 because the object creation and initiation is merged into one method.
 
-=item * M<Mail::Message::Field::Flex>
+=item * Mail::Message::Field::Flex
 
 The flexible implementation uses a hash to store the data.  The M<new()>
 and C<init> methods are split, so this object is extensible.
 
-=item * M<Mail::Message::Field::Full>
+=item * Mail::Message::Field::Full
 
 With a full implementation of all applicable RFCs (about 5), the best
 understanding of the fields is reached.  However, this comes with

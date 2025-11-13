@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Convert::TextAutoformat;
 use base 'Mail::Message::Convert';
@@ -8,67 +9,58 @@ use base 'Mail::Message::Convert';
 use strict;
 use warnings;
 
-use Mail::Message::Body::String;
-use Text::Autoformat;
+use Text::Autoformat qw/autoformat/;
 
+use Mail::Message::Body::String ();
+
+#--------------------
 =chapter NAME
 
 Mail::Message::Convert::TextAutoformat - Reformat plain text messages
 
 =chapter SYNOPSIS
 
- use Mail::Message::Convert::TextAutoformat;
- my $af = Mail::Message::Convert::TextAutoformat->new;
+  use Mail::Message::Convert::TextAutoformat;
+  my $af = Mail::Message::Convert::TextAutoformat->new;
 
- my $beautified_body = $af->autoformatBody($body);
+  my $beautified_body = $af->autoformatBody($body);
 
 =chapter DESCRIPTION
 
 Play trics with plain text, for instance bodies with type C<text/plain>
-using Damian Conway's M<Text::Autoformat>.
+using Damian Conway's Text::Autoformat.
 
 =chapter METHODS
 
 =c_method new %options
 
-=option  options HASH-REF
-=default options C<{ (all, 1) }>
-
-Options to pass to M<Text::Autoformat>, when its C<autoformat> method
-is called.
-
+=option  options \%af
+=default options C<< +{ all => 1 } >>
+The %af options to pass to Text::Autoformat function C<autoformat()>.
 =cut
 
 sub init($)
-{   my ($self, $args)  = @_;
+{	my ($self, $args)  = @_;
+	$self->SUPER::init($args);
 
-    $self->SUPER::init($args);
-
-    $self->{MMCA_options} = $args->{autoformat} || { all => 1 };
-    $self;
+	$self->{MMCA_options} = $args->{autoformat} || +{ all => 1 };
+	$self;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Converting
 
 =method autoformatBody $body
+Formats a single message body (a Mail::Message::Body object) into a new
+body object using Text::Autoformat.
 
-Formats a single message body (a M<Mail::Message::Body> object)
-into a new body object using M<Text::Autoformat>.  If the
-M<Text::Autoformat> is not installed, C<undef> is returned.
-
+The body should have content type C<text/plain>, otherwise the output is
+probably weird.
 =cut
 
 sub autoformatBody($)
-{   my ($self, $body) = @_;
-
-    ref($body)->new
-       ( based_on => $body
-       , data     => autoformat($body->string, $self->{MMCA_options})
-       );
+{	my ($self, $body) = @_;
+	(ref $body)->new(based_on => $body, data => autoformat($body->string, $self->{MMCA_options}));
 }
-
-#------------------------------------------
 
 1;

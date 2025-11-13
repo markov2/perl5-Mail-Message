@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Convert;
 use base 'Mail::Reporter';
@@ -8,6 +9,7 @@ use base 'Mail::Reporter';
 use strict;
 use warnings;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Convert - conversions between message types
@@ -26,16 +28,16 @@ are used where message objects are expected.  That method will automatically
 create the converting objects, and re-use them.
 
 =over 4
-=item * M<Mail::Message::Convert::MailInternet>
-Converts the simple M<Mail::Internet> messages into M<Mail::Message>
+=item * Mail::Message::Convert::MailInternet
+Converts the simple Mail::Internet messages into Mail::Message
 objects.
 
-=item * M<Mail::Message::Convert::MimeEntity>
-Converts the more complicated M<MIME::Entity> messages into
-M<Mail::Message> objects.
+=item * Mail::Message::Convert::MimeEntity
+Converts the more complicated MIME::Entity messages into
+Mail::Message objects.
 
-=item * M<Mail::Message::Convert::EmailSimple>
-Converts M<Email::Simple> messages into M<Mail::Message> objects.
+=item * Mail::Message::Convert::EmailSimple
+Converts Email::Simple messages into Mail::Message objects.
 
 =back
 
@@ -43,19 +45,19 @@ Converts M<Email::Simple> messages into M<Mail::Message> objects.
 
 =over 4
 
-=item * M<Mail::Message::Convert::Html>
+=item * Mail::Message::Convert::Html
 Plays tricks with HTML/XMHTML without help of external modules.
 
-=item * M<Mail::Message::Convert::HtmlFormatText>
+=item * Mail::Message::Convert::HtmlFormatText
 Converts HTML body objects to plain text objects using the
 HTML::FormatText module.
 
-=item * M<Mail::Message::Convert::HtmlFormatPS>
+=item * Mail::Message::Convert::HtmlFormatPS
 Converts HTML body objects to Postscript objects using the
-M<HTML::FormatPS> module.
+HTML::FormatPS module.
 
-=item * M<Mail::Message::Convert::TextAutoformat>
-Converts a text message into text using M<Text::Autoformat>.
+=item * Mail::Message::Convert::TextAutoformat
+Converts a text message into text using Text::Autoformat.
 
 =back
 
@@ -77,17 +79,14 @@ fields.
 =cut
 
 sub init($)
-{   my ($self, $args) = @_;
-    $self->SUPER::init($args);
+{	my ($self, $args) = @_;
+	$self->SUPER::init($args);
 
-    $self->{MMC_fields}          = $args->{fields}    ||
-       qr#^(Resent\-)?(To|From|Cc|Bcc|Subject|Date)\b#i;
-
-    $self;
+	$self->{MMC_fields} = $args->{fields} || qr#^(Resent\-)?(To|From|Cc|Bcc|Subject|Date)\b#i;
+	$self;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Converting
 
 =method selectedFields $head
@@ -99,12 +98,11 @@ through the information as specified with M<new(fields)>.
 =cut
 
 sub selectedFields($)
-{   my ($self, $head) = @_;
-    $head->grepNames($self->{MMC_fields});
+{	my ($self, $head) = @_;
+	$head->grepNames($self->{MMC_fields});
 }
 
-#------------------------------------------
-
+#--------------------
 =section Error handling
 
 =cut

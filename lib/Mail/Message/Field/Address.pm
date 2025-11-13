@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::Address;
 use base 'Mail::Identity';
@@ -8,28 +9,31 @@ use base 'Mail::Identity';
 use strict;
 use warnings;
 
-use Mail::Message::Field::Addresses;
-use Mail::Message::Field::Full;
+use Mail::Message::Field::Addresses ();
+use Mail::Message::Field::Full      ();
+
+use Scalar::Util  qw/blessed/;
 
 my $format = 'Mail::Message::Field::Full';
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Field::Address - One e-mail address
 
 =chapter SYNOPSIS
 
- my $addr = Mail::Message::Field::Address->new(...);
+  my $addr = Mail::Message::Field::Address->new(...);
 
- my $ui   = User::Identity->new(...);
- my $addr = Mail::Message::Field::Address->coerce($ui);
+  my $ui   = User::Identity->new(...);
+  my $addr = Mail::Message::Field::Address->coerce($ui);
 
- my $mi   = Mail::Identity->new(...);
- my $addr = Mail::Message::Field::Address->coerce($mi);
+  my $mi   = Mail::Identity->new(...);
+  my $addr = Mail::Message::Field::Address->coerce($mi);
 
- print $addr->address;
- print $addr->fullName;   # possibly unicode!
- print $addr->domain;
+  print $addr->address;
+  print $addr->fullName;   # possibly unicode!
+  print $addr->domain;
 
 =chapter DESCRIPTION
 
@@ -39,77 +43,68 @@ handle interpretation and character set encoding and decoding for you.
 
 =chapter OVERLOADED
 
-=overload stringification
-
+=overload "" stringification
 When the object is used in string context, it will return the encoded
 representation of the e-mail address, just like M<string()> does.
 
-=overload boolean
+=overload boolean true/falase
+The object used as boolean will always return true
 
-The object used as boolean will always return C<true>
-
-=overload string $comparison
-
-Two address objects are the same when their email addresses are the
-same.
-
+=overload cmp string comparison
+Two address objects are the same when their email addresses are the same.
 =cut
 
 use overload
-    '""' => 'string'
-  , bool => sub {1}
-  , cmp  => sub { lc($_[0]->address) cmp lc($_[1]) }
-  ;
+	'""' => 'string',
+	bool => sub {1},
+	cmp  => sub { lc($_[0]->address) cmp lc($_[1]) };
 
-#------------------------------------------
-
+#--------------------
 =chapter METHODS
 
 =section Constructors
 
 =method coerce <STRING|$object>, %options
-
 Try to coerce the $object into a C<Mail::Message::Field::Address>.
 In case of a STRING, it is interpreted as an email address.
 
 The %options are passed to the object creation, and overrule the values
-found in the $object.  The result may be C<undef> or a newly created
+found in the $object.  The result may be undef or a newly created
 object.  If the $object is already of the correct type, it is returned
 unmodified.
 
-The $object may currently be a M<Mail::Address>, a M<Mail::Identity>, or
-a M<User::Identity>.  In case of the latter, one of the user's addresses
+The $object may currently be a Mail::Address, a Mail::Identity, or
+a User::Identity.  In case of the latter, one of the user's addresses
 is chosen at random.
 
 =error Cannot coerce a $type into a Mail::Message::Field::Address
-
 When addresses are specified to be included in header fields, they may
-be coerced into M<Mail::Message::Field::Address> objects first.  What
+be coerced into Mail::Message::Field::Address objects first.  What
 you specify is not accepted as address specification.  This may be an
 internal error.
 
 =cut
 
 sub coerce($@)
-{  my ($class, $addr, %args) = @_;
-   return () unless defined $addr;
+{	my ($class, $addr, %args) = @_;
+	return () unless defined $addr;
 
-   ref $addr or return $class->parse($addr);
-   $addr->isa($class) and return $addr;
+	blessed $addr or return $class->parse($addr);
+	$addr->isa($class) and return $addr;
 
-   my $from = $class->from($addr, %args);
+	my $from = $class->from($addr, %args);
 
-   Mail::Reporter->log(ERROR => "Cannot coerce a ".ref($addr)." into a $class"),
-      return () unless defined $from;
+	Mail::Reporter->log(ERROR => "Cannot coerce a ".ref($addr)." into a $class"),
+	return () unless defined $from;
 
-   bless $from, $class;
+	bless $from, $class;
 }
 
 sub init($)
-{   my ($self, $args) = @_;
-    $self->SUPER::init($args);
-    $self->{MMFA_encoding} = delete $args->{encoding};
-    $self;
+{	my ($self, $args) = @_;
+	$self->SUPER::init($args);
+	$self->{MMFA_encoding} = delete $args->{encoding};
+	$self;
 }
 
 =method parse STRING
@@ -122,13 +117,12 @@ one is taken at random.
 =cut
 
 sub parse($)
-{   my $self   = shift;
-    my $parsed = Mail::Message::Field::Addresses->new(To => shift);
-    defined $parsed ? ($parsed->addresses)[0] : ();
+{	my $self   = shift;
+	my $parsed = Mail::Message::Field::Addresses->new(To => shift);
+	defined $parsed ? ($parsed->addresses)[0] : ();
 }
 
-#------------------------------------------
-
+#--------------------
 =section Accessors
 
 =method encoding
@@ -136,10 +130,9 @@ Character-set encoding, like 'q' and 'b', to be used when non-ascii
 characters are to be transmitted.
 =cut
 
-sub encoding() {shift->{MMFA_encoding}}
+sub encoding() { $_[0]->{MMFA_encoding} }
 
-#------------------------------------------
-
+#--------------------
 =section Access to the content
 
 =method string
@@ -149,27 +142,27 @@ this method in string context.
 
 =example
 
- print $address->string;
- print $address;          # via overloading
+  print $address->string;
+  print $address;          # via overloading
 
 =cut
 
 sub string()
-{   my $self  = shift;
-    my @opts  = (charset => $self->charset, encoding => $self->encoding);
-       # language => $self->language
+{	my $self  = shift;
+	my @opts  = (charset => $self->charset, encoding => $self->encoding);
+		# language => $self->language
 
-    my @parts;
-    my $phrase  = $self->phrase;
-    push @parts, $format->createPhrase($phrase, @opts) if defined $phrase;
+	my @parts;
+	my $phrase  = $self->phrase;
+	push @parts, $format->createPhrase($phrase, @opts) if defined $phrase;
 
-    my $address = $self->address;
-    push @parts, @parts ? '<'.$address.'>' : $address;
+	my $address = $self->address;
+	push @parts, @parts ? '<'.$address.'>' : $address;
 
-    my $comment = $self->comment;
-    push @parts, $format->createComment($comment, @opts) if defined $comment;
+	my $comment = $self->comment;
+	push @parts, $format->createComment($comment, @opts) if defined $comment;
 
-    join ' ', @parts;
+	join ' ', @parts;
 }
 
 1;

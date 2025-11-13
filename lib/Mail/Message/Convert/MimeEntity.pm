@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Convert::MimeEntity;
 use base 'Mail::Message::Convert';
@@ -8,34 +9,36 @@ use base 'Mail::Message::Convert';
 use strict;
 use warnings;
 
-use MIME::Entity;
-use MIME::Parser;
-use Mail::Message;
+use MIME::Entity   ();
+use MIME::Parser   ();
 
+use Mail::Message  ();
+
+#--------------------
 =chapter NAME
 
 Mail::Message::Convert::MimeEntity - translate Mail::Message to MIME::Entity vv
 
 =chapter SYNOPSIS
 
- use Mail::Message::Convert::MimeEntity;
- my $convert = Mail::Message::Convert::MimeEntity->new;
+  use Mail::Message::Convert::MimeEntity;
+  my $convert = Mail::Message::Convert::MimeEntity->new;
 
- my Mail::Message $msg    = M<Mail::Message>->new;
- my MIME::Entity  $entity = $convert->export($msg);
+  my Mail::Message $msg    = Mail::Message->new;
+  my MIME::Entity  $entity = $convert->export($msg);
 
- my MIME::Entity  $entity = M<MIME::Entity>->new;
- my Mail::Message $msg    = $convert->from($entity);
+  my MIME::Entity  $entity = MIME::Entity->new;
+  my Mail::Message $msg    = $convert->from($entity);
 
- use Mail::Box::Manager;
- my $mgr     = M<Mail::Box::Manager>->new;
- my $folder  = $mgr->open(folder => 'Outbox');
- $folder->addMessage($entity);
+  use Mail::Box::Manager;
+  my $mgr     = Mail::Box::Manager->new;
+  my $folder  = $mgr->open(folder => 'Outbox');
+  $folder->addMessage($entity);
 
 =chapter DESCRIPTION
 
-The M<MIME::Entity> extends M<Mail::Internet> message with multiparts
-and more methods.  The M<Mail::Message> objects are more flexible
+The MIME::Entity extends Mail::Internet message with multiparts
+and more methods.  The Mail::Message objects are more flexible
 in how the message parts are stored, and uses separate header and body
 objects.
 
@@ -44,62 +47,56 @@ objects.
 =section Converting
 
 =method export $message, [$parser]
-Returns a new L<MIME::Entity> message object based on the
-information from the $message, which is a M<Mail::Message> object.
+Returns a new MIME::Entity message object based on the
+information from the $message, which is a Mail::Message object.
 
-You may want to supply your own $parser, which is a M<MIME::Parser>
+You may want to supply your own $parser, which is a MIME::Parser
 object, to change the parser flags.  Without a $parser object, one
 is created for you, with all the default settings.
 
-If C<undef> is passed, in place of a $message, then an empty list is
-returned.  When the parsing failes, then L<MIME::Parser> throws an
+If undef is passed, in place of a $message, then an empty list is
+returned.  When the parsing failes, then MIME::Parser throws an
 exception.
 
 =examples
-
- my $convert = Mail::Message::Convert::MimeEntity->new;
- my Mail::Message $msg  = M<Mail::Message>->new;
- my L<MIME::Entity>  $copy = $convert->export($msg);
-
+  my $convert = Mail::Message::Convert::MimeEntity->new;
+  my Mail::Message $msg  = Mail::Message->new;
+  my MIME::Entity  $copy = $convert->export($msg);
 =cut
 
 sub export($$;$)
-{   my ($self, $message, $parser) = @_;
-    return () unless defined $message;
+{	my ($self, $message, $parser) = @_;
+	defined $message or return ();
 
-    $self->log(ERROR =>
-       "Export message must be a Mail::Message, but is a ".ref($message)."."),
-           return
-              unless $message->isa('Mail::Message');
+	$message->isa('Mail::Message')
+		or $self->log(ERROR => "Export message must be a Mail::Message, but is a ".(ref $message)."."), return;
 
-    $parser ||= MIME::Parser->new;
-    $parser->parse($message->file);
+	$parser ||= MIME::Parser->new;
+	$parser->parse($message->file);
 }
 
 =method from $mime_object
-Returns a new M<Mail::Message> object based on the information from
-the specified L<MIME::Entity>.  If the conversion fails, the C<undef>
-is returned.  If C<undef> is passed in place of an OBJECT, then an
+Returns a new Mail::Message object based on the information from
+the specified MIME::Entity.  If the conversion fails, the undef
+is returned.  If undef is passed in place of an OBJECT, then an
 empty list is returned.
 
 =examples
-
- my $convert = Mail::Message::Convert::MimeEntity->new;
- my MIME::Entity  $msg  = M<MIME::Entity>->new;
- my M<Mail::Message> $copy = $convert->from($msg);
+  my $convert = Mail::Message::Convert::MimeEntity->new;
+  my MIME::Entity  $msg  = MIME::Entity->new;
+  my Mail::Message $copy = $convert->from($msg);
 
 =error Converting from MIME::Entity but got a $type, return
 =cut
 
 sub from($)
-{   my ($self, $mime_ent) = @_;
-    return () unless defined $mime_ent;
+{	my ($self, $mime_ent) = @_;
+	defined $mime_ent or return ();
 
-    $self->log(ERROR =>
-       'Converting from MIME::Entity but got a '.ref($mime_ent).'.'), return
-            unless $mime_ent->isa('MIME::Entity');
+	$mime_ent->isa('MIME::Entity')
+		or $self->log(ERROR => 'Converting from MIME::Entity but got a '.(ref $mime_ent).'.'), return;
 
-    Mail::Message->read($mime_ent->as_string);
+	Mail::Message->read($mime_ent->as_string);
 }
 
 1;

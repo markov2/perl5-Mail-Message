@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Reporter;
 
@@ -8,24 +9,25 @@ use strict;
 use warnings;
 
 use Carp;
-use Scalar::Util qw(dualvar blessed);
+use Scalar::Util qw/dualvar blessed/;
 
+#--------------------
 =chapter NAME
 
 Mail::Reporter - base-class and error reporter for Mail::Box
 
 =chapter SYNOPSIS
 
- $folder->log(WARNING => 'go away');
- print $folder->trace;        # current level
- $folder->trace('PROGRESS');  # set level
- print $folder->errors;
- print $folder->report('PROGRESS');
+  $folder->log(WARNING => 'go away');
+  print $folder->trace;        # current level
+  $folder->trace('PROGRESS');  # set level
+  print $folder->errors;
+  print $folder->report('PROGRESS');
 
 =chapter DESCRIPTION
 
 The C<Mail::Reporter> class is the base class for all classes, except
-M<Mail::Message::Field::Fast> because it would become slow...  This
+Mail::Message::Field::Fast because it would become slow...  This
 base class is used during initiation of the objects, and for configuring
 and logging error messages.
 
@@ -45,7 +47,6 @@ the following %options related to error reports.
 
 =option  log LEVEL
 =default log C<'WARNINGS'>
-
 Log messages which have a priority higher or equal to the specified
 level are stored internally and can be retrieved later.  The global
 default for this option can be changed with M<defaultTrace()>.
@@ -59,7 +60,6 @@ for C<WARNINGS>, and C<NOTICE> for C<NOTICES>.
 
 =option  trace LEVEL
 =default trace C<'WARNINGS'>
-
 Trace messages which have a level higher or equal to the specified level
 are directly printed using warn.  The global default for this option can
 be changed with M<defaultTrace()>.
@@ -70,25 +70,25 @@ my @levelname = (undef, qw(DEBUG NOTICE PROGRESS WARNING ERROR NONE INTERNAL));
 
 my %levelprio = (ERRORS => 5, WARNINGS => 4, NOTICES => 2);
 for(my $l = 1; $l < @levelname; $l++)
-{   $levelprio{$levelname[$l]} = $l;
-    $levelprio{$l} = $l;
+{	$levelprio{$levelname[$l]} = $l;
+	$levelprio{$l} = $l;
 }
 
 sub new(@)
-{   my $class = shift;
+{	my $class = shift;
 #confess "Parameter list has odd length: @_" if @_ % 2;
-    (bless +{MR_log => 1, MR_trace => 1}, $class)->init({@_});
+	(bless +{MR_log => 1, MR_trace => 1}, $class)->init({@_});
 }
 
 my ($default_log, $default_trace, $trace_callback);
 sub init($)
-{   my ($self, $args) = @_;
-    $self->{MR_log}   = $levelprio{$args->{log}   || $default_log};
-    $self->{MR_trace} = $levelprio{$args->{trace} || $default_trace};
-    $self;
+{	my ($self, $args) = @_;
+	$self->{MR_log}   = $levelprio{$args->{log}   || $default_log};
+	$self->{MR_trace} = $levelprio{$args->{trace} || $default_trace};
+	$self;
 }
 
-#------------------------------------------
+#--------------------
 =section Attributes
 
 =method logSettings
@@ -96,15 +96,15 @@ Returns a list of C<(key => value)> pairs which can be used to initiate
 a new object with the same log-settings as this one.
 
 =examples
- $head->new($folder->logSettings);
+  $head->new($folder->logSettings);
 =cut
 
 sub logSettings()
-{  my $self = shift;
-   (log => $self->{MR_log}, trace => $self->{MR_trace});
+{	my $self = shift;
+	(log => $self->{MR_log}, trace => $self->{MR_trace});
 }
 
-#------------------------------------------
+#--------------------
 =section Error handling
 
 =ci_method defaultTrace [$level]|[$loglevel, $tracelevel]|[$level, $callback]
@@ -129,55 +129,55 @@ context the string name.  Be warned that the string is always in singular
 form!
 
 =examples setting loglevels
- my ($loglevel, $tracelevel) = Mail::Reporter->defaultTrace;
- Mail::Reporter->defaultTrace('NOTICES');
+  my ($loglevel, $tracelevel) = Mail::Reporter->defaultTrace;
+  Mail::Reporter->defaultTrace('NOTICES');
 
- my ($l, $t) = Mail::Reporter->defaultTrace('WARNINGS', 'DEBUG');
- print $l;     # prints "WARNING"  (no S!)
- print $l+0;   # prints "4"
- print "Auch" if $l >= $self->logPriority('ERROR');
+  my ($l, $t) = Mail::Reporter->defaultTrace('WARNINGS', 'DEBUG');
+  print $l;     # prints "WARNING"  (no S!)
+  print $l+0;   # prints "4"
+  print "Auch" if $l >= $self->logPriority('ERROR');
 
- Mail::Reporter->defaultTrace('NONE');  # silence all reports
+  Mail::Reporter->defaultTrace('NONE');  # silence all reports
 
- $folder->defaultTrace('DEBUG');   # Still set as global default!
- $folder->trace('DEBUG');          # local default
+  $folder->defaultTrace('DEBUG');   # Still set as global default!
+  $folder->trace('DEBUG');          # local default
 
 =example installing a callback
- Mail::Reporter->defaultTrace
+  Mail::Reporter->defaultTrace
 
 =cut
 
 sub _trace_warn($$$)
-{   my ($who, $level, $text) = @_;
-    warn "$level: $text\n";
+{	my ($who, $level, $text) = @_;
+	warn "$level: $text\n";
 }
 
 sub defaultTrace(;$$)
-{   my $thing = shift;
+{	my $thing = shift;
 
-    return ($default_log, $default_trace)
-        unless @_;
+	return ($default_log, $default_trace)
+		unless @_;
 
-    my $level = shift;
-    my $prio  = $thing->logPriority($level)
-        or croak "Unknown trace-level $level.";
+	my $level = shift;
+	my $prio  = $thing->logPriority($level)
+		or croak "Unknown trace-level $level.";
 
-    if( ! @_)
-    {   $default_log    = $default_trace = $prio;
-        $trace_callback = \&_trace_warn;
-    }
-    elsif(ref $_[0])
-    {   $default_log    = $thing->logPriority('NONE');
-        $default_trace  = $prio;
-        $trace_callback = shift;
-    }
-    else
-    {   $default_log    = $prio;
-        $default_trace  = $thing->logPriority(shift);
-        $trace_callback = \&_trace_warn;
-    }
+	if( ! @_)
+	{	$default_log    = $default_trace = $prio;
+		$trace_callback = \&_trace_warn;
+	}
+	elsif(ref $_[0])
+	{	$default_log    = $thing->logPriority('NONE');
+		$default_trace  = $prio;
+		$trace_callback = shift;
+	}
+	else
+	{	$default_log    = $prio;
+		$default_trace  = $thing->logPriority(shift);
+		$trace_callback = \&_trace_warn;
+	}
 
-    ($default_log, $default_trace);
+	($default_log, $default_trace);
 }
 
 __PACKAGE__->defaultTrace('WARNINGS');
@@ -191,16 +191,15 @@ and the string which represents it.  See M<logPriority()>.
 =cut
 
 sub trace(;$$)
-{   my $self = shift;
+{	my $self = shift;
 
-    return $self->logPriority($self->{MR_trace})
-        unless @_;
+	@_ or return $self->logPriority($self->{MR_trace});
 
-    my $level = shift;
-    my $prio  = $levelprio{$level}
-        or croak "Unknown trace-level $level.";
+	my $level = shift;
+	my $prio  = $levelprio{$level}
+		or croak "Unknown trace-level $level.";
 
-    $self->{MR_trace} = $prio;
+	$self->{MR_trace} = $prio;
 }
 
 
@@ -209,7 +208,7 @@ sub trace(;$$)
 As instance method, this function has three different purposes.  Without
 any argument, it returns one scalar containing the number which is internally
 used to represent the current log level, and the textual representation of
-the string at the same time. See M<Scalar::Util> method C<dualvar> for
+the string at the same time. See Scalar::Util method C<dualvar> for
 an explanation.
 
 With one argument, a new level of logging detail is set (specify a number
@@ -226,15 +225,15 @@ be added.
 
 =examples
 
- print $message->log;      # may print "NOTICE"
- print $message->log +0;   # may print "3"
- $message->log('ERRORS');  # sets a new level, returns the numeric value
+  print $message->log;      # may print "NOTICE"
+  print $message->log +0;   # may print "3"
+  $message->log('ERRORS');  # sets a new level, returns the numeric value
 
- $message->log(WARNING => "This message is too large.");
- $folder ->log(NOTICE  => "Cannot read from file $filename.");
- $manager->log(DEBUG   => "Hi there!", reverse sort @l);
+  $message->log(WARNING => "This message is too large.");
+  $folder ->log(NOTICE  => "Cannot read from file $filename.");
+  $manager->log(DEBUG   => "Hi there!", reverse sort @l);
 
- Mail::Message->log(ERROR => 'Unknown');
+  Mail::Message->log(ERROR => 'Unknown');
 
 =cut
 
@@ -244,33 +243,33 @@ be added.
 # whether or not to display it.
 
 sub log(;$@)
-{   if(blessed $_[0])   # instance call
-    {   my $self = shift;
-        @_ or return $self->logPriority($self->{MR_log});
+{	if(blessed $_[0])   # instance call
+	{	my $self = shift;
+		@_ or return $self->logPriority($self->{MR_log});
 
-        my $level = shift;
-        my $prio  = $levelprio{$level} or croak "Unknown log-level $level";
+		my $level = shift;
+		my $prio  = $levelprio{$level} or croak "Unknown log-level $level";
 
-        @_ or return $self->{MR_log} = $prio;
+		@_ or return $self->{MR_log} = $prio;
 
-        my $text    = join '', @_;
-        $trace_callback->($self, $level, $text)
-            if $prio >= $self->{MR_trace};
+		my $text    = join '', @_;
+		$trace_callback->($self, $level, $text)
+			if $prio >= $self->{MR_trace};
 
-        push @{$self->{MR_report}[$prio]}, $text
-            if $prio >= $self->{MR_log};
+		push @{$self->{MR_report}[$prio]}, $text
+			if $prio >= $self->{MR_log};
 
 		return $self;
-    }
+	}
 
-    # class method
+	# class method
 	my ($class, $level) = (shift, shift);
-    my $prio  = $levelprio{$level} or croak "Unknown log-level $level";
+	my $prio  = $levelprio{$level} or croak "Unknown log-level $level";
 
-    $trace_callback->($class, $level, join('', @_)) 
-        if $prio >= $default_trace;
+	$trace_callback->($class, $level, join('', @_))
+		if $prio >= $default_trace;
 
-    $class;
+	$class;
 }
 
 =method report [$level]
@@ -282,40 +281,40 @@ to a tuple with level and message.
 
 =examples
 
- my @warns = $message->report('WARNINGS');
-   # previous indirectly callable with
-   my @warns = $msg->warnings;
+  my @warns = $message->report('WARNINGS');
+    # previous indirectly callable with
+    my @warns = $msg->warnings;
 
- print $folder->report('ERRORS');
+  print $folder->report('ERRORS');
 
- if($folder->report('DEBUG')) {...}
+  if($folder->report('DEBUG')) {...}
 
- my @reports = $folder->report;
- foreach (@reports) {
-    my ($level, $text) = @$_;
-    print "$level report: $text";
- }
+  my @reports = $folder->report;
+  foreach (@reports) {
+     my ($level, $text) = @$_;
+     print "$level report: $text";
+  }
 
 =cut
 
 sub report(;$)
-{   my $self    = shift;
-    my $reports = $self->{MR_report} || return ();
+{	my $self    = shift;
+	my $reports = $self->{MR_report} || return ();
 
-    if(@_)
-    {   my $level = shift;
-        my $prio  = $levelprio{$level} or croak "Unknown report level $level.";
-        return $reports->[$prio] ? @{$reports->[$prio]} : ();
-    }
+	if(@_)
+	{	my $level = shift;
+		my $prio  = $levelprio{$level} or croak "Unknown report level $level.";
+		return $reports->[$prio] ? @{$reports->[$prio]} : ();
+	}
 
-    my @reports;
-    for(my $prio = 1; $prio < @$reports; $prio++)
-    {   $reports->[$prio] or next;
-        my $level = $levelname[$prio];
-        push @reports, map +[ $level, $_ ], @{$reports->[$prio]};
-    }
+	my @reports;
+	for(my $prio = 1; $prio < @$reports; $prio++)
+	{	$reports->[$prio] or next;
+		my $level = $levelname[$prio];
+		push @reports, map +[ $level, $_ ], @{$reports->[$prio]};
+	}
 
-    @reports;
+	@reports;
 }
 
 =method addReport $object
@@ -326,16 +325,16 @@ about any problems.
 =cut
 
 sub addReport($)
-{   my ($self, $other) = @_;
-    my $from = $other->{MR_report} || return ();
+{	my ($self, $other) = @_;
+	my $from = $other->{MR_report} || return ();
 
-    for(my $prio = 1; $prio < @$from; $prio++)
-    {   my $take = $from->[$prio] or next;
+	for(my $prio = 1; $prio < @$from; $prio++)
+	{	my $take = $from->[$prio] or next;
 		push @{$self->{MR_report}[$prio]}, @$take;
-    }
-    $self;
+	}
+	$self;
 }
-    
+
 =method reportAll [$level]
 Report all messages which were produced by this object and all the objects
 which are maintained by this object.  This will return a list of triplets,
@@ -344,23 +343,23 @@ level of the report, and the message.
 
 =examples
 
- my $folder = Mail::Box::Manager->new->open(folder => 'inbox');
- my @reports = $folder->reportAll;
- foreach (@reports) {
-    my ($object, $level, $text) = @$_;
+  my $folder = Mail::Box::Manager->new->open(folder => 'inbox');
+  my @reports = $folder->reportAll;
+  foreach (@reports) {
+     my ($object, $level, $text) = @$_;
 
-    if($object->isa('Mail::Box')) {
-       print "Folder $object: $level: $message";
-    } elsif($object->isa('Mail::Message') {
-       print "Message ".$object->seqnr.": $level: $message";
-    }
- }
+     if($object->isa('Mail::Box')) {
+        print "Folder $object: $level: $message";
+     } elsif($object->isa('Mail::Message') {
+        print "Message ".$object->seqnr.": $level: $message";
+     }
+  }
 
 =cut
 
 sub reportAll(;$)
-{   my $self = shift;
-    map +[ $self, @$_ ], $self->report(@_);
+{	my $self = shift;
+	map +[ $self, @$_ ], $self->report(@_);
 }
 
 =method errors
@@ -370,8 +369,8 @@ Equivalent to C<<$folder->report('ERRORS')>>
 Equivalent to C<<$folder->report('WARNINGS')>>
 =cut
 
-sub warnings(@) {shift->report('WARNINGS')}
-sub errors(@)   {shift->report('ERRORS')}
+sub warnings(@) { $_[0]->report('WARNINGS') }
+sub errors(@)   { $_[0]->report('ERRORS') }
 
 =method notImplemented
 A special case of M<log()>, which logs a C<INTERNAL>-error
@@ -386,19 +385,19 @@ of the package.
 =cut
 
 sub notImplemented(@)
-{   my $self    = shift;
-    my $package = ref $self || $self;
-    my $sub     = (caller 1)[3];
+{	my $self    = shift;
+	my $package = ref $self || $self;
+	my $sub     = (caller 1)[3];
 
-    $self->log(ERROR => "Package $package does not implement $sub.");
-    confess "Please warn the author, this shouldn't happen.";
+	$self->log(ERROR => "Package $package does not implement $sub.");
+	confess "Please warn the author, this shouldn't happen.";
 }
 
 =ci_method logPriority $level
 One error level (log or trace) has more than one representation: a
 numeric value and one or more strings.  For instance, C<4>, C<'WARNING'>,
 and C<'WARNINGS'> are all the same.  You can specify any of these,
-and in return you get a dualvar (see M<Scalar::Util> method C<dualvar>)
+and in return you get a dualvar (see Scalar::Util method C<dualvar>)
 back, which contains the number and the singular form.
 
 The higher the number, the more important the message.
@@ -406,18 +405,18 @@ Only messages about C<INTERNAL> problems are more important than C<NONE>.
 
 =examples
 
- my $r = Mail::Reporter->logPriority('WARNINGS');
- my $r = Mail::Reporter->logPriority('WARNING');    # same
- my $r = Mail::Reporter->logPriority(4);            # same, deprecated
- print $r;      # prints 'WARNING'  (no S!)
- print $r + 0;  # prints 4
- if($r < Mail::Reporter->logPriority('ERROR')) {..} # true
+  my $r = Mail::Reporter->logPriority('WARNINGS');
+  my $r = Mail::Reporter->logPriority('WARNING');    # same
+  my $r = Mail::Reporter->logPriority(4);            # same, deprecated
+  print $r;      # prints 'WARNING'  (no S!)
+  print $r + 0;  # prints 4
+  if($r < Mail::Reporter->logPriority('ERROR')) {..} # true
 
 =cut
 
 sub logPriority($)
-{   my $level = $levelprio{$_[1]} or return undef;
-    dualvar $level, $levelname[$level];
+{	my $level = $levelprio{$_[1]} or return undef;
+	dualvar $level, $levelname[$level];
 }
 
 =method AUTOLOAD
@@ -426,22 +425,22 @@ a method.
 =cut
 
 sub AUTOLOAD(@)
-{   my $thing   = shift;
-    our $AUTOLOAD;
-    my $class  = ref $thing || $thing;
-    my $method = $AUTOLOAD =~ s/^.*\:\://r;
+{	my $thing   = shift;
+	our $AUTOLOAD;
+	my $class  = ref $thing || $thing;
+	my $method = $AUTOLOAD =~ s/^.*\:\://r;
 
-    $Carp::MaxArgLen=20;
-    confess "Method $method() is not defined for a $class.\n";
+	$Carp::MaxArgLen=20;
+	confess "Method $method() is not defined for a $class.\n";
 }
 
-#-------------------------------------------
+#--------------------
 =section Cleanup
 
 =method DESTROY
 Cleanup the object.
 =cut
 
-sub DESTROY { shift }
+sub DESTROY { $_[0] }
 
 1;

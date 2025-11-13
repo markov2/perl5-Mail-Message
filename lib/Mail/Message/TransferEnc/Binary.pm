@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::TransferEnc::Binary;
 use base 'Mail::Message::TransferEnc';
@@ -8,15 +9,16 @@ use base 'Mail::Message::TransferEnc';
 use strict;
 use warnings;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::TransferEnc::Binary - encode/decode binary message bodies
 
 =chapter SYNOPSIS
 
- my Mail::Message $msg = ...;
- my $decoded = $msg->decoded;
- my $encoded = $msg->encode(transfer => 'binary');
+  my Mail::Message $msg = ...;
+  my $decoded = $msg->decoded;
+  my $encoded = $msg->encode(transfer => 'binary');
 
 =chapter DESCRIPTION
 
@@ -30,38 +32,33 @@ totally no encoding.
 sub name() { 'binary' }
 
 sub check($@)
-{   my ($self, $body, %args) = @_;
-    $body;
+{	my ($self, $body, %args) = @_;
+	$body;
 }
 
 sub decode($@)
-{   my ($self, $body, %args) = @_;
-    $body->transferEncoding('none');
-    $body;
+{	my ($self, $body, %args) = @_;
+	$body->transferEncoding('none');
+	$body;
 }
 
 sub encode($@)
-{   my ($self, $body, %args) = @_;
-    my @lines;
+{	my ($self, $body, %args) = @_;
+	my @lines;
 
-    my $changes = 0;
-    foreach ($body->lines)
-    {   $changes++ if s/[\000\013]//g;
-        push @lines, $_;
-    }
+	my $changes = 0;
+	foreach ($body->lines)
+	{	$changes++ if s/[\000\013]//g;
+		push @lines, $_;
+	}
 
-    unless($changes)
-    {   $body->transferEncoding('none');
-        return $body;
-    }
+	unless($changes)
+	{	$body->transferEncoding('none');
+		return $body;
+	}
 
-    my $bodytype = $args{result_type} || ref($self->load);
-
-    $bodytype->new
-      ( based_on          => $self
-      , transfer_encoding => 'none'
-      , data              => \@lines
-      );
+	my $bodytype = $args{result_type} || ref($self->load);
+	$bodytype->new(based_on => $self, transfer_encoding => 'none', data => \@lines);
 }
 
 1;

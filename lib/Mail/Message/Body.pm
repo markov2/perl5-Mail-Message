@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Body;
 use base 'Mail::Reporter';
@@ -8,108 +9,100 @@ use base 'Mail::Reporter';
 use strict;
 use warnings;
 
-use Mail::Message::Field;
-use Mail::Message::Body::Lines;
-use Mail::Message::Body::File;
-
 use Carp;
 use Scalar::Util     qw/weaken refaddr blessed/;
 use File::Basename   qw/basename/;
 
-use MIME::Types;
+use Mail::Message::Field       ();
+use Mail::Message::Body::Lines ();
+use Mail::Message::Body::File  ();
+
+use MIME::Types      ();
 my $mime_types = MIME::Types->new;
 my $mime_plain = $mime_types->type('text/plain');
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Body - the data of a body in a message
 
 =chapter SYNOPSIS
 
- my Mail::Message $msg = ...;
- my $body  = $msg->body;
- my @text  = $body->lines;
- my $text  = $body->string;
- my $file  = $body->file;  # IO::File
- $body->print(\*FILE);
+  my Mail::Message $msg = ...;
+  my $body  = $msg->body;
+  my @text  = $body->lines;
+  my $text  = $body->string;
+  my $file  = $body->file;  # IO::File
+  $body->print(\*FILE);
 
- my $content_type = $body->type;
- my $transfer_encoding = $body->transferEncoding;
- my $encoded = $body->encode(mime_type => 'text/html',
-    charset => 'us-ascii', transfer_encoding => 'none');\n";
- my $decoded = $body->decoded;
+  my $content_type = $body->type;
+  my $transfer_encoding = $body->transferEncoding;
+  my $encoded = $body->encode(mime_type => 'text/html',
+     charset => 'us-ascii', transfer_encoding => 'none');\n";
+  my $decoded = $body->decoded;
 
 =chapter DESCRIPTION
 
-The encoding and decoding functionality of a M<Mail::Message::Body> is
-implemented in the M<Mail::Message::Body::Encode> package.  That package is
+The encoding and decoding functionality of a Mail::Message::Body is
+implemented in the Mail::Message::Body::Encode package.  That package is
 automatically loaded when encoding and decoding of messages needs to take
 place.  Methods to simply build an process body objects are implemented
-in M<Mail::Message::Body::Construct>.
+in Mail::Message::Body::Construct.
 
-The body of a message (a M<Mail::Message> object) is stored in one of the
+The body of a message (a Mail::Message object) is stored in one of the
 many body types.  The functionality of each body type is equivalent, but there
 are performance differences.  Each body type has its own documentation
 with details about its implementation.
 =chapter OVERLOADED
 
-=overload @{}
-
+=overload @{} addressed as array
 When a body object is used as being an array reference, the lines of
 the body are returned.  This is the same as using M<lines()>.
 
 =example using a body as array
 
- print $body->lines->[1];  # second line
- print $body->[1];         # same
+  print $body->lines->[1];  # second line
+  print $body->[1];         # same
 
- my @lines = $body->lines;
- my @lines = @$body;       # same
+  my @lines = $body->lines;
+  my @lines = @$body;       # same
 
-=overload bool
-
+=overload bool  true/false
 Always returns a true value, which is needed to have overloaded
 objects to be used as in C<if($body)>.  Otherwise, C<if(defined $body)>
 would be needed to avoid a runtime error.
 
-=overload ""
-
-(stringification) Returns the body as string --which will trigger
-completion-- unless called to produce a string for C<Carp>.  The latter
-to avoid deep recursions.
+=overload "" stringification
+Returns the body as string --which will trigger completion-- unless called
+to produce a string for C<Carp>.  The latter to avoid deep recursions.
 
 =example stringification of body
 
- print $msg->body;   # implicit by print
+  print $msg->body;   # implicit by print
 
- my $body = $msg->body;
- my $x    = "$body"; # explicit by interpolation
+  my $body = $msg->body;
+  my $x    = "$body"; # explicit by interpolation
 
-=overload '==' and '!='
-
-(numeric comparison) compares if two references point to the
-same message.  This only produces correct results is both arguments
-are message references B<within the same folder>.
+=overload '==' numerical comparison
+compares if two references point to the same message.  This only produces
+correct results is both arguments are message references B<within the same folder>.
 
 =example use of numeric comparison on a body
-
- my $skip = $folder->message(3);
- foreach my $msg (@$folder)
- {   next if $msg == $skip;
-     $msg->send;
- }
-
+  my $skip = $folder->message(3);
+  foreach my $msg (@$folder)
+  {   next if $msg == $skip;
+      $msg->send;
+  }
 =cut
 
 use overload
-    bool  => sub {1}   # $body->print if $body
-  , '""'  => 'string_unless_carp'
-  , '@{}' => 'lines'
-  , '=='  => sub {ref $_[1] && refaddr $_[0] == refaddr $_[1]}
-  , '!='  => sub {ref $_[1] && refaddr $_[0] != refaddr $_[1]};
+	bool  => sub {1},   # $body->print if $body
+	'""'  => 'string_unless_carp',
+	'@{}' => 'lines',
+	'=='  => sub {ref $_[1] && refaddr $_[0] == refaddr $_[1]},
+	'!='  => sub {ref $_[1] && refaddr $_[0] != refaddr $_[1]};
 
-#------------------------------------------
-
+#--------------------
 =chapter METHODS
 
 =section Constructors
@@ -129,7 +122,7 @@ unless specified differently.
 =option  charset CHARSET|'PERL'|<undef>
 =default charset 'PERL'
 Defines the character-set which is used in the data.  Only useful in
-combination with a C<mime_type> which refers to C<text> in any shape,
+combination with a P<mime_type> which refers to C<text> in any shape,
 which does not contain an explicit charset already.  This field is
 case-insensitive.
 
@@ -139,7 +132,7 @@ When 'PERL' is given, then then the data is in Perl's internal encoding;
 either cp1252 or utf8.  More details in L</Character encoding PERL>
 
 =option  checked BOOLEAN
-=default checked <false>
+=default checked false
 Whether the added information has been check not to contain illegal
 octets with respect to the transfer encoding and mime type.  If not
 checked, and then set as body for a message, it will be.
@@ -182,7 +175,7 @@ to indicate that they are separate from the main body of the mail
 message, and that their display should not be automatic, but contingent
 upon some further action of the user.
 
-The C<filename> attribute specifies a name to which is suggested to the
+The P<filename> attribute specifies a name to which is suggested to the
 reader of the message when it is extracted.
 
 [3.017] RFC9078 adds type C<reaction>.  This part content is restricted
@@ -191,13 +184,12 @@ here, as well as mime-type C<text/plain>.
 
 =option  content_id STRING
 =default content_id undef
-
-In C<multipart/related> MIME content, the C<content_id> is required to
+In C<multipart/related> MIME content, the P<content_id> is required to
 allow access to the related content via a C<< cid:<...> >> descriptor
 of an inline disposition.
 
 A C<Content-ID> is supposed to be globally unique.  As such, it
-is common to append C<@computer.domain'> to the end of some unique
+is common to append C<@computer.domain> to the end of some unique
 string.  As other content in the C<multipart/related> container also
 needs to know what this C<Content-ID> is, this should be left to
 the imagination of the person making the content (for now).
@@ -221,7 +213,7 @@ Read the data from the specified file, file handle, or object of
 type C<IO::Handle>.
 
 =option  filename FILENAME
-=default filename C<undef>
+=default filename undef
 [3.001] Overrule/set filename for content-disposition
 
 =option  message MESSAGE
@@ -231,9 +223,9 @@ The message where this body belongs to.
 =option  mime_type STRING|FIELD|MIME
 =default mime_type C<'text/plain'>
 The type of data which is added.  You may specify a content of a header
-line as STRING, or a FIELD object.  You may also specify a M<MIME::Type>
+line as STRING, or a FIELD object.  You may also specify a MIME::Type
 object.  In any case, it will be kept internally as
-a real field (a M<Mail::Message::Field> object).  This relates to the
+a real field (a Mail::Message::Field object).  This relates to the
 C<Content-Type> header field.
 
 A mime-type specification consists of two parts: a general class (C<text>,
@@ -255,139 +247,135 @@ Whether the body is flagged modified, directly from its creation.
 
 =examples
 
- my $body = Mail::Message::Body::String->new(file => \*IN,
-    mime_type => 'text/html; charset="ISO-8859-1"');
+  my $body = Mail::Message::Body::String->new(file => \*IN,
+     mime_type => 'text/html; charset="ISO-8859-1"');
 
- my $body = Mail::Message::Body::Lines->new(data => ["first\n", $second],
-    charset => 'ISO-10646', transfer_encoding => 'none');
+  my $body = Mail::Message::Body::Lines->new(data => ["first\n", $second],
+     charset => 'ISO-10646', transfer_encoding => 'none');
 
- my $body = Mail::Message::Body::Lines->new(data => \@lines,
-    transfer_encoding => 'base64');
+  my $body = Mail::Message::Body::Lines->new(data => \@lines,
+     transfer_encoding => 'base64');
 
- my $body = Mail::Message::Body::Lines->new(file => 'picture.gif',
-    mime_type => 'image/gif', content_id => '<12345@example.com>',
-    disposition => 'inline');
+  my $body = Mail::Message::Body::Lines->new(file => 'picture.gif',
+     mime_type => 'image/gif', content_id => '<12345@example.com>',
+     disposition => 'inline');
 
 =cut
 
 my $body_count = 0;  # to be able to compare bodies for equivalence.
 
 sub new(@)
-{   my $class = shift;
+{	my $class = shift;
 
-    $class eq __PACKAGE__
-        or return $class->SUPER::new(@_);
+	$class eq __PACKAGE__
+		or return $class->SUPER::new(@_);
 
-    my %args  = @_;
-
-    exists $args{file}
-      ? Mail::Message::Body::File->new(@_)
-      : Mail::Message::Body::Lines->new(@_);
+	my %args  = @_;
+	exists $args{file} ? Mail::Message::Body::File->new(@_) : Mail::Message::Body::Lines->new(@_);
 }
 
 # All body implementations shall implement all of the following!!
-sub _data_from_filename(@)   {shift->notImplemented}
-sub _data_from_filehandle(@) {shift->notImplemented}
-sub _data_from_lines(@)      {shift->notImplemented}
+sub _data_from_filename(@)   { $_[0]->notImplemented }
+sub _data_from_filehandle(@) { $_[0]->notImplemented }
+sub _data_from_lines(@)      { $_[0]->notImplemented }
 
 sub init($)
-{   my ($self, $args) = @_;
+{	my ($self, $args) = @_;
 
-    $self->SUPER::init($args);
+	$self->SUPER::init($args);
 
-    $self->{MMB_modified} = $args->{modified} || 0;
+	$self->{MMB_modified} = $args->{modified} || 0;
 
-    my $filename = $args->{filename};
+	my $filename = $args->{filename};
 	my $mime     = $args->{mime_type};
 
-    if(defined(my $file = $args->{file}))
-    {
-        if(!ref $file)
-        {   $self->_data_from_filename($file) or return;
-            $filename ||= $file;
-            $mime ||= $mime_types->mimeTypeOf($filename)
-                  || (-T $file ? 'text/plain' : 'application/octet-stream');
-        }
-        elsif(ref $file eq 'GLOB' || (blessed $file && $file->isa('IO::Handle')))
-        {   $self->_data_from_filehandle($file) or return;
-        }
-        else
-        {   croak "message body: illegal datatype `".ref($file)."' for file option";
-        }
-    }
-    elsif(defined(my $data = $args->{data}))
-    {
-        if(!ref $data)
-        {   my @lines = split /^/, $data;
-            $self->_data_from_lines(\@lines)
-        }
-        elsif(ref $data eq 'ARRAY')
-        {   $self->_data_from_lines($data) or return;
-        }
-        else
-        {   croak "message body: illegal datatype `".ref($data)."' for data option";
-        }
-    }
-    elsif(! $self->isMultipart && ! $self->isNested)
-    {   # Neither 'file' nor 'data', so empty body.
-        $self->_data_from_lines( [] ) or return;
-    }
+	if(defined(my $file = $args->{file}))
+	{
+		if(!ref $file)
+		{	$self->_data_from_filename($file) or return;
+			$filename ||= $file;
+			$mime ||= $mime_types->mimeTypeOf($filename) || (-T $file ? 'text/plain' : 'application/octet-stream');
+		}
+		elsif(ref $file eq 'GLOB' || (blessed $file && $file->isa('IO::Handle')))
+		{	$self->_data_from_filehandle($file) or return;
+		}
+		else
+		{	croak "message body: illegal datatype `".ref($file)."' for file option";
+		}
+	}
+	elsif(defined(my $data = $args->{data}))
+	{
+		if(!ref $data)
+		{	my @lines = split /^/, $data;
+			$self->_data_from_lines(\@lines)
+		}
+		elsif(ref $data eq 'ARRAY')
+		{	$self->_data_from_lines($data) or return;
+		}
+		else
+		{	croak "message body: illegal datatype `".ref($data)."' for data option";
+		}
+	}
+	elsif(! $self->isMultipart && ! $self->isNested)
+	{	# Neither 'file' nor 'data', so empty body.
+		$self->_data_from_lines( [] ) or return;
+	}
 
-    # Set the content info
+	# Set the content info
 
-    my ($transfer, $disp, $descr, $cid, $lang) = @$args{
-       qw/transfer_encoding disposition description content_id language/ };
+	my ($transfer, $disp, $descr, $cid, $lang) = @$args{
+		qw/transfer_encoding disposition description content_id language/ };
 
-    if(defined $filename)
-    {   $disp //= Mail::Message::Field->new
-          ( 'Content-Disposition' => (-T $filename ? 'inline' : 'attachment')
-          , filename => basename($filename)
-          );
-        $mime //= $mime_types->mimeTypeOf($filename);
-    }
+	if(defined $filename)
+	{	$disp //= Mail::Message::Field->new(
+			'Content-Disposition' => (-T $filename ? 'inline' : 'attachment'),
+			filename => basename($filename)
+		);
+		$mime //= $mime_types->mimeTypeOf($filename);
+	}
 
-    if(ref $mime && $mime->isa('MIME::Type'))
-    {   $mime     = $mime->type;
-    }
+	if(ref $mime && $mime->isa('MIME::Type'))
+	{	$mime     = $mime->type;
+	}
 
-    if(defined(my $based = $args->{based_on}))
-    {   $mime     //= $based->type;
-        $transfer //= $based->transferEncoding;
-        $disp     //= $based->disposition;
-        $descr    //= $based->description;
-        $lang     //= $based->language;
-        $cid      //= $based->contentId;
+	if(defined(my $based = $args->{based_on}))
+	{	$mime     //= $based->type;
+		$transfer //= $based->transferEncoding;
+		$disp     //= $based->disposition;
+		$descr    //= $based->description;
+		$lang     //= $based->language;
+		$cid      //= $based->contentId;
 
-        $self->{MMB_checked} = exists $args->{checked} ? $args->{checked} : $based->checked;
-    }
-    else
-    {   $transfer = $args->{transfer_encoding};
-        $self->{MMB_checked} = $args->{checked} || 0;
-    }
+		$self->{MMB_checked} = exists $args->{checked} ? $args->{checked} : $based->checked;
+	}
+	else
+	{	$transfer = $args->{transfer_encoding};
+		$self->{MMB_checked} = $args->{checked} || 0;
+	}
 
-    $mime ||= 'text/plain';
-    $mime   = $self->type($mime);
+	$mime ||= 'text/plain';
+	$mime   = $self->type($mime);
 
-    my $default_charset = exists $args->{charset} ? $args->{charset} : 'PERL';
-    $mime->attribute(charset => $default_charset)
-        if $default_charset
-        && $mime =~ m!^text/!i
-        && !$mime->attribute('charset');
+	my $default_charset = exists $args->{charset} ? $args->{charset} : 'PERL';
+	$mime->attribute(charset => $default_charset)
+		if $default_charset
+		&& $mime =~ m!^text/!i
+		&& !$mime->attribute('charset');
 
-    $self->transferEncoding($transfer) if defined $transfer;
-    $self->disposition($disp)          if defined $disp;
-    $self->description($descr)         if defined $descr;
-    $self->language($lang)             if defined $lang;
-    $self->contentId($cid)             if defined $cid;
-    $self->type($mime);
+	$self->transferEncoding($transfer) if defined $transfer;
+	$self->disposition($disp)          if defined $disp;
+	$self->description($descr)         if defined $descr;
+	$self->language($lang)             if defined $lang;
+	$self->contentId($cid)             if defined $cid;
+	$self->type($mime);
 
-    # Set message where the body belongs to.
+	# Set message where the body belongs to.
 
-    $self->message($args->{message})
-        if defined $args->{message};
+	$self->message($args->{message})
+		if defined $args->{message};
 
-    $self->{MMB_seqnr} = $body_count++;
-    $self;
+	$self->{MMB_seqnr} = $body_count++;
+	$self;
 }
 
 
@@ -396,27 +384,26 @@ Return a copy of this body, usually to be included in a cloned
 message. Use M<Mail::Message::clone()> for a whole message.
 =cut
 
-sub clone() {shift->notImplemented}
+sub clone() { $_[0]->notImplemented }
 
-#------------------------------------------
-
+#--------------------
 =section Constructing a body
 
 =method decoded %options
-Returns a body, an object which is (a sub-)class of a M<Mail::Message::Body>,
+Returns a body, an object which is (a sub-)class of a Mail::Message::Body,
 which contains a simplified representation of textual data.  The returned
 object may be the object where this is called on, but may also be a new
 body of any type.
 
- my $dec = $body->decoded;
+  my $dec = $body->decoded;
 
 is equivalent with
 
- my $dec = $body->encode(
-   mime_type         => 'text/plain',
-   transfer_encoding => 'none',
-   charset           => 'PERL',
- );
+  my $dec = $body->encode(
+    mime_type         => 'text/plain',
+    transfer_encoding => 'none',
+    charset           => 'PERL',
+  );
 
 The C<$dec> which is returned is a body.  Ask with the M<mimeType()> method
 what is produced.  This C<$dec> body is B<not related to a header>.
@@ -427,34 +414,34 @@ what is produced.  This C<$dec> body is B<not related to a header>.
 =cut
 
 sub decoded(@)
-{   my $self = shift;
-    $self->encode(charset => 'PERL', transfer_encoding => 'none', @_);
+{	my $self = shift;
+	$self->encode(charset => 'PERL', transfer_encoding => 'none', @_);
 }
 
-#------------------------------------------
+#--------------------
 =section The body
 
 =method message [$message]
 Returns the message (or message part) where this body belongs to,
-optionally setting it to a new $message first.  If C<undef> is passed,
+optionally setting it to a new $message first.  If undef is passed,
 the body will be disconnected from the message.
 
 =cut
 
 sub message(;$)
-{   my $self = shift;
-    if(@_)
-    {   if($self->{MMB_message} = shift)
-        {   weaken $self->{MMB_message};
-        }
-    }
-    $self->{MMB_message};
+{	my $self = shift;
+	if(@_)
+	{	if($self->{MMB_message} = shift)
+		{	weaken $self->{MMB_message};
+		}
+	}
+	$self->{MMB_message};
 }
 
 =method isDelayed
 Returns a true or false value, depending on whether the body of this
 message has been read from file.  This can only false for a
-M<Mail::Message::Body::Delayed>.
+Mail::Message::Body::Delayed.
 =cut
 
 sub isDelayed() {0}
@@ -479,16 +466,16 @@ used in M<Mail::Message::partNumber()>.
 =cut
 
 sub partNumberOf($)
-{   shift->log(ERROR => 'part number needs multi-part or nested');
-    'ERROR';
+{	shift->log(ERROR => 'part number needs multi-part or nested');
+	'ERROR';
 }
 
-#------------------------------------------
+#--------------------
 =section About the payload
 
 =method type [STRING|$field]
 Returns the type of information the body contains as
-M<Mail::Message::Field> object.  The type is taken from the header
+Mail::Message::Field object.  The type is taken from the header
 field C<Content-Type>. If the header did not contain that field,
 then you will get a default field containing C<text/plain>.
 
@@ -497,50 +484,50 @@ clever object with type information.
 
 =examples
 
- my $msg     = $folder->message(6);
- $msg->get('Content-Type')->print;
-    # --> Content-Type: text/plain; charset="us-ascii"
+  my $msg     = $folder->message(6);
+  $msg->get('Content-Type')->print;
+     # --> Content-Type: text/plain; charset="us-ascii"
 
- my $content = $msg->decoded;
- my $type    = $content->type;
+  my $content = $msg->decoded;
+  my $type    = $content->type;
 
- print "This is a $type message\n";
-    # --> This is a text/plain; charset="us-ascii" message
+  print "This is a $type message\n";
+     # --> This is a text/plain; charset="us-ascii" message
 
- print "This is a ", $type->body, "message\n";
-    # --> This is a text/plain message
+  print "This is a ", $type->body, "message\n";
+     # --> This is a text/plain message
 
- print "Comment: ", $type->comment, "\n";
-    # --> Comment: charset="us-ascii"
+  print "Comment: ", $type->comment, "\n";
+     # --> Comment: charset="us-ascii"
 
 =cut
 
 sub type(;$)
-{   my $self = shift;
-    return $self->{MMB_type} if !@_ && defined $self->{MMB_type};
+{	my $self = shift;
+	return $self->{MMB_type} if !@_ && defined $self->{MMB_type};
 
-    delete $self->{MMB_mime};
-    my $type = shift // 'text/plain';
+	delete $self->{MMB_mime};
+	my $type = shift // 'text/plain';
 
-    $self->{MMB_type} = ref $type ? $type->clone : Mail::Message::Field->new('Content-Type' => $type);
+	$self->{MMB_type} = ref $type ? $type->clone : Mail::Message::Field->new('Content-Type' => $type);
 }
 
 =method mimeType
-Returns a M<MIME::Type> object which is related to this body's type.  This
-differs from the C<type> method, which results in a M<Mail::Message::Field>.
+Returns a MIME::Type object which is related to this body's type.  This
+differs from the C<type> method, which results in a Mail::Message::Field.
 
 =example
- if($body->mimeType eq 'text/html') {...}
- print $body->mimeType->simplified;
+  if($body->mimeType eq 'text/html') {...}
+  print $body->mimeType->simplified;
 =cut
 
 sub mimeType()
-{   my $self  = shift;
-    return $self->{MMB_mime} if exists $self->{MMB_mime};
+{	my $self  = shift;
+	return $self->{MMB_mime} if exists $self->{MMB_mime};
 
-    my $field = $self->{MMB_type};
-    my $body  = defined $field ? $field->body : '';
-    $self->{MMB_mime} = length $body ? ($mime_types->type($body) || MIME::Type->new(type => $body)) : $mime_plain;
+	my $field = $self->{MMB_type};
+	my $body  = defined $field ? $field->body : '';
+	$self->{MMB_mime} = length $body ? ($mime_types->type($body) || MIME::Type->new(type => $body)) : $mime_plain;
 }
 
 =method charset
@@ -548,11 +535,11 @@ Returns the character set which is used in the text body as string.  This
 is part of the result of what the C<type> method returns.
 =cut
 
-sub charset() { shift->type->attribute('charset') }
+sub charset() { $_[0]->type->attribute('charset') }
 
 =method transferEncoding [STRING|$field]
 Returns the transfer-encoding of the data within this body as
-M<Mail::Message::Field> (which stringifies to its content).  If it
+Mail::Message::Field (which stringifies to its content).  If it
 needs to be changed, call the M<encode()> or M<encoded()> method.
 When no encoding is present, the field contains the text C<none>.
 
@@ -561,26 +548,26 @@ actual required translations.
 
 =examples
 
- my $transfer = $msg->decoded->transferEncoding;
- $transfer->print;   # --> Content-Encoding: base64
- print $transfer;    # --> base64
+  my $transfer = $msg->decoded->transferEncoding;
+  $transfer->print;   # --> Content-Encoding: base64
+  print $transfer;    # --> base64
 
- if($msg->body->transferEncoding eq 'none') {...}
+  if($msg->body->transferEncoding eq 'none') {...}
 
 =cut
 
 sub transferEncoding(;$)
-{   my $self = shift;
-    return $self->{MMB_transfer} if !@_ && defined $self->{MMB_transfer};
+{	my $self = shift;
+	return $self->{MMB_transfer} if !@_ && defined $self->{MMB_transfer};
 
-    my $set = defined $_[0] ? shift : 'none';
-    $self->{MMB_transfer} = ref $set ? $set->clone : Mail::Message::Field->new('Content-Transfer-Encoding' => $set);
+	my $set = shift // 'none';
+	$self->{MMB_transfer} = blessed $set ? $set->clone : Mail::Message::Field->new('Content-Transfer-Encoding' => $set);
 }
 
 =method description [STRING|$field]
 Returns (optionally after setting) the informal description of the body
 content.  The related header field is C<Content-Description>.
-A M<Mail::Message::Field> object is returned (which stringifies into
+A Mail::Message::Field object is returned (which stringifies into
 the field content).  The field content will be C<none> if no disposition
 was specified.
 
@@ -589,17 +576,17 @@ fully prepared header field.
 =cut
 
 sub description(;$)
-{   my $self = shift;
-    return $self->{MMB_description} if !@_ && $self->{MMB_description};
+{	my $self = shift;
+	return $self->{MMB_description} if !@_ && $self->{MMB_description};
 
-    my $disp = defined $_[0] ? shift : 'none';
-    $self->{MMB_description} = ref $disp ? $disp->clone : Mail::Message::Field->new('Content-Description' => $disp);
+	my $disp = shift // 'none';
+	$self->{MMB_description} = blessed $disp ? $disp->clone : Mail::Message::Field->new('Content-Description' => $disp);
 }
 
 =method disposition [STRING|$field]
 Returns (optionally after setting) how the message can be disposed
 (unpacked).  The related header field is C<Content-Disposition>.
-A M<Mail::Message::Field> object is returned (which stringifies into
+A Mail::Message::Field object is returned (which stringifies into
 the field content).  The field content will be C<none> if no disposition
 was specified.
 
@@ -612,11 +599,11 @@ to a single line of emoji's.
 =cut
 
 sub disposition(;$)
-{   my $self = shift;
-    return $self->{MMB_disposition} if !@_ && $self->{MMB_disposition};
+{	my $self = shift;
+	return $self->{MMB_disposition} if !@_ && $self->{MMB_disposition};
 
-    my $disp = defined $_[0] ? shift : 'none';
-    $self->{MMB_disposition} = blessed $disp ? $disp->clone : Mail::Message::Field->new('Content-Disposition' => $disp);
+	my $disp = shift // 'none';
+	$self->{MMB_disposition} = blessed $disp ? $disp->clone : Mail::Message::Field->new('Content-Disposition' => $disp);
 }
 
 =method language [@langs|\@langs|$langs|$field]
@@ -632,16 +619,19 @@ sub language(@)
 	my $langs
 	  = @_ > 1        ? (join ', ', @_)
 	  : blessed $_[0] ? $_[0]
-	  : ref $_[0] eq 'ARRAY' ? (join ', ', @{$_[0]}) : $_[0];
+	  : ref $_[0] eq 'ARRAY' ? (join ', ', @{$_[0]})
+	  :    $_[0];
 
-	$self->{MMB_lang} = ! defined $langs || ! length $langs ? undef
-	  : blessed $langs ? $langs->clone : Mail::Message::Field->new('Content-Language' => $langs);
+	$self->{MMB_lang}
+	  = ! defined $langs || ! length $langs ? undef
+	  : blessed $langs ? $langs->clone
+	  :    Mail::Message::Field->new('Content-Language' => $langs);
 }
 
 =method contentId [STRING|$field]
 Returns (optionally after setting) the id (unique reference) of a
 message part.  The related header field is C<Content-ID>.
-A M<Mail::Message::Field> object is returned (which stringifies into
+A Mail::Message::Field object is returned (which stringifies into
 the field content).  The field content will be C<none> if no disposition
 was specified.
 
@@ -650,11 +640,11 @@ fully prepared header $field.
 =cut
 
 sub contentId(;$)
-{   my $self = shift;
-    return $self->{MMB_id} if !@_ && $self->{MMB_id};
+{	my $self = shift;
+	return $self->{MMB_id} if !@_ && $self->{MMB_id};
 
-    my $cid = defined $_[0] ? shift : 'none';
-    $self->{MMB_id} = ref $cid ? $cid->clone : Mail::Message::Field->new('Content-ID' => $cid);
+	my $cid = shift // 'none';
+	$self->{MMB_id} = blessed $cid ? $cid->clone : Mail::Message::Field->new('Content-ID' => $cid);
 }
 
 =method checked [BOOLEAN]
@@ -663,8 +653,8 @@ after setting the flag to a new value).
 =cut
 
 sub checked(;$)
-{   my $self = shift;
-    @_ ? ($self->{MMB_checked} = shift) : $self->{MMB_checked};
+{	my $self = shift;
+	@_ ? ($self->{MMB_checked} = shift) : $self->{MMB_checked};
 }
 
 =method nrLines
@@ -672,7 +662,7 @@ Returns the number of lines in the message body.  For multi-part messages,
 this includes the header lines and boundaries of all the parts.
 =cut
 
-sub nrLines(@)  {shift->notImplemented}
+sub nrLines(@)  { $_[0]->notImplemented }
 
 =method size
 The total number of bytes in the message body. The size of the body
@@ -681,10 +671,9 @@ encoded message, the size of the encoded data is returned; you may
 want to call M<Mail::Message::decoded()> first.
 =cut
 
-sub size(@)  {shift->notImplemented}
+sub size(@)  { $_[0]->notImplemented }
 
-#------------------------------------------
-
+#--------------------
 =section Access to the payload
 
 =method string
@@ -692,18 +681,18 @@ Return the content of the body as a scalar (a single string).  This is
 a copy of the internally kept information.
 
 =examples
- my $text = $body->string;
- print "Body: $body\n";     # by overloading
+  my $text = $body->string;
+  print "Body: $body\n";     # by overloading
 =cut
 
-sub string() {shift->notImplemented}
+sub string() { $_[0]->notImplemented }
 
 sub string_unless_carp()
-{   my $self  = shift;
-    return $self->string unless (caller)[0] eq 'Carp';
+{	my $self  = shift;
+	(caller)[0] eq 'Carp' or return $self->string;
 
-    my $class = ref $self =~ s/^Mail::Message/MM/r;
-    "$class object";
+	my $class = ref $self =~ s/^Mail::Message/MM/r;
+	"$class object";
 }
 
 =method lines
@@ -717,23 +706,23 @@ which is usually much more efficient.
 
 BE WARNED: For some types of bodies the reference will refer to the
 original data. You must not change the referenced data! If you do, some of
-the essential internal variables of the M<Mail::Message::Body> may not be
+the essential internal variables of the Mail::Message::Body may not be
 updated.
 
 =examples
- my @lines    = $body->lines;     # copies lines
- my $line3    = ($body->lines)[3] # only one copy
- print $lines[0];
+  my @lines    = $body->lines;     # copies lines
+  my $line3    = ($body->lines)[3] # only one copy
+  print $lines[0];
 
- my $linesref = $body->lines;     # reference to originals
- my $line3    = $body->lines->[3] # only one copy (faster)
- print $linesref->[0];
+  my $linesref = $body->lines;     # reference to originals
+  my $line3    = $body->lines->[3] # only one copy (faster)
+  print $linesref->[0];
 
- print $body->[0];                # by overloading
+  print $body->[0];                # by overloading
 
 =cut
 
-sub lines() {shift->notImplemented}
+sub lines() { $_[0]->notImplemented }
 
 =method file
 Return the content of the body as a file handle.  The returned stream may
@@ -742,18 +731,18 @@ you may not be able to write to the file handle, you can read from it.
 
 WARNING: Even if the file handle supports writing, do not write
 to the file handle. If you do, some of the internal values of the
-M<Mail::Message::Body> may not be updated.
+Mail::Message::Body may not be updated.
 =cut
 
-sub file(;$) {shift->notImplemented}
+sub file(;$) { $_[0]->notImplemented }
 
 =method print [$fh]
 Print the body to the specified $fh (defaults to the selected handle).
-an M<IO::File> object or... any object with a C<print()> method will do.
+an IO::File object or... any object with a C<print()> method will do.
 Nothing useful is returned.
 =cut
 
-sub print(;$) {shift->notImplemented}
+sub print(;$) { $_[0]->notImplemented }
 
 =method printEscapedFrom $fh
 Print the body to the specified $fh but all lines which start
@@ -761,7 +750,7 @@ with 'From ' (optionally already preceded by E<gt>'s) will habe an E<gt>
 added in front.  Nothing useful is returned.
 =cut
 
-sub printEscapedFrom($) {shift->notImplemented}
+sub printEscapedFrom($) { $_[0]->notImplemented }
 
 =method write %options
 Write the content of the body to a file.  Be warned that you may want to
@@ -770,29 +759,29 @@ decode the body before writing it!
 =requires filename FILENAME
 
 =example write the data to a file
- use File::Temp;
- my $fn = tempfile;
- $message->decoded->write(filename => $fn)
-    or die "Couldn't write to $fn: $!\n";
+  use File::Temp;
+  my $fn = tempfile;
+  $message->decoded->write(filename => $fn)
+     or die "Couldn't write to $fn: $!\n";
 
 =example using the content-disposition information to write
- use File::Temp;
- my $dir = tempdir; mkdir $dir or die;
- my $fn  = $message->body->dispositionFilename($dir);
- $message->decoded->write(filename => $fn)
-    or die "Couldn't write to $fn: $!\n";
+  use File::Temp;
+  my $dir = tempdir; mkdir $dir or die;
+  my $fn  = $message->body->dispositionFilename($dir);
+  $message->decoded->write(filename => $fn)
+     or die "Couldn't write to $fn: $!\n";
 
 =cut
 
 sub write(@)
-{   my ($self, %args) = @_;
-    my $filename = $args{filename};
-    die "No filename for write() body" unless defined $filename;
+{	my ($self, %args) = @_;
+	my $filename = $args{filename}
+		or die "No filename for write() body";
 
-    open my $out, '>', $filename or return;
-    $self->print($out);
-    $out->close or return undef;
-    $self;
+	open my $out, '>', $filename or return;
+	$self->print($out);
+	$out->close or return undef;
+	$self;
 }
 
 =method endsOnNewline
@@ -801,17 +790,16 @@ Returns whether the last line of the body is terminated by a new-line
 as well: the newline comes from the line before it.
 =cut
 
-sub endsOnNewline() {shift->notImplemented}
+sub endsOnNewline() { $_[0]->notImplemented }
 
 =method stripTrailingNewline
 Remove the newline from the last line, or the last line if it does not
 contain anything else than a newline.
 =cut
 
-sub stripTrailingNewline() {shift->notImplemented}
+sub stripTrailingNewline() { $_[0]->notImplemented }
 
-#------------------------------------------
-
+#--------------------
 =section Internals
 
 =method read $parser, $head, $bodytype, [$chars, [$lines]]
@@ -822,7 +810,7 @@ or a code reference of a routine which can produce a class name, and is
 used in multipart bodies to determine the type of the body for each part.
 
 The $chars argument is the estimated number of bytes in the body, or
-C<undef> when this is not known.  This data can sometimes be derived from
+undef when this is not known.  This data can sometimes be derived from
 the header (the C<Content-Length> line) or file-size.
 
 The second argument is the estimated number of $lines of the body.  It is less
@@ -832,7 +820,7 @@ of the header.
 
 =cut
 
-sub read(@) {shift->notImplemented}
+sub read(@) { $_[0]->notImplemented }
 
 =method contentInfoTo $head
 Copy the content information (the C<Content-*> fields) into the specified
@@ -841,20 +829,20 @@ which must be added.  See also M<contentInfoFrom()>.
 =cut
 
 sub contentInfoTo($)
-{   my ($self, $head) = @_;
-    return unless defined $head;
+{	my ($self, $head) = @_;
+	return unless defined $head;
 
-    my $lines  = $self->nrLines;
-    my $size   = $self->size;
-    $size     += $lines if $Mail::Message::crlf_platform;
+	my $lines  = $self->nrLines;
+	my $size   = $self->size;
+	$size     += $lines if $Mail::Message::crlf_platform;
 
-    $head->set($self->type);
-    $head->set($self->transferEncoding);
-    $head->set($self->disposition);
-    $head->set($self->description);
-    $head->set($self->language);
-    $head->set($self->contentId);
-    $self;
+	$head->set($self->type);
+	$head->set($self->transferEncoding);
+	$head->set($self->disposition);
+	$head->set($self->description);
+	$head->set($self->language);
+	$head->set($self->contentId);
+	$self;
 }
 
 =method contentInfoFrom $head
@@ -862,24 +850,24 @@ Transfer the body related info from the header into this body.
 =cut
 
 sub contentInfoFrom($)
-{   my ($self, $head) = @_;
+{	my ($self, $head) = @_;
 
-    $self->type($head->get('Content-Type', 0));
+	$self->type($head->get('Content-Type', 0));
 
-    my ($te, $disp, $desc, $cid, $lang)
-      = map { my $x = $head->get("Content-$_") || '';
-              s/^\s+//,s/\s+$// for $x;
-              length $x ? $x : undef
-            } qw/Transfer-Encoding Disposition Description ID Language/;
+	my ($te, $disp, $desc, $cid, $lang) = map {
+		my $x = $head->get("Content-$_") || '';
+		s/^\s+//,s/\s+$// for $x;
+		length $x ? $x : undef;
+	} qw/Transfer-Encoding Disposition Description ID Language/;
 
-    $self->transferEncoding($te);
-    $self->disposition($disp);
-    $self->description($desc);
-    $self->language($lang);
-    $self->contentId($cid);
+	$self->transferEncoding($te);
+	$self->disposition($disp);
+	$self->description($desc);
+	$self->language($lang);
+	$self->contentId($cid);
 
-    delete $self->{MMB_mime};
-    $self;
+	delete $self->{MMB_mime};
+	$self;
 
 }
 
@@ -896,16 +884,16 @@ M<isModified()>.
 =cut
 
 sub modified(;$)
-{  my $self = shift;
-   @_ or return $self->isModified;  # compat 2.036
-   $self->{MMB_modified} = shift;
+{	my $self = shift;
+	@_ or return $self->isModified;  # compat 2.036
+	$self->{MMB_modified} = shift;
 }
 
 =method isModified
 Returns whether the body has changed.
 =cut
 
-sub isModified() { shift->{MMB_modified} }
+sub isModified() { $_[0]->{MMB_modified} }
 
 =method fileLocation [$begin, $end]
 The location of the body in the file.  Returned a list containing begin and
@@ -914,9 +902,9 @@ this body.  The end is the offset of the first byte of the next message.
 =cut
 
 sub fileLocation(;@)
-{   my $self = shift;
-    @_ or return @$self{ qw/MMB_begin MMB_end/ };
-    @$self{ qw/MMB_begin MMB_end/ } = @_;
+{	my $self = shift;
+	@_ or return @$self{ qw/MMB_begin MMB_end/ };
+	@$self{ qw/MMB_begin MMB_end/ } = @_;
 }
 
 =method moveLocation [$distance]
@@ -926,20 +914,19 @@ folder-file.
 =cut
 
 sub moveLocation($)
-{   my ($self, $dist) = @_;
-    $self->{MMB_begin} -= $dist;
-    $self->{MMB_end}   -= $dist;
-    $self;
+{	my ($self, $dist) = @_;
+	$self->{MMB_begin} -= $dist;
+	$self->{MMB_end}   -= $dist;
+	$self;
 }
 
 =method load
 Be sure that the body is loaded.  This returns the loaded body.
 =cut
 
-sub load() {shift}
+sub load() { $_[0] }
 
-#------------------------------------------
-
+#--------------------
 =section Error handling
 
 =method AUTOLOAD
@@ -954,23 +941,22 @@ my @in_encode = qw/check encode encoded eol isBinary isText unify dispositionFil
 my %in_module = map +($_ => 'encode'), @in_encode;
 
 sub AUTOLOAD(@)
-{   my $self  = shift;
-    our $AUTOLOAD;
-    my $call = $AUTOLOAD =~ s/.*\:\://gr;
+{	my $self  = shift;
+	our $AUTOLOAD;
+	my $call = $AUTOLOAD =~ s/.*\:\://gr;
 
-    my $mod = $in_module{$call} || 'construct';
-    if($mod eq 'encode') { require Mail::Message::Body::Encode    }
-    else                 { require Mail::Message::Body::Construct }
+	my $mod = $in_module{$call} || 'construct';
+	if($mod eq 'encode') { require Mail::Message::Body::Encode    }
+	else                 { require Mail::Message::Body::Construct }
 
-    no strict 'refs';
-    return $self->$call(@_) if $self->can($call);  # now loaded
+	no strict 'refs';
+	return $self->$call(@_) if $self->can($call);  # now loaded
 
 	# AUTOLOAD inheritance is a pain
 	confess "Method $call() is not defined for a ", ref $self;
 }
 
-#------------------------------------------
-
+#--------------------
 =chapter DETAILS
 
 =section Access to the body
@@ -984,11 +970,11 @@ be written to a file or send to somewhere: they will be encoded if needed.
 
 =example
 
- my $body    = M<Mail::Message::Body::String>->new(mime_type => 'image/gif');
- $body->print(\*OUT);    # this is binary image data...
+  my $body    = Mail::Message::Body::String->new(mime_type => 'image/gif');
+  $body->print(\*OUT);    # this is binary image data...
 
- my $encoded = $message->body($body);
- $encoded->print(\*OUT); # ascii data, encoded image
+  my $encoded = $message->body($body);
+  $encoded->print(\*OUT); # ascii data, encoded image
 
 Now encoded refers to the body of the C<$message> which is the content of
 C<$body> in a shape that it can be transmitted.  Usually C<base64> encoding
@@ -1007,16 +993,16 @@ handle complex multiparts and lazy extraction.
 
 =over 4
 
-=item * M<Mail::Message::Body::String>
+=item * Mail::Message::Body::String
 The whole message body is stored in one scalar.  Small messages can be
 contained this way without performance penalties.
 
-=item * M<Mail::Message::Body::Lines>
+=item * Mail::Message::Body::Lines
 Each line of the message body is stored as single scalar.  This is a
 useful representation for a detailed look in the message body, which is
 usually line-organized.
 
-=item * M<Mail::Message::Body::File>
+=item * Mail::Message::Body::File
 The message body is stored in an external temporary file.  This type of
 storage is especially useful when the body is large, the total folder is
 large, or memory is limited.
@@ -1039,18 +1025,18 @@ C<::External> object only uses a file when the folder is open.
 
 =over 4
 
-=item * M<Mail::Message::Body::Delayed>
+=item * Mail::Message::Body::Delayed
 The message-body is not yet read, but the exact location of the
 body is known so the message can be read when needed.  This is part of
 the lazy extraction mechanism.  Once extracted, the object can become
 any simple or complex body.
 
-=item * M<Mail::Message::Body::Multipart>
+=item * Mail::Message::Body::Multipart
 The message body contains a set of sub-messages (which can contain
 multipart bodies themselves).  Each sub-message is an instance
-of M<Mail::Message::Part>, which is an extension of M<Mail::Message>.
+of Mail::Message::Part, which is an extension of Mail::Message.
 
-=item * M<Mail::Message::Body::Nested>
+=item * Mail::Message::Body::Nested
 Nested messages, like C<message/rfc822>: they contain a message in
 the body.  For most code, they simply behave like multiparts.
 
@@ -1069,8 +1055,8 @@ cp1252 (extended latin1) or utf8 (not real UTF-8, but something alike,
 see the perlunicode manual page)  So, before you start using the data
 from an incoming message, do
 
-    my $body  = $msg->decoded;
-    my @lines = $body->lines;
+  my $body  = $msg->decoded;
+  my @lines = $body->lines;
 
 Now, the body has character-set 'PERL' (when it is text)
 
@@ -1078,14 +1064,14 @@ When you create a new body which contains text content (the default),
 it will be created with character-set 'PERL' unless you specify a
 character-set explicitly.
 
-   my $body = Mail::Box::Body::Lines->new(data => \@lines);
-   # now mime=text/plain, charset=PERL
+  my $body = Mail::Box::Body::Lines->new(data => \@lines);
+  # now mime=text/plain, charset=PERL
 
-   my $msg  = Mail::Message->buildFromBody($body);
-   $msg->body($body);
-   $msg->attach($body);   # etc
-   # these all will convert the charset=PERL into real utf-8,
-   # cp1252 or us-ascii, which depends on the characters found.
+  my $msg  = Mail::Message->buildFromBody($body);
+  $msg->body($body);
+  $msg->attach($body);   # etc
+  # these all will convert the charset=PERL into real utf-8,
+  # cp1252 or us-ascii, which depends on the characters found.
 
 =subsection Autodetection of character-set
 

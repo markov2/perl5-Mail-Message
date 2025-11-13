@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::Unstructured;
 use base 'Mail::Message::Field::Full';
@@ -8,13 +9,14 @@ use base 'Mail::Message::Field::Full';
 use strict;
 use warnings;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Field::Unstructured - smart unstructured field
 
 =chapter SYNOPSIS
 
- my $f = Mail::Message::Field::Unstructured->new('Comments', 'hi!');
+  my $f = Mail::Message::Field::Unstructured->new('Comments', 'hi!');
 
 =chapter DESCRIPTION
 
@@ -37,36 +39,40 @@ and therefore not valid options.  The BODY can be a single string, a single
 OBJECT, or an array of OBJECTS.  The objects are stringified (into a comma
 separated list).  Each BODY element is interpreted with the specified encoding.
 
-When the BODY is empty, the construction of the object fails: C<undef> is
+When the BODY is empty, the construction of the object fails: undef is
 returned.
 
 =examples
 
- my $s = Mail::Message::Field::Unstructured->new('Comment', 'Hi!');
+  my $s = Mail::Message::Field::Unstructured->new('Comment', 'Hi!');
 
- # Use autodetect
- my $s = Mail::Message::Field::Full->new('Comment', 'Hi!');
- my $s = Mail::Message::Field::Full->new('Comment: Hi!');
+  # Use autodetect
+  my $s = Mail::Message::Field::Full->new('Comment', 'Hi!');
+  my $s = Mail::Message::Field::Full->new('Comment: Hi!');
 
+=warning Attributes are not supported for unstructured fields
+=warning No extras for unstructured fields
 =cut
 
 sub init($)
-{   my ($self, $args) = @_;
+{	my ($self, $args) = @_;
 
-    if($args->{body} && ($args->{encoding} || $args->{charset}))
-    {   $args->{body} = $self->encode($args->{body}, %$args);
-    }
-    $self->SUPER::init($args) or return;
+	if($args->{body} && ($args->{encoding} || $args->{charset}))
+	{	$args->{body} = $self->encode($args->{body}, %$args);
+	}
 
-    $self->log(WARNING =>"Attributes are not supported for unstructured fields")
-        if defined $args->{attributes};
+	$self->SUPER::init($args) or return;
 
-    $self->log(WARNING => "No extras for unstructured fields")
-        if defined $args->{extra};
+	! defined $args->{attributes}
+		or $self->log(WARNING => "Attributes are not supported for unstructured fields");
 
-    $self;
+	! defined $args->{extra}
+		or $self->log(WARNING => "No extras for unstructured fields");
+
+	$self;
 }
 
+#--------------------
 =section Access to the content
 =cut
 

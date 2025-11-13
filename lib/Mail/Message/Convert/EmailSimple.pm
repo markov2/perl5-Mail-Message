@@ -1,7 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
-
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Convert::EmailSimple;
 use base 'Mail::Message::Convert';
@@ -9,38 +9,39 @@ use base 'Mail::Message::Convert';
 use strict;
 use warnings;
 
-use Mail::Internet;
-use Mail::Header;
-use Mail::Message;
-use Mail::Message::Head::Complete;
-use Mail::Message::Body::Lines;
-
-use Email::Simple;
+use Mail::Internet  ();
+use Mail::Header    ();
+use Email::Simple   ();
 use Carp;
 
+use Mail::Message                 ();
+use Mail::Message::Head::Complete ();
+use Mail::Message::Body::Lines    ();
+
+#--------------------
 =chapter NAME
 
 Mail::Message::Convert::EmailSimple - translate Mail::Message to Email::Simple vv
 
 =chapter SYNOPSIS
 
- use Mail::Message::Convert::EmailSimple;
- my $convert = Mail::Message::Convert::EmailSimple->new;
+  use Mail::Message::Convert::EmailSimple;
+  my $convert = Mail::Message::Convert::EmailSimple->new;
 
- my Mail::Message $msg    = M<Mail::Message>->new;
- my Email::Simple $intern = $convert->export($msg);
+  my Mail::Message $msg    = Mail::Message->new;
+  my Email::Simple $intern = $convert->export($msg);
 
- my Email::Simple $intern = M<Mail::Internet>->new;
- my Mail::Message $msg    = $convert->from($intern);
+  my Email::Simple $intern = Mail::Internet->new;
+  my Mail::Message $msg    = $convert->from($intern);
 
- use M<Mail::Box::Manager>;
- my $mgr     = Mail::Box::Manager->new;
- my $folder  = $mgr->open(folder => 'Outbox');
- $folder->addMessage($intern);
+  use Mail::Box::Manager;
+  my $mgr     = Mail::Box::Manager->new;
+  my $folder  = $mgr->open(folder => 'Outbox');
+  $folder->addMessage($intern);
 
 =chapter DESCRIPTION
 
-The M<Email::Simple> class is one of the base objects used by the
+The Email::Simple class is one of the base objects used by the
 large set of Email* modules, which implement many e-mail needs
 which are also supported by MailBox.  You can use this class to
 gradularly move from a Email* based implementation into a MailBox
@@ -55,44 +56,43 @@ and memory usage.  It could easily be optimized.
 =section Converting
 
 =method export $message, %options
-Returns a new M<Email::Simple> object based on the information from
-a M<Mail::Message> object.  The $message specified is an
+Returns a new Email::Simple object based on the information from
+a Mail::Message object.  The $message specified is an
 instance of a Mail::Message.
 
 =examples
- my $convert = Mail::Message::Convert::EmailSimple->new;
- my Mail::Message  $msg   = M<Mail::Message>->new;
- my M<Mail::Internet> $copy  = $convert->export($msg);
+  my $convert = Mail::Message::Convert::EmailSimple->new;
+  my Mail::Message  $msg   = Mail::Message->new;
+  my Mail::Internet $copy  = $convert->export($msg);
 
 =cut
 
 sub export($@)
-{   my ($thing, $message) = (shift, shift);
+{	my ($thing, $message) = (shift, shift);
 
-    croak "Export message must be a Mail::Message, but is a ".ref($message)."."
-        unless $message->isa('Mail::Message');
+	$message->isa('Mail::Message')
+		or croak "Export message must be a Mail::Message, but is a ".ref($message).".";
 
-    Email::Simple->new($message->string);
+	Email::Simple->new($message->string);
 }
 
 =method from $object, %options
-Returns a new M<Mail::Message> object based on the information from
-an M<Email::Simple>.
+Returns a new Mail::Message object based on the information from
+an Email::Simple.
 
 =examples
- my $convert = Mail::Message::Convert::EmailSimple->new;
- my Mail::Internet $msg  = M<Mail::Internet>->new;
- my M<Mail::Message>  $copy = $convert->from($msg);
-
+  my $convert = Mail::Message::Convert::EmailSimple->new;
+  my Mail::Internet $msg  = Mail::Internet->new;
+  my Mail::Message  $copy = $convert->from($msg);
 =cut
 
 sub from($@)
-{   my ($thing, $email) = (shift, shift);
+{	my ($thing, $email) = (shift, shift);
 
-    croak "Converting from Email::Simple but got a ".ref($email).'.'
-        unless $email->isa('Email::Simple');
+	$email->isa('Email::Simple')
+		or croak "Converting from Email::Simple but got a ".ref($email).'.';
 
-    my $message = Mail::Message->read($email->as_string);
+	Mail::Message->read($email->as_string);
 }
 
 1;

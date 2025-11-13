@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message;
 
@@ -9,16 +10,17 @@ use warnings;
 
 use Mail::Box::Parser::Lines ();
 
-use Scalar::Util  qw(blessed);
+use Scalar::Util  qw/blessed/;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Construct::Read - read a Mail::Message from a file handle
 
 =chapter SYNOPSIS
 
- my $msg1 = Mail::Message->read(\*STDIN);
- my $msg2 = Mail::Message->read(\@lines);
+  my $msg1 = Mail::Message->read(\*STDIN);
+  my $msg2 = Mail::Message->read(\@lines);
 
 =chapter DESCRIPTION
 
@@ -61,117 +63,111 @@ fields not to be stripped (you would like to disable the stripping)
 you probably process folders yourself, which is a Bad Thing!
 
 =option  body_type CLASS
-=default body_type C<undef>
-Force a body type (any specific implementation of a M<Mail::Message::Body>)
+=default body_type undef
+Force a body type (any specific implementation of a Mail::Message::Body)
 to be used to store the message content.  When the body is a multipart or
 nested, this will be overruled.
 
 =option  trusted BOOLEAN
-=default trusted C<true>
+=default trusted true
 
 =option  seekable BOOLEAN
-=default seekable C<false>
+=default seekable false
 Indicate that a seekable file-handle has been passed. In this case, we
-can use the M<Mail::Box::Parser::Perl> parser which reads messages
+can use the Mail::Box::Parser::Perl parser which reads messages
 directly from the input stream.
 
 =option  parser_class CLASS
-=default parser_class C<undef>
+=default parser_class undef
 Enforce a certain parser type to be used, which must be an extension of
 the parser class otherwise taken.
 
 =examples
 
- my $msg1 = Mail::Message->read(\*STDIN);
- my $msg2 = Mail::Message->read(\@lines, log => 'PROGRESS');
- $folder->addMessages($msg1, $msg2);
+  my $msg1 = Mail::Message->read(\*STDIN);
+  my $msg2 = Mail::Message->read(\@lines, log => 'PROGRESS');
+  $folder->addMessages($msg1, $msg2);
 
- my $msg3 = Mail::Message->read(<<MSG);
- Subject: hello world
- To: you@example.com
-                      # warning: empty line required !!!
- Hi, greetings!
- MSG
+  my $msg3 = Mail::Message->read(<<MSG);
+  Subject: hello world
+  To: you@example.com
+                       # warning: empty line required !!!
+  Hi, greetings!
+  MSG
 
- # promail example
- my $fromline = <STDIN>;
- my $msg      = Mail::Message->read(\*STDIN);
- my $coerced  = $mboxfolder->addMessage($msg);
- $coerced->fromLine($fromline);
- 
+  # promail example
+  my $fromline = <STDIN>;
+  my $msg      = Mail::Message->read(\*STDIN);
+  my $coerced  = $mboxfolder->addMessage($msg);
+  $coerced->fromLine($fromline);
+
 =cut
 
 sub _scalar2lines($)
-{   my $lines = [ split /^/, ${$_[0]} ];
+{	my $lines = [ split /^/, ${$_[0]} ];
 #   pop @$lines if @$lines && ! length $lines->[-1];
 	$lines;
 }
 
 sub read($@)
-{   # try avoiding copy of large strings
-    my ($class, undef, %args) = @_;
+{	# try avoiding copy of large strings
+	my ($class, undef, %args) = @_;
 	my $trusted      = exists $args{trusted} ? $args{trusted} : 1;
-    my $strip_status = exists $args{strip_status_fields} ? delete $args{strip_status_fields} : 1;
+	my $strip_status = exists $args{strip_status_fields} ? delete $args{strip_status_fields} : 1;
 	my $body_type    = $args{body_type};
 	my $pclass       = $args{parser_class};
 
 	my $parser;
-    my $ref     = ref $_[1];
+	my $ref     = ref $_[1];
 
-    if($args{seekable})
-    {   $parser = ($pclass // 'Mail::Box::Parser::Perl')->new(%args,
-            filename  => "file ($ref)",
-            file      => $_[1],
-            trusted   => $trusted,
-        );
-    }
+	if($args{seekable})
+	{	$parser = ($pclass // 'Mail::Box::Parser::Perl')
+			->new(%args, filename => "file ($ref)", file => $_[1], trusted => $trusted);
+	}
 	else
-    {   my ($source, $lines);
-        if(!$ref)
-        {   $source = 'scalar';
-            $lines  = _scalar2lines \$_[1];
-        }
-        elsif($ref eq 'SCALAR')
-        {   $source = 'ref scalar';
-            $lines  = _scalar2lines $_[1];
-        }
-        elsif($ref eq 'ARRAY')
-        {   $source = 'array of lines';
-            $lines  = $_[1];
-        }
-        elsif($ref eq 'GLOB' || (blessed $_[1] && $_[1]->isa('IO::Handle')))
-        {   $source = "file ($ref)";
+	{	my ($source, $lines);
+		if(!$ref)
+		{	$source = 'scalar';
+			$lines  = _scalar2lines \$_[1];
+		}
+		elsif($ref eq 'SCALAR')
+		{	$source = 'ref scalar';
+			$lines  = _scalar2lines $_[1];
+		}
+		elsif($ref eq 'ARRAY')
+		{	$source = 'array of lines';
+			$lines  = $_[1];
+		}
+		elsif($ref eq 'GLOB' || (blessed $_[1] && $_[1]->isa('IO::Handle')))
+		{	$source = "file ($ref)";
 			local $/ = undef;   # slurp
-            $lines  = _scalar2lines \$_[1]->getline;
-        }
-        else
-        {   $class->log(ERROR => "Cannot read message from $_[1]/$ref");
-            return undef;
-        }
-    
-        $parser = ($pclass // 'Mail::Box::Parser::Lines')->new(%args,
-            source  => $source,
-            lines   => $lines,
-            trusted => $trusted,
-        );
+			$lines  = _scalar2lines \$_[1]->getline;
+		}
+		else
+		{	$class->log(ERROR => "Cannot read message from $_[1]/$ref");
+			return undef;
+		}
+
+		$parser = ($pclass // 'Mail::Box::Parser::Lines')
+			->new(%args, source => $source, lines => $lines, trusted => $trusted);
 
 		$body_type = 'Mail::Message::Body::Lines';
-    }
+	}
 
-    my $self = $class->new(%args);
-    $self->readFromParser($parser, $body_type);
-    $self->addReport($parser);
+	my $self = $class->new(%args);
+	$self->readFromParser($parser, $body_type);
+	$self->addReport($parser);
 
-    $parser->stop;
+	$parser->stop;
 
-    my $head = $self->head;
-    $head->get('Message-ID')
-        or $head->set('Message-ID' => '<'.$self->messageId.'>');
+	my $head = $self->head;
+	$head->get('Message-ID')
+		or $head->set('Message-ID' => '<'.$self->messageId.'>');
 
-    $head->delete('Status', 'X-Status')
-        if $strip_status;
+	$head->delete('Status', 'X-Status')
+		if $strip_status;
 
-    $self;
+	$self;
 }
 
 1;

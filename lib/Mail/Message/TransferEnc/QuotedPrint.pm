@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::TransferEnc::QuotedPrint;
 use base 'Mail::Message::TransferEnc';
@@ -8,17 +9,18 @@ use base 'Mail::Message::TransferEnc';
 use strict;
 use warnings;
 
-use MIME::QuotedPrint;
+use MIME::QuotedPrint qw/encode_qp decode_qp/;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::TransferEnc::QuotedPrint - handle quoted-printable message bodies
 
 =chapter SYNOPSIS
 
- my Mail::Message $msg = ...;
- my $decoded = $msg->decoded;
- my $encoded = $msg->encode(transfer => 'quoted-printable');
+  my Mail::Message $msg = ...;
+  my $decoded = $msg->decoded;
+  my $encoded = $msg->encode(transfer => 'quoted-printable');
 
 =chapter DESCRIPTION
 
@@ -31,14 +33,13 @@ triplet consisting of the character "=" followed by two hexadecimal
 digits.
 
 =chapter METHODS
-
 =cut
 
 sub name() { 'quoted-printable' }
 
 sub check($@)
-{   my ($self, $body, %args) = @_;
-    $body;
+{	my ($self, $body, %args) = @_;
+	$body;
 }
 
 =method decode $body, %options
@@ -50,15 +51,10 @@ end of line are removed.
 =cut
 
 sub decode($@)
-{   my ($self, $body, %args) = @_;
+{	my ($self, $body, %args) = @_;
 
-    my $bodytype = $args{result_type} || ref $body;
-
-    $bodytype->new
-     ( based_on          => $body
-     , transfer_encoding => 'none'
-     , data              => decode_qp($body->string)
-     );
+	my $bodytype = $args{result_type} || ref $body;
+	$bodytype->new(based_on => $body, transfer_encoding => 'none', data => decode_qp($body->string));
 }
 
 =method encode $body, %options
@@ -73,15 +69,10 @@ broken on encoded characters.
 =cut
 
 sub encode($@)
-{   my ($self, $body, %args) = @_;
+{	my ($self, $body, %args) = @_;
 
-    my $bodytype = $args{result_type} || ref $body;
-
-    $bodytype->new
-     ( based_on          => $body
-     , transfer_encoding => 'quoted-printable'
-     , data              => encode_qp($body->string)
-     );
+	my $bodytype = $args{result_type} || ref $body;
+	$bodytype->new(based_on => $body, transfer_encoding => 'quoted-printable', data => encode_qp($body->string));
 }
 
 1;

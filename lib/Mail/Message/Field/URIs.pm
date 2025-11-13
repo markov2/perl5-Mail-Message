@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::URIs;
 use base 'Mail::Message::Field::Structured';
@@ -8,23 +9,25 @@ use base 'Mail::Message::Field::Structured';
 use warnings;
 use strict;
 
-use URI;
+use URI          ();
+use Scalar::Util qw/blessed/;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Field::URIs - message header field with uris
 
 =chapter SYNOPSIS
 
- my $f = Mail::Message::Field->new('List-Post' => 'http://x.org/');
+  my $f = Mail::Message::Field->new('List-Post' => 'http://x.org/');
 
- my $g = Mail::Message::Field->new('List-Post');
- $g->addURI('http://x.org');
+  my $g = Mail::Message::Field->new('List-Post');
+  $g->addURI('http://x.org');
 
- my $uri = URI->new(...);
- $g->addURI($uri);
+  my $uri = URI->new(...);
+  $g->addURI($uri);
 
- my @uris = $g->URIs;
+  my @uris = $g->URIs;
 
 =chapter DESCRIPTION
 
@@ -36,6 +39,7 @@ time.  This class can maintain these fields.
 
 =cut
 
+#--------------------
 =section Constructors
 
 =c_method new $data
@@ -44,51 +48,50 @@ time.  This class can maintain these fields.
 
 =examples
 
- my $mmfu = 'Mail::Message::Field::URIs;
- my $f = $mmfu->new('List-Post' => 'mailto:x@y.com');
- my $f = $mmfu->new('List-Post' => '<mailto:x@y.com>');
- my $f = $mmfu->new('List-Post: <mailto:x@y.com>');
- my $f = $mmfu->new('List-Post' => [ $uri, 'http://x.org' ]);
+  my $mmfu = 'Mail::Message::Field::URIs;
+  my $f = $mmfu->new('List-Post' => 'mailto:x@y.com');
+  my $f = $mmfu->new('List-Post' => '<mailto:x@y.com>');
+  my $f = $mmfu->new('List-Post: <mailto:x@y.com>');
+  my $f = $mmfu->new('List-Post' => [ $uri, 'http://x.org' ]);
 
 =cut
 
 sub init($)
-{   my ($self, $args) = @_;
+{	my ($self, $args) = @_;
 
-    my ($body, @body);
-    if($body = delete $args->{body})
-    {   @body = ref $body eq 'ARRAY' ? @$body : ($body);
-        return () unless @body;
-    }
+	my ($body, @body);
+	if($body = delete $args->{body})
+	{	@body = ref $body eq 'ARRAY' ? @$body : ($body);
+		@body or return ();
+	}
 
-    $self->{MMFU_uris} = [];
+	$self->{MMFU_uris} = [];
 
-    if(@body > 1 || ref $body[0])
-    {   $self->addURI($_) foreach @body;
-    }
-    elsif(defined $body)
-    {   $body = "<$body>\n" unless index($body, '<') >= 0;
-        $args->{body} = $body;
-    }
+	if(@body > 1 || blessed $body[0])
+	{	$self->addURI($_) for @body;
+	}
+	elsif(defined $body)
+	{	$body = "<$body>\n" unless index($body, '<') >= 0;
+		$args->{body} = $body;
+	}
 
-    $self->SUPER::init($args);
+	$self->SUPER::init($args);
 }
 
 sub parse($)
-{   my ($self, $string) = @_;
-    my @raw = $string =~ m/\<([^>]+)\>/g;  # simply ignore all but <>
-    $self->addURI($_) foreach @raw;
-    $self;
+{	my ($self, $string) = @_;
+	my @raw = $string =~ m/\<([^>]+)\>/g;  # simply ignore all but <>
+	$self->addURI($_) for @raw;
+	$self;
 }
 
 sub produceBody()
-{  my @uris = sort map { $_->as_string } shift->URIs;
-   local $" = '>, <';
-   @uris ? "<@uris>" : undef;
+{	my @uris = sort map $_->as_string, $_[0]->URIs;
+	local $" = '>, <';
+	@uris ? "<@uris>" : undef;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Access to the content
 
 =method addURI $uri
@@ -97,21 +100,21 @@ or as string which will be turned into an $uri object.  The added
 $uri is returned.
 
 =examples adding an URI to an URI field
- my $f   = Mail::Message::Field::URI->new('List-Post');
+  my $f   = Mail::Message::Field::URI->new('List-Post');
 
- my $uri = URI->new("http://x.org");
- $f->addURI($uri);
+  my $uri = URI->new("http://x.org");
+  $f->addURI($uri);
 
- $f->addURI("http://y.org");  # simpler
- $f->addURI("//y.org", "http");
+  $f->addURI("http://y.org");  # simpler
+  $f->addURI("//y.org", "http");
 =cut
 
 sub addURI(@)
-{   my $self  = shift;
-    my $uri   = ref $_[0] ? shift : URI->new(@_);
-    push @{$self->{MMFU_uris}}, $uri->canonical if defined $uri;
-    delete $self->{MMFF_body};
-    $uri;
+{	my $self  = shift;
+	my $uri   = blessed $_[0] ? shift : URI->new(@_);
+	push @{$self->{MMFU_uris}}, $uri->canonical if defined $uri;
+	delete $self->{MMFF_body};
+	$uri;
 }
 
 =method URIs
@@ -119,10 +122,10 @@ Returns a list with all URIs defined by the field.  Mind the lower-case
 's' at the enc of the name.
 
 =example
- my @uris = $field->URIs;
+  my @uris = $field->URIs;
 =cut
 
-sub URIs() { @{shift->{MMFU_uris}} }
+sub URIs() { @{ $_[0]->{MMFU_uris}} }
 
 =method addAttribute ...
 Attributes are not supported for URI fields.
@@ -133,13 +136,12 @@ by the RFCs.
 =cut
 
 sub addAttribute($;@)
-{   my $self = shift;
-    $self->log(ERROR => 'No attributes for URI fields.');
-    $self;
+{	my $self = shift;
+	$self->log(ERROR => 'No attributes for URI fields.');
+	$self;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Error handling
 =cut
 

@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Part;
 use base 'Mail::Message';
@@ -8,33 +9,34 @@ use base 'Mail::Message';
 use strict;
 use warnings;
 
-use Scalar::Util    'weaken';
+use Scalar::Util    qw/weaken/;
 use Carp;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Part - a part of a message, but a message by itself
 
 =chapter SYNOPSIS
 
- my Mail::Message $message = ...;
- if($message->isMultipart) {
-    my Mail::Message::Part $part;
+  my Mail::Message $message = ...;
+  if($message->isMultipart) {
+     my Mail::Message::Part $part;
 
-    foreach $part ($message->body->parts) {
-       $part->print(\*OUT);
-       my $attached_head = $part->head;
-       my $attached_body = $part->body;      # encoded as read
-       my $attached_body = $part->decoded;   # transfer-encoding removed
-    }
- }
+     foreach $part ($message->body->parts) {
+        $part->print(\*OUT);
+        my $attached_head = $part->head;
+        my $attached_body = $part->body;      # encoded as read
+        my $attached_body = $part->decoded;   # transfer-encoding removed
+     }
+  }
 
 =chapter DESCRIPTION
 
 A C<Mail::Message::Part> object contains a message which is included in
 the body of another message.  For instance I<attachments> are I<parts>.
 
-READ M<Mail::Message> FIRST.  A part is a special message: it has a
+READ Mail::Message FIRST.  A part is a special message: it has a
 reference to its parent message, and will usually not be sub-classed
 into mail folder specific variants.
 
@@ -45,25 +47,25 @@ Create a message part.
 
 =default  head     <empty header>
 =requires container BODY
-Reference to the parental M<Mail::Message::Body> object where this part
-is a member of.  That object may be a M<Mail::Message::Body::Multipart>
-or a M<Mail::Message::Body::Nested>.
+Reference to the parental Mail::Message::Body object where this part
+is a member of.  That object may be a Mail::Message::Body::Multipart
+or a Mail::Message::Body::Nested.
 
 =cut
 
 sub init($)
-{   my ($self, $args) = @_;
-    $args->{head} ||= Mail::Message::Head::Complete->new;
+{	my ($self, $args) = @_;
+	$args->{head} ||= Mail::Message::Head::Complete->new;
 
-    $self->SUPER::init($args);
+	$self->SUPER::init($args);
 
-    confess "No container specified for part.\n"
-        unless exists $args->{container};
+	exists $args->{container}
+		or confess "No container specified for part.\n";
 
-    weaken($self->{MMP_container})
-       if $self->{MMP_container} = $args->{container};
+	weaken($self->{MMP_container})
+		if $self->{MMP_container} = $args->{container};
 
-    $self;
+	$self;
 }
 
 =c_method coerce <$body|$message>, $multipart, @headers
@@ -77,22 +79,22 @@ automatically be cloned.
 =cut
 
 sub coerce($@)
-{   my ($class, $thing, $container) = (shift, shift, shift);
-    if($thing->isa($class))
-    {   $thing->container($container);
-        return $thing;
-    }
+{	my ($class, $thing, $container) = (shift, shift, shift);
+	if($thing->isa($class))
+	{	$thing->container($container);
+		return $thing;
+	}
 
-    return $class->buildFromBody($thing, $container, @_)
-        if $thing->isa('Mail::Message::Body');
+	return $class->buildFromBody($thing, $container, @_)
+		if $thing->isa('Mail::Message::Body');
 
-    # Although cloning is a Bad Thing(tm), we must avoid modifying
-    # header fields of messages which reside in a folder.
-    my $message = $thing->isa('Mail::Box::Message') ? $thing->clone : $thing;
+	# Although cloning is a Bad Thing(tm), we must avoid modifying
+	# header fields of messages which reside in a folder.
+	my $message = $thing->isa('Mail::Box::Message') ? $thing->clone : $thing;
 
-    my $part    = $class->SUPER::coerce($message);
-    $part->container($container);
-    $part;
+	my $part    = $class->SUPER::coerce($message);
+	$part->container($container);
+	$part;
 }
 
 =c_method buildFromBody $body, $container, $headers
@@ -101,71 +103,63 @@ content in them, which is used to construct a header for the message.
 Next to that, more $headers can be specified.  No headers are obligatory.
 No extra headers are fabricated automatically.
 =example
- my $multi = Mail::Message::Body::Multipart->new;
- my $part  = Mail::Message::Part->buildFromBody($body, $multi);
+  my $multi = Mail::Message::Body::Multipart->new;
+  my $part  = Mail::Message::Part->buildFromBody($body, $multi);
 =cut
 
 sub buildFromBody($$;@)
-{   my ($class, $body, $container) = (shift, shift, shift);
-    my @log  = $body->logSettings;
+{	my ($class, $body, $container) = (shift, shift, shift);
+	my @log  = $body->logSettings;
 
-    my $head = Mail::Message::Head::Complete->new(@log);
-    while(@_)
-    {   if(ref $_[0]) {$head->add(shift)}
-        else          {$head->add(shift, shift)}
-    }
+	my $head = Mail::Message::Head::Complete->new(@log);
+	while(@_)
+	{	if(ref $_[0]) {$head->add(shift)}
+		else          {$head->add(shift, shift)}
+	}
 
-    my $part = $class->new
-      ( head      => $head
-      , container => $container
-      , @log
-      );
+	my $part = $class->new(head => $head, container => $container, @log);
 
-    $part->body($body);
-    $part;
+	$part->body($body);
+	$part;
 }
 
 sub container(;$)
-{   my $self = shift;
-    return $self->{MMP_container} unless @_;
+{	my $self = shift;
+	return $self->{MMP_container} unless @_;
 
-    $self->{MMP_container} = shift;
-    weaken($self->{MMP_container});
+	$self->{MMP_container} = shift;
+	weaken($self->{MMP_container});
 }
 
 sub toplevel()
-{   my $body = shift->container or return;
-    my $msg  = $body->message   or return;
-    $msg->toplevel;
+{	my $body = shift->container or return;
+	my $msg  = $body->message   or return;
+	$msg->toplevel;
 }
 
 sub isPart() { 1 }
 
 sub partNumber()
-{   my $self = shift;
-    my $body = $self->container or confess 'no container';
-    $body->partNumberOf($self);
+{	my $self = shift;
+	my $body = $self->container or confess 'no container';
+	$body->partNumberOf($self);
 }
 
 sub readFromParser($;$)
-{   my ($self, $parser, $bodytype) = @_;
+{	my ($self, $parser, $bodytype) = @_;
 
-    my $head = $self->readHead($parser)
-     || Mail::Message::Head::Complete->new
-          ( message     => $self
-          , field_type  => $self->{MM_field_type}
-          , $self->logSettings
-          );
+	my $head = $self->readHead($parser) //
+		Mail::Message::Head::Complete->new(message => $self, field_type => $self->{MM_field_type}, $self->logSettings);
 
-    my $body = $self->readBody($parser, $head, $bodytype)
-     || Mail::Message::Body::Lines->new(data => []);
+	my $body = $self->readBody($parser, $head, $bodytype) //
+		Mail::Message::Body::Lines->new(data => []);
 
-    $self->head($head);
-    $self->storeBody($body->contentInfoFrom($head));
-    $self;
+	$self->head($head);
+	$self->storeBody($body->contentInfoFrom($head));
+	$self;
 }
 
-#-----------------
+#--------------------
 =section The message
 
 =method printEscapedFrom $fh
@@ -174,11 +168,12 @@ a leading E<gt>.  See M<Mail::Message::Body::printEscapedFrom()>.
 =cut
 
 sub printEscapedFrom($)
-{   my ($self, $out) = @_;
-    $self->head->print($out);
-    $self->body->printEscapedFrom($out);
+{	my ($self, $out) = @_;
+	$self->head->print($out);
+	$self->body->printEscapedFrom($out);
 }
 
+#--------------------
 =section Cleanup
 
 =method destruct
@@ -193,9 +188,9 @@ be forcefully freed from memory. Consider M<delete()> or M<rebuild()>.
 =cut
 
 sub destruct()
-{  my $self = shift;
-   $self->log(ERROR =>'You cannot destruct message parts, only whole messages');
-   undef;
+{	my $self = shift;
+	$self->log(ERROR =>'You cannot destruct message parts, only whole messages');
+	undef;
 }
 
 1;

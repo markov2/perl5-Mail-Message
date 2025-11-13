@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Head::Partial;
 use base 'Mail::Message::Head::Complete';
@@ -8,24 +9,25 @@ use base 'Mail::Message::Head::Complete';
 use strict;
 use warnings;
 
-use Scalar::Util 'weaken';
+use Scalar::Util   qw/weaken/;
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Head::Partial - subset of header information of a message
 
 =chapter SYNOPSIS
 
- my $partial = $head->strip;
- $partial->isa('M<Mail::Message::Head>')  # true
- $partial->isDelayed                      # false
- $partial->isPartial                      # true
+  my $partial = $head->strip;
+  $partial->isa('Mail::Message::Head')  # true
+  $partial->isDelayed                   # false
+  $partial->isPartial                   # true
 
- $partial->removeFields( qr/^X-/ );
- $partial->removeFieldsExcept( qw/To From/ );
- $partial->removeResentGroups;
- $partial->removeListGroup;
- $partial->removeSpamGroups;
+  $partial->removeFields( qr/^X-/ );
+  $partial->removeFieldsExcept( qw/To From/ );
+  $partial->removeResentGroups;
+  $partial->removeListGroup;
+  $partial->removeSpamGroups;
 
 =chapter DESCRIPTION
 
@@ -50,27 +52,26 @@ C<removeFieldsExcept()>.
 
 =examples
 
- $head->removeFields('bcc', 'received');
- $head->removeFields( qr/^content-/i );
+  $head->removeFields('bcc', 'received');
+  $head->removeFields( qr/^content-/i );
 
 =cut
 
 sub removeFields(@)
-{   my $self  = shift;
-    my $known = $self->{MMH_fields};
+{	my $self  = shift;
+	my $known = $self->{MMH_fields};
 
-    foreach my $match (@_)
-    {
-        if(ref $match)
-             { $_ =~ $match && delete $known->{$_} foreach keys %$known }
-        else { delete $known->{lc $match} }
-    }
+	foreach my $match (@_)
+	{
+		if(ref $match)
+		     { $_ =~ $match && delete $known->{$_} for keys %$known }
+		else { delete $known->{lc $match} }
+	}
 
-    $self->cleanupOrderedFields;
+	$self->cleanupOrderedFields;
 }
 
 =method removeFieldsExcept STRING|Regexp, ...
-
 Remove all fields from the header which are not equivalent to one of the
 specified STRINGs (case-insensitive) and which are not matching one of
 the REGular EXPressions.  Do not forget to add the 'i' modifier to the
@@ -81,115 +82,107 @@ the header.  The reverse specification can be made with C<removeFields()>.
 
 =example
 
- $head->removeFieldsExcept('subject', qr/^content-/i ); 
- $head->removeFieldsExcept( qw/subject to from sender cc/ );
+  $head->removeFieldsExcept('subject', qr/^content-/i );
+  $head->removeFieldsExcept( qw/subject to from sender cc/ );
 
 =cut
 
 sub removeFieldsExcept(@)
-{   my $self   = shift;
-    my $known  = $self->{MMH_fields};
-    my %remove = map { ($_ => 1) } keys %$known;
+{	my $self   = shift;
+	my $known  = $self->{MMH_fields};
+	my %remove = map +($_ => 1), keys %$known;
 
-    foreach my $match (@_)
-    {   if(ref $match)
-        {   $_ =~ $match && delete $remove{$_} foreach keys %remove;
-        }
-        else { delete $remove{lc $match} }
-    }
+	foreach my $match (@_)
+	{	if(ref $match)
+		     { $_ =~ $match && delete $remove{$_} for keys %remove }
+		else { delete $remove{lc $match} }
+	}
 
-    delete @$known{ keys %remove };
-
-    $self->cleanupOrderedFields;
+	delete @$known{ keys %remove };
+	$self->cleanupOrderedFields;
 }
 
 =method removeResentGroups
-
 Removes all header lines which are member of a I<resent group>, which
-are explained in M<Mail::Message::Head::ResentGroup>.  Returned is the
+are explained in Mail::Message::Head::ResentGroup.  Returned is the
 number of removed lines.
 
 For removing single groups (for instance because you want to keep the
 last), use M<Mail::Message::Head::FieldGroup::delete()>.
-
 =cut
 
 sub removeResentGroups()
-{   my $self = shift;
-    require Mail::Message::Head::ResentGroup;
+{	my $self = shift;
+	require Mail::Message::Head::ResentGroup;
 
-    my $known = $self->{MMH_fields};
-    my $found = 0;
-    foreach my $name (keys %$known)
-    {   next unless Mail::Message::Head::ResentGroup
-                         ->isResentGroupFieldName($name);
-        delete $known->{$name};
-        $found++;
-    }
+	my $known = $self->{MMH_fields};
+	my $found = 0;
+	foreach my $name (keys %$known)
+	{	Mail::Message::Head::ResentGroup->isResentGroupFieldName($name) or next;
+		delete $known->{$name};
+		$found++;
+	}
 
-    $self->cleanupOrderedFields;
-    $self->modified(1) if $found;
-    $found;
+	$self->cleanupOrderedFields;
+	$self->modified(1) if $found;
+	$found;
 }
 
 =method removeListGroup
-
 Removes all header lines which are used to administer mailing lists.
-Which fields that are is explained in M<Mail::Message::Head::ListGroup>.
+Which fields that are is explained in Mail::Message::Head::ListGroup.
 Returned is the number of removed lines.
-
 =cut
 
 sub removeListGroup()
-{   my $self = shift;
-    require Mail::Message::Head::ListGroup;
+{	my $self = shift;
+	require Mail::Message::Head::ListGroup;
 
-    my $known = $self->{MMH_fields};
-    my $found = 0;
-    foreach my $name (keys %$known)
-    {   next unless Mail::Message::Head::ListGroup->isListGroupFieldName($name);
-        delete $known->{$name};
-	$found++;
-    }
+	my $known = $self->{MMH_fields};
+	my $found = 0;
+	foreach my $name (keys %$known)
+	{	Mail::Message::Head::ListGroup->isListGroupFieldName($name) or next;
+		delete $known->{$name};
+		$found++;
+	}
 
-    $self->cleanupOrderedFields if $found;
-    $self->modified(1) if $found;
-    $found;
+	$self->cleanupOrderedFields if $found;
+	$self->modified(1) if $found;
+	$found;
 }
 
 =method removeSpamGroups
 
 Removes all header lines which were produced by spam detection and
 spam-fighting software.  Which fields that are is explained in
-M<Mail::Message::Head::SpamGroup>.  Returned is the number of removed lines.
+Mail::Message::Head::SpamGroup.  Returned is the number of removed lines.
 
 =cut
 
 sub removeSpamGroups()
-{   my $self = shift;
-    require Mail::Message::Head::SpamGroup;
+{	my $self = shift;
+	require Mail::Message::Head::SpamGroup;
 
-    my $known = $self->{MMH_fields};
-    my $found = 0;
-    foreach my $name (keys %$known)
-    {   next unless Mail::Message::Head::SpamGroup->isSpamGroupFieldName($name);
-        delete $known->{$name};
-	$found++;
-    }
+	my $known = $self->{MMH_fields};
+	my $found = 0;
+	foreach my $name (keys %$known)
+	{	Mail::Message::Head::SpamGroup->isSpamGroupFieldName($name) or next;
+		delete $known->{$name};
+		$found++;
+	}
 
-    $self->cleanupOrderedFields if $found;
-    $self->modified(1) if $found;
-    $found;
+	$self->cleanupOrderedFields if $found;
+	$self->modified(1) if $found;
+	$found;
 }
 
 =method cleanupOrderedFields
-
 The header maintains a list of fields which are ordered in sequence of
 definition.  It is required to maintain the header order to keep the
 related fields of resent groups together.  The fields are also included
 in a hash, sorted on their name for fast access.
 
-The references to field objects in the hash are real, those in the ordered 
+The references to field objects in the hash are real, those in the ordered
 list are weak.  So when field objects are removed from the hash, their
 references in the ordered list are automagically undef'd.
 
@@ -197,19 +190,17 @@ When many fields are removed, for instance with M<removeFields()> or
 M<removeFieldsExcept()>, then it is useful to remove the list of undefs
 from the ordered list as well.  In those cases, this method is called
 automatically, however you may have your own reasons to call this method.
-
 =cut
 
 sub cleanupOrderedFields()
-{   my $self = shift;
-    my @take = grep { defined $_ } @{$self->{MMH_order}};
-    weaken($_) foreach @take;
-    $self->{MMH_order} = \@take;
-    $self;
+{	my $self = shift;
+	my @take = grep defined, @{$self->{MMH_order}};
+	weaken($_) for @take;
+	$self->{MMH_order} = \@take;
+	$self;
 }
 
-#------------------------------------------
-
+#--------------------
 =chapter DETAILS
 
 =section Reducing the header size
@@ -233,10 +224,10 @@ store a the list administration lines for each message as well.
 
 =example see examples/reduce.pl in distribution
 
- foreach my $msg ($folder->messages)
- {  $msg->head->removeResentGroups;
-    $msg->head->removeResentList;
- }
+  foreach my $msg ($folder->messages)
+  {  $msg->head->removeResentGroups;
+     $msg->head->removeResentList;
+  }
 
 =cut
 

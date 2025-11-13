@@ -1,6 +1,7 @@
-# This code is part of distribution Mail-Message.  Meta-POD processed with
-# OODoc into POD and HTML manual-pages.  See README.md
-# Copyright Mark Overmeer.  Licensed under the same terms as Perl itself.
+#oodist: *** DO NOT USE THIS VERSION FOR PRODUCTION ***
+#oodist: This file contains OODoc-style documentation which will get stripped
+#oodist: during its release in the distribution.  You can use this file for
+#oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Convert::HtmlFormatText;
 use base 'Mail::Message::Convert';
@@ -8,31 +9,32 @@ use base 'Mail::Message::Convert';
 use strict;
 use warnings;
 
-use Mail::Message::Body::String;
+use HTML::TreeBuilder ();
+use HTML::FormatText  ();
 
-use HTML::TreeBuilder;
-use HTML::FormatText;
+use Mail::Message::Body::String ();
 
+#--------------------
 =chapter NAME
 
 Mail::Message::Convert::HtmlFormatText - Convert HTML into Text
 
 =chapter SYNOPSIS
 
- use Mail::Message::Convert::HtmlFormatText;
- my $af = Mail::Message::Convert::HtmlFormatText->new;
+  use Mail::Message::Convert::HtmlFormatText;
+  my $af = Mail::Message::Convert::HtmlFormatText->new;
 
- my $plain_body = $af->format($body);
+  my $plain_body = $af->format($body);
 
 =chapter DESCRIPTION
 
 Convert HTML/XHTML message body objects into plain text bodies using
-M<HTML::FormatText>.  This package requires M<HTML::TreeBuilder> and
-M<HTML::FormatText> which are not installed by default together with
+HTML::FormatText.  This package requires HTML::TreeBuilder and
+HTML::FormatText which are not installed by default together with
 Mail::Box.  See also M<Mail::Message::rebuild()> with rule
 C<text_alternative_for_html>.
 
-This module is a small wrapper around M<HTML::FormatText>.
+This module is a small wrapper around HTML::FormatText.
 
 =chapter METHODS
 
@@ -45,47 +47,40 @@ The column of the left margin, passed to the formatter.
 =option  rightmargin INTEGER
 =default rightmargin C<72>
 The column of the right margin, passed to the formatter.
-
 =cut
 
 sub init($)
-{   my ($self, $args)  = @_;
+{	my ($self, $args)  = @_;
+	$self->SUPER::init($args);
 
-    $self->SUPER::init($args);
+	$self->{MMCH_formatter} = HTML::FormatText->new(
+		leftmargin  => $args->{leftmargin}  //  3,,
+		rightmargin => $args->{rightmargin} // 72,
+	);
 
-    $self->{MMCH_formatter} = HTML::FormatText->new
-      ( leftmargin  => $args->{leftmargin}  //  3,
-      , rightmargin => $args->{rightmargin} // 72,
-      );
-      
-    $self;
+	$self;
 }
 
-#------------------------------------------
-
+#--------------------
 =section Converting
 
 =method format $body
-
 Pass an html/xhtml encoded body, and a plain text body is returned.
 Characters are translated into Latin1.
-
 =cut
 
 sub format($)
-{   my ($self, $body) = @_;
+{	my ($self, $body) = @_;
 
-    my $dec  = $body->encode(transfer_encoding => 'none');
-    my $tree = HTML::TreeBuilder->new_from_file($dec->file);
+	my $dec  = $body->encode(transfer_encoding => 'none');
+	my $tree = HTML::TreeBuilder->new_from_file($dec->file);
 
-    (ref $body)->new
-      ( based_on  => $body
-      , mime_type => 'text/plain'
-      , charset   => 'iso-8859-1'
-      , data     => [ $self->{MMCH_formatter}->format($tree) ]
-      );
+	(ref $body)->new(
+		based_on  => $body,
+		mime_type => 'text/plain',
+		charset   => 'iso-8859-1',
+		data     => [ $self->{MMCH_formatter}->format($tree) ],
+	);
 }
-
-#------------------------------------------
 
 1;

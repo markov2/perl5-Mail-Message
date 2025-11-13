@@ -12,16 +12,11 @@ use Mail::Message::Head::Complete;
 use Mail::Message::Head::ListGroup;
 
 use Test::More;
-use IO::Scalar;
-use File::Spec;
 use File::Basename qw(dirname);
 
 BEGIN {
    eval 'require Mail::Box::Mbox';
-   if($@)
-   {   plan skip_all => 'requires Mail::Box::Mbox.';
-       exit 0;
-   }
+   $@ and plan skip_all => 'requires Mail::Box::Mbox.';
 }
 
 #
@@ -229,4 +224,5 @@ for(my $nr = 0; $nr < @msgs; $nr++)
    is($lg->rfc, $exp{rfc},                  "$nr rfc");
 }
 
+$folder->close(write => 'NEVER');
 done_testing;
