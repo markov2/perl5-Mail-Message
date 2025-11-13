@@ -10,7 +10,6 @@ use Mail::Message::Test;
 use Mail::Message::Body;
 
 use Scalar::Util 'refaddr';
-use Data::Dumper;
 use Test::More;
 
 my $src = "märkøv\n";  # fragile!  must be utf8, not latin1

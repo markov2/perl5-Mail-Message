@@ -6,55 +6,119 @@ use IO::Handle;
 
 my $VERSION = '3.018_002';
 
-my @optional =
-( 
-  [ Mail::Internet => '2.01', distr => 'MailTools', reason  => <<'REASON' ]
+# This is an attempt to automatically convert you configuration parameters.
+# More docs: https://github.com/markov2/perl5-OODoc/wiki/oodist-config
+
+# Use command 'oodist' to produce your whole software release.
+my $git      = "https://github.com/markov2/perl5-Mail-Message";
+my $publish  = "../public_html/mail-message";
+my $homepage = "http://perl.overmeer.net/CPAN/";
+
+my %oodist   = (
+	oodoc_version => 3.05,
+	first_year    => 2001,
+	email         => "markov\@cpan.org",
+
+	include  => [
+		'../MIME-Types',
+ 		'../Mail-Box',
+ 		'../Mail-Box-Parser-C',
+ 		'../Mail-Transport',
+ 		'../MailTools',
+ 		'../Object-Realize-Later',
+ 		'../User-Identity',
+	],
+
+	use      => [
+	],
+
+	parser   => {
+		syntax         => 'markov',
+		skip_links     => [
+		],
+		pmhead         => undef,
+	},
+
+	tests    => {
+	},
+
+	release  => {
+		publish        => "$publish/source",
+	},
+
+	raw      => {
+		publish        => "$publish/raw",
+	},
+
+	generate => [
+	  {
+		# Add real pod to the releases
+		format         => 'pod3',
+		podtail        => undef,
+	  },
+ 	  # You may add HTML formatters here.
+ 		  # You may add exporter configurations here.
+	],
+);
+
+my %requires = (
+	'Carp'           => 0,
+	'Date::Format'   => 0,
+	'Date::Parse'    => 0,
+	'Encode'         => 2.26,
+	'Encode::Alias'  => 0,
+	'Fcntl'          => 0,
+	'File::Basename' => 0,
+	'File::Copy'     => 0,
+	'File::Spec'     => 0.7,
+	'File::Temp'     => 0,
+	'IO::Scalar'     => 0,
+	'IO::Lines'      => 0,
+	'List::Util'     => 0,
+	'Mail::Address'  => 2.17,
+	'MIME::Base64'   => 0,
+	'MIME::QuotedPrint' => 0,
+	'MIME::Types'    => 1.004,
+	'POSIX'          => 0,
+	'Scalar::Util'   => 1.13,
+	'Storable'       => 0,
+	'Sys::Hostname'  => 0,
+	'Time::HiRes'    => 1.51,
+	'Time::Zone'     => 0,
+	'URI'            => 1.23,
+	'User::Identity' => 1.02,
+);
+
+my @optional = ( 
+	[ 'Mail::Internet' => '2.01', distr => 'MailTools', reason  => <<'REASON' ],
 Many existing e-mail applications use Mail::Internet objects.  If
 you want automatic conversions for compatibility, you need this.
 REASON
 
-, [ MIME::Entity => '3.0', distr  => 'MIME::Tools', reason  => <<'REASON' ]
+	[ 'MIME::Entity' => '3.0', distr  => 'MIME::Tools', reason  => <<'REASON' ],
 MIME::Entity extends Mail::Internet messages with multipart handling
 and composition.  Install this when you want compatibility with
 distrs which are based on this kind of messages.
 REASON
 
-, [ HTML::TreeBuilder => '3.13', reason => <<'REASON' ]
+	[ 'HTML::TreeBuilder' => '3.13', reason => <<'REASON' ],
 The tree builder is used by the HTML::Format* packages.
 Version 3.12 is wrong, so you should install a newer version
 if you want smart html conversions.
 REASON
 
-, [ HTML::FormatText => '2.01', reason => <<'REASON' ]
+	[ 'HTML::FormatText' => '2.01', reason => <<'REASON' ],
 Plug-in which converts HTML to Postscript or plain text.
 REASON
 
-, [ Net::Domain => 0, reason => <<'REASON' ]
+	[ 'Net::Domain' => 0, reason => <<'REASON' ],
 Better detection of full hostname.
 REASON
 
-, [ Mail::Transport => '3.006', reason => <<'REASON' ]
+	[ 'Mail::Transport' => '3.006', reason => <<'REASON' ],
 Old Mail::Transport used GLOBs, which are not supported anymore.
 REASON
 );
-
-my %prereq =
- ( Date::Format   => 0
- , Date::Parse    => 0
- , Encode         => 2.26
- , File::Spec     => 0.7
- , IO::Scalar     => 0
- , Mail::Address  => 2.17
- , MIME::Base64   => 0
- , MIME::Types    => 1.004
- , Scalar::Util   => 1.13
- , Sys::Hostname  => 0
- , Test::More     => 0.47
- , Time::Zone     => 0
- , Time::HiRes    => 1.51
- , URI            => 1.23
- , User::Identity => 1.02
- );
 
 foreach my $module (sort keys %prereq)
 {   my $reqversion = $prereq{$module};
@@ -67,12 +131,10 @@ foreach my $module (sort keys %prereq)
         push @errors, $module;
     }
     elsif($module->VERSION < $reqversion)
-    {   print "    $module version ",$module->VERSION
-            , " is outdated; requires $reqversion\n";
+    {   print "    $module version ", $module->VERSION, " is outdated; requires $reqversion\n";
     }
     else
-    {   print "    $module version ",$module->VERSION
-            , " is ok (required is $reqversion)\n";
+    {   print "    $module version ", $module->VERSION, " is ok (required is $reqversion)\n";
     }
 }
 
@@ -146,40 +208,43 @@ foreach my $optional (sort {$a->[0] cmp $b->[0]} @optional)
 }
 
 WriteMakefile
- ( NAME       => 'Mail::Message'
- , VERSION    => $VERSION
- , AUTHOR     => 'Mark Overmeer <markov@cpan.org>'
- , ABSTRACT   => 'Processing MIME messages'
- , PREREQ_PM  => \%prereq
- , LICENSE    => 'perl_5'
+	NAME       => 'Mail::Message',
+	VERSION    => $VERSION,
+	AUTHOR     => 'Mark Overmeer <markov@cpan.org>',
+	ABSTRACT   => 'Processing MIME messages',
+	LICENSE    => 'perl_5',
 
- , META_MERGE =>
-      { 'meta-spec' => { version => 2 }
-      , resources  =>
-          { repository =>
-              { type => 'git'
-              , url  => 'https://github.com/markov2/perl5-Mail-Message.git'
-              , web  => 'https://github.com/markov2/perl5-Mail-Message'
-              }
-          , homepage => 'http://perl.overmeer.net/CPAN/'
-          , license  => [ 'http://dev.perl.org/licenses/' ]
-          }
-      }
- );
+	META_MERGE => {
+		'meta-spec' => { version => 2 },
+		resources   => {
+			repository => {
+				type => 'git',
+				url  => "$git.git",
+				web  => $git,
+			},
+			bugtracker => {
+				web  => "$git/issues",
+			},
+			homepage => $homepage,
+			license  => [ 'http//dev.perl.org/licenses/' ],
+		},
+		prereqs => {
+			runtime => {
+				requires => \%requires,
+			},
+			develop => {
+				requires => {
+					'OODoc' => '3.00',
+				},
+			},
+			test => {
+				requires => {
+					'Test::More' => 1.00,
+					'Test::Pod'  => 1.00,
+				},
+			},
+		},
 
-### used by oodist during production of distribution
-sub MY::postamble { <<'__POSTAMBLE' }
-
-# for DIST
-RAWDIR          = ../public_html/mail-message/raw
-DISTDIR         = ../public_html/mail-message/source
-
-LICENSE         = perl
-EXTENDS			= ../User-Identity:../MIME-Types:../Object-Realize-Later:../MailTools:../Mail-Box-Parser-C:../Mail-Box:../Mail-Transport
-
-# for POD
-FIRST_YEAR      = 2001
-EMAIL           = markov@cpan.org
-WEBSITE         = http://perl.overmeer.net/CPAN/
-
-__POSTAMBLE
+		# You may use multiple set-ups, see "oodist --make"
+		x_oodist => \%oodist,
+	};
