@@ -354,29 +354,6 @@ sub send($@)
 	$self->send(via => $type);
 }
 
-=method nntppost %options
-Send an NNTP message (newsgroup message), which is equivalent to
-Mail::Transport::NNTP or M<Mail::Message::send()> with C<via 'nntp'>.
-
-=option  Host $hostname
-=default Host <from Net::Config>
-
-=option  Port INTEGER
-=default Port 119
-
-=option  Debug BOOLEAN
-=default Debug false
-
-=cut
-
-sub nntppost(@)
-{	my ($self, %args) = @_;
-	$args{port}       ||= delete $args{Port};
-	$args{nntp_debug} ||= delete $args{Debug};
-
-	$self->send(via => 'nntp', %args);
-}
-
 =method print [$fh]
 Prints the whole message to the specified $fh, which default to
 STDOUT.  This calls M<Mail::Message::print()>.

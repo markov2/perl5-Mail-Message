@@ -18,6 +18,7 @@ version 3.018_002:
 	- add $msg->endsOnNewline()
 	- restyle code according to OODoc 3.05
 	- convert Makefile.PL to OODoc 3.05
+	- remove ::Replace::MailInternet::nntppost() because it never worked.
 
 version 3.018_001: Thu 21 Aug 10:15:05 CEST 2025
 
