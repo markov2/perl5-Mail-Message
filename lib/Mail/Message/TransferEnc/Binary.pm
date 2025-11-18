@@ -58,7 +58,7 @@ sub encode($@)
 	}
 
 	my $bodytype = $args{result_type} || ref($self->load);
-	$bodytype->new(based_on => $self, transfer_encoding => 'none', data => \@lines);
+	$bodytype->new(based_on => $body, transfer_encoding => 'none', data => \@lines);
 }
 
 1;

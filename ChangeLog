@@ -13,6 +13,8 @@ version 3.018_002:
 	Fixes:
 	- nested bodies which specify a Content-Transfer-Encoding [Andy Beverly]
 	- build(data) with only 3-bytes utf8 encoding not detected [Andy Beverly]
+	- ::TransferEncoding::Binary::encode() was broken
+	  github issue #24 [Jacob Balazer]
 
 	Improvements:
 	- add $msg->endsOnNewline()
