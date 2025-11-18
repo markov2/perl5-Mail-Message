@@ -51,10 +51,13 @@ my $fighterfields;    # one regexp for all fields
 
 sub knownFighters() { keys %fighters }
 
-=ci_method fighter $name, [$settings]
-Get the $settings of a certain spam-fighter, optionally after setting them.
+=ci_method fighter $name, %options
+Get the settings of a certain spam-fighter, optionally after setting them.
 The L<knownFighters()> method returns the defined names.  The names
 are case-sensitive.
+
+The %options are all passed as settings to the spamfilter, except the
+few which are listed here specifically.
 
 =requires fields REGEXP
 The regular expression which indicates which of the header fields are
@@ -88,7 +91,7 @@ sub fighter($;@)
 		defined $args{isspam} or confess "Spamfighters require isspam\n";
 		$fighters{$name} = \%args;
 
-		my @fields = map { $_->{fields} } values %fighters;
+		my @fields = map $_->{fields}, values %fighters;
 		local $" = '|';
 		$fighterfields = qr/@fields/;
 	}

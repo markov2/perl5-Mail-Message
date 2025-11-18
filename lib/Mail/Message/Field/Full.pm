@@ -81,7 +81,7 @@ use overload '""' => sub { shift->decodedBody };
 #--------------------
 =chapter METHODS
 
-=c_method new $data
+=c_method new ($line | $name, [$body], @attributes), %options
 Creating a new field object the correct way is a lot of work, because
 there is so much freedom in the RFCs, but at the same time so many
 restrictions.  Most fields are implemented, but if you have your own
@@ -93,31 +93,31 @@ parts:
 
 =over 4
 
-=item * B<new> LINE, OPTIONS
-Pass a LINE as it could be found in a file: a (possibly folded) line
+=item * B<new>($line, %options)
+Pass a $line as it could be found in a file: a (possibly folded) line
 which is terminated by a new-line.
 
-=item * B<new> NAME, [BODY], OPTIONS
+=item * B<new>($name, [$body], @attributes, %options)
 A set of values which shape the line.
 
 =back
 
-The NAME is a wellformed header name (you may use wellformedName()) to
-be sure about the casing.  The BODY is a string, one object, or an
-ref-array of objects.  In case of objects, they must fit to the
+The $name is a wellformed header name (you may use M<wellformedName()>) to
+be sure about the casing.  The $body is a string, one object, or an
+ARRAY of objects.  In case of objects, they must fit to the
 constructor of the field: the types which are accepted may differ.
 The optional ATTRIBUTE list contains Mail::Message::Field::Attribute
 objects.  Finally, there are some OPTIONS.
 
-=option  charset STRING
+=option  charset $charset
 =default charset undef
-The body is specified in utf8, and must become 7-bits ascii to be
-transmited.  Specify a charset to which the multi-byte utf8 is converted
+The body is specified in UTF-8, and must become 7-bits ascii to be
+transmited.  Specify a $charset to which the multi-byte utf8 is converted
 before it gets encoded.  See M<encode()>, which does the job.
 
-=option  language STRING
+=option  language $language
 =default language undef
-The language used can be specified, however is rarely used my mail clients.
+The $language used can be specified, however is rarely used my mail clients.
 
 =option  encoding 'q'|'Q'|'b'|'B'
 =default encoding C<'q'>

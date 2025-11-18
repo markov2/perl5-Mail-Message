@@ -35,7 +35,7 @@ many of these lines, so speed is very important here.
 # The body is kept in a folded fashion, where each line starts with
 # a single blank.
 
-=c_method new $data
+=c_method new ($line | $name, $body, [$attributes]), %options
 
 The constructor of this object does not follow the usual practise within
 the Mail::Box suite: it does not use the constructor
@@ -45,11 +45,11 @@ Therefor it has no logging or tracing facilities.
 The method can be used in one of the following ways:
 
 =over 4
-=item * B<new> $line
-Pass a LINE as it could be found in a file: a (possibly folded) line
+=item * B<new>($line, %options)
+Pass a $line as it could be found in a file: a (possibly folded) line
 which is terminated by a new-line.
 
-=item * B<new> $name, ($body|$object|\@objects), [\@attributes]
+=item * B<new>($name, $body, [$attributes], %options)
 A set of values which shape the line.
 =back
 
@@ -58,15 +58,14 @@ octets) at once, and it will be split-up for you.  I case you already
 have the parts of the header line, you may specify them separately as
 $name and field $body.
 
-In case you specify a single @object, or an ARRAY of @objects
-OBJECTS, these objects are processed to become suitable to fill a
-field, usually by simple strification.  When you specify one or more
-Mail::Address objects, these are transformed into a string using
-their C<format> method.  You may also add one Mail::Message::Field,
-whose body is taken.  In case of an array, the elements are joined into
-one string with a comma.
+In case you specify a single $body object, or an ARRAY of objects,
+these are processed to become suitable to fill a field, usually by simple
+strification.  When you specify one or more Mail::Address objects, these
+are transformed into a string using their C<format> method.  You may also
+add one Mail::Message::Field, whose body is taken.  In case of an array,
+the elements are joined into one string with a comma.
 
-ATTRIBUTES can be exactly one string which may contain multiple attributes
+The $attributes can be exactly one string which may contain multiple attributes
 at once, quoted and formatted as required in RFC2822.  As alternative,
 list of key-value pairs can be used.  In this case, the values will get
 quoted if needed and everything formatted as the protocol demands.

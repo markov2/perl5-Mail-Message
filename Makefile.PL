@@ -35,6 +35,8 @@ my %oodist   = (
 	parser   => {
 		syntax         => 'markov',
 		skip_links     => [
+			'Mail::Box::Netzwert',
+			'Mail::ListDetector',
 		],
 		pmhead         => undef,
 	},

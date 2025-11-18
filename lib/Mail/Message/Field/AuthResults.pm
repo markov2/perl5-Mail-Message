@@ -36,7 +36,7 @@ implementation is based on RFC7601.
 #--------------------
 =section Constructors
 
-=c_method new $data
+=c_method new %options
 
 =default attributes <ignored>
 

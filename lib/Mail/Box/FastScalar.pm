@@ -25,10 +25,10 @@ Mail::Box::FastScalar - fast alternative to IO::Scalar
 
 =chapter DESCRIPTION
 
-Extremely fast M<IO::Scalar> replacement - >20x improvement in
+Extremely fast M<IO::Scalar> replacement - over 20x improvement in
 C<getline()> and C<getlines()> methods.
 
-Contributed by "Todd Richmond" (richmond@proofpoint.com)
+Contributed by "Todd Richmond" (C<richmond@proofpoint.com>)
 
 =section Warnings
 

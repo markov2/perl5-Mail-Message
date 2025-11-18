@@ -50,17 +50,21 @@ building of messages from various simpler components.
 
 =section Constructing a message
 
-=c_method build [$message|$part|$body], $content
+=c_method build [$message|$part|$body], @fields, %options
 
 Simplified message object builder.  In case a $message or message $part is
 specified, a new message is created with the same body to start with, but
 new headers.  A $body may be specified as well.  However, there are more
 ways to add data simply.
 
-The $content is a list of key-value pairs and header field objects.
-The keys which start with a capital are used as header-lines.  Lower-cased
-fields are used for other purposes as listed below.  Each field may be used
-more than once.  Pairs where the value is undef are ignored.
+You may pass @fields as objects, even mixed with option PAIRS.  The
+fields will be transmitted in the order they were created, so that
+might be needed.
+
+In the %options LIST, the keys which start with a capital are used
+as header-lines.  Lower-cased fields are used for other purposes as
+listed below.  Each field may be used more than once.  Pairs where the
+value is undef are ignored.
 
 If more than one P<data>, P<file>, and P<attach> is specified,
 a multi-parted message is created.  Some C<Content-*> fields are

@@ -1007,12 +1007,12 @@ The message body is stored in an external temporary file.  This type of
 storage is especially useful when the body is large, the total folder is
 large, or memory is limited.
 
-=item * Mail::Message::Body::InFolder
+=item * C<Mail::Message::Body::InFolder>
 NOT IMPLEMENTED YET.
 The message is kept in the folder, and is only taken out when the
 content is changed.
 
-=item * Mail::Message::Body::External
+=item * C<Mail::Message::Body::External>
 NOT IMPLEMENTED YET.
 The message is kept in a separate file, usually because the message body
 is large.  The difference with the C<::External> object is that this external

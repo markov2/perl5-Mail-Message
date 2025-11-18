@@ -33,27 +33,27 @@ Mail::Message::Field::Structured - one line of a structured message header
 
 =chapter METHODS
 
-=c_method new $data
+=c_method new ($line | $name, $body, @attributes), %options
 
 =over 4
 
-=item * B<new> LINE
-Pass a LINE as it could be found in a file: a (possibly folded) line
+=item * B<new>($line)
+Pass a $line as it could be found in a file: a (possibly folded) line
 which is terminated by a new-line.
 
-=item * B<new> NAME, BODY, OPTIONS
+=item * B<new>($name, $body, @attributes, %options)
 A set of values which shape the line.
 
 =back
 
-The NAME is a wellformed header name (you may use wellformedName()) to
-be sure about the casing.  The BODY is a string, one object, or an
-ref-array of objects.  In case of objects, they must fit to the
+The $name is a wellformed header name (you may use M<wellformedName()>) to
+be sure about the casing.  The $body is a string, one body object, or an
+ARRAY of body objects.  In case of objects, they must fit to the
 constructor of the field: the types which are accepted may differ.
-The optional ATTRIBUTE list contains Mail::Message::Field::Attribute
-objects.  Finally, there are some OPTIONS.
+The @attributes LIST contains Mail::Message::Field::Attribute
+objects.  Finally, there are some %options.
 
-=option  datum STRING
+=option  datum $date
 =default datum undef
 The method name I<body> is very confusing, even in the RFC.  In MailBox,
 for historical reasons, M<body()> returns the part of the field contents
@@ -64,17 +64,17 @@ There is no common name for the piece of data before the parameters
 (attributes) in the field-content mentioned in the RFCs, so let's call
 it P<datum>.
 
-=option  attributes ATTRS
+=option  attributes \@attributes|\%attributes
 =default attributes C<+[ ]>
-There are various ways to specify these attributes: pass a reference
-to an array which list of key-value pairs representing attributes,
-or reference to a hash containing these pairs, or an array with
+There are various ways to specify these attributes: pass
+an ARRAY which list of key-value pairs representing @attributes,
+or an HASH containing these pairs, or an ARRAY with
 Mail::Message::Field::Attribute objects.
 
 =example of a structured field
   my @attrs   = (Mail::Message::Field::Attribute->new(...), ...);
-  my @options = (extra => 'the color blue');
-  my $t = Mail::Message::Field::Full->new(To => \@addrs, @attrs, @options);
+  my %options = (extra => 'the color blue');
+  my $t = Mail::Message::Field::Full->new(To => \@addrs, @attrs, %options);
 
 =cut
 

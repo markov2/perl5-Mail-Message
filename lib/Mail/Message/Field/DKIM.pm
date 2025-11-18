@@ -144,7 +144,7 @@ A colon-separated list of method which can be used to retrieve the
 public key.  The default is "dns/txt" (currently the only valid option)
 
 =method tagSelector
-The selector subdividing the $domain tag.  Required.
+The selector subdividing the domain tag.  Required.
 
 =method tagTimestamp
 When the signature was created in UNIX-like seconds (since 1970).  Recommended.

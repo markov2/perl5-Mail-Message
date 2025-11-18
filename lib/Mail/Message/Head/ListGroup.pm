@@ -36,7 +36,7 @@ managing software.  This class knowns various details about that software.
 
 The knowledge and test messages which are used to initially implement
 this module is taken from Mail::ListDetector, written by
-Michael Stevens <mailto:michael@etla.org>.  The logic is redesigned to
+Michael Stevens F<mailto:michael@etla.org>.  The logic is redesigned to
 add flexibility and use the powerful MailBox features.
 
 =chapter METHODS

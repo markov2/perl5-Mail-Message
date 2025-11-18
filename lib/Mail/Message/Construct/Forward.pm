@@ -66,7 +66,7 @@ Their default behavior is usually C<INLINE>.
 
 It is only possible to inline textual messages, therefore binary or
 multi-part messages will always be enclosed as attachment.
-Read the details in section L</Creating a forward>..
+Read the details in section L</Creating a forward>.
 
 =requires To ADDRESSES
 The destination of your message. Obligatory.  The ADDRESSES may be

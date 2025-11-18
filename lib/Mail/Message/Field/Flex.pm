@@ -28,7 +28,7 @@ name predicts).
 
 =chapter METHODS
 
-=c_method new $data
+=c_method new $line | ($name, ($body|$object|\@objects), [@attributes], [\%options|\@options])
 
 If you stick to this flexible class of header fields, you have a bit
 more facilities than with Mail::Message::Field::Fast.  Amongst it, you
@@ -36,35 +36,30 @@ can specify options with the creation.  Possible arguments:
 
 =over 4
 
-=item * B<new> LINE
-
-ass a LINE as it could be found in a file: a (possibly folded) line
+=item * B<new> $line
+Pass a $line as it could be found in a file: a (possibly folded) line
 which is terminated by a new-line.
 
-=item * B<new> NAME, (BODY|OBJECTS), [ATTRIBUTES], OPTIONS
-
+=item * B<new> $name, ($body|$object|\@objects), [@attributes], [\%options|\@options]
 A set of values which shape the line.
 
 =back
 
 To be able to distinguish the different parameters, you will have
-to specify the OPTIONS as ARRAY of option pairs, or HASH of options.
-The ATTRIBUTES are a flat list of key-value pairs.  The body is
-specified as one BODY string, one OBJECT, or a reference to an array
-of OBJECTS.  See Mail::Message::Field:
+to specify the @options as ARRAY of option PAIRS, or HASH of %options.
+The @attributes are a flat LIST of key-value PAIRS.  The $body is
+specified as one string, one $object, or an ARRAY of @objects.
+See Mail::Message::Field.
 
-=option  attributes ATTRS
-=default attributes C<[]>
+=option  attributes \@attributes|\%attributes
+=default attributes C<+[ ]>
+An ARRAY with contains of key-value pairs representing @attributes,
+or reference to a HASH containing these pairs.  This is an alternative
+notation for specifying @attributes directly as method arguments.
 
-Reference to array with list of key-value pairs representing attributes,
-or reference to a hash containing these pairs.  This is an alternative
-notation for specifying ATTRIBUTES directly as method arguments.
-
-=option  comment STRING
+=option  comment $text
 =default comment undef
-
 A pre-formatted list of attributes.
-
 =cut
 
 sub new($;$$@)

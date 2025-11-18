@@ -36,13 +36,13 @@ which are based on the implementation in this class.
 =c_method new @fields, %options
 Construct an object which maintains one set of header @fields.  The
 @fields may be specified as C<Mail::Message::Field> objects or as key-value
-pairs.  The %options and $fields (as key-value pair) can be mixed: they are
+pairs.  The %options and @fields (as key-value pair) can be mixed: they are
 distinguished by their name, where the fields always start with a capital.
 The field objects must aways lead the %options.
 
-=option  head HEAD
+=option  head $head
 =default head undef
-The header HEAD object is used to store the grouped fields in.
+The $head object is used to store the grouped fields in.
 If no header is specified, a Mail::Message::Head::Partial is created
 for you.  If you wish to scan the existing fields in a header, then use
 the M<from()> method.
