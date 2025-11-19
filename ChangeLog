@@ -24,6 +24,7 @@ version 3.018_002:
 	- restyle code according to OODoc 3.05
 	- convert Makefile.PL to OODoc 3.05
 	- remove ::Replace::MailInternet::nntppost() because it never worked.
+	- explicitly depend on Mail::Message v3, not 4
 
 version 3.018_001: Thu 21 Aug 10:15:05 CEST 2025
 

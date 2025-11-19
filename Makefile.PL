@@ -88,16 +88,16 @@ my %requires = (
 	'Time::HiRes'    => 1.51,
 	'Time::Zone'     => 0,
 	'URI'            => 1.23,
-	'User::Identity' => 1.02,
+	'User::Identity' => '1.02, <4.0',
 );
 
 # See README.md for uses
 my %optional = (
-	'Mail::Internet' => '2.01',
-	'MIME::Entity'   => '3.0',
-	'HTML::TreeBuilder' => '3.13',
 	'HTML::FormatText'  => '2.01',
-	'Net::Domain'    => 0,
+	'HTML::TreeBuilder' => '3.13',
+	'Mail::Internet'    => '2.01',
+	'MIME::Entity'      => '3.0',
+	'Net::Domain'       => 0,
 );
 
 WriteMakefile
