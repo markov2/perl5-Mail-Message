@@ -10,6 +10,9 @@ Limitations to be fixed:
 
 version 3.018_002:
 
+	Changes:
+	- remove questions for optional dependencies during install.
+
 	Fixes:
 	- nested bodies which specify a Content-Transfer-Encoding [Andy Beverly]
 	- build(data) with only 3-bytes utf8 encoding not detected [Andy Beverly]
