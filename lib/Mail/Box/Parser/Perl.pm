@@ -36,15 +36,15 @@ compiler is available.
 =requires  filename FILENAME
 The name of the file to be read.
 
-=option  file FILE-HANDLE
+=option  file $filehandle
 =default file undef
-Any M<IO::File> or C<GLOB> file-handle which can be used to read
+Any M<IO::File> or C<GLOB> $filehandle which can be used to read
 the data from.  In case this option is specified, the P<filename> is
 informational only.
 
-=option  mode OPENMODE
+=option  mode $mode
 =default mode C<'r'>
-File-open mode, which defaults to C<'r'>, which means `read-only'.
+File open $mode, which defaults to C<'r'>, which means `read-only'.
 See C<perldoc -f open> for possible modes.  Only applicable
 when no P<file> is specified.
 
