@@ -4,7 +4,7 @@ require 5.016;
 
 use IO::Handle;
 
-my $VERSION = '3.018_002';
+my $VERSION = '3.019';
 
 # This is an attempt to automatically convert you configuration parameters.
 # More docs: https://github.com/markov2/perl5-OODoc/wiki/oodist-config
@@ -52,15 +52,10 @@ my %oodist   = (
 		publish        => "$publish/raw",
 	},
 
-	generate => [
-	  {
-		# Add real pod to the releases
+	generate => [ {
 		format         => 'pod3',
 		podtail        => undef,
-	  },
- 	  # You may add HTML formatters here.
- 		  # You may add exporter configurations here.
-	],
+	}, ],
 );
 
 my %requires = (

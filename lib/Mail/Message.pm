@@ -67,6 +67,10 @@ the messages in mailboxes (folders) is implemented in this class.  Methods
 which are related to folders is implemented in the Mail::Box::Message
 extension.
 
+B<This is a maintenance release for the old interface>.  Read
+F<https://github.com/markov2/perl5-Mail-Box/wiki/> how
+to move towards version 4.
+
 The main methods are M<get()>, to get information from a message header
 field, and M<decoded()> to get the intended content of a message.
 But there are many more which can assist your program.
