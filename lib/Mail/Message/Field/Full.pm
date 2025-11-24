@@ -4,11 +4,13 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::Full;
-use base 'Mail::Message::Field';
+use parent 'Mail::Message::Field';
 
 use strict;
 use warnings;
 use utf8;
+
+use Log::Report     'mail-message';
 
 use Encode            ();
 use MIME::QuotedPrint ();

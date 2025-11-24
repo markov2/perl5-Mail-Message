@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::TransferEnc::Base64;
-use base 'Mail::Message::TransferEnc';
+use parent 'Mail::Message::TransferEnc';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use MIME::Base64  qw/decode_base64 encode_base64/;
 

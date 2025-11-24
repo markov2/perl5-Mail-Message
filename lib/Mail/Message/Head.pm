@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Head;
-use base 'Mail::Reporter';
+use parent 'Mail::Reporter';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Mail::Message::Head::Complete;
 use Mail::Message::Field::Fast;

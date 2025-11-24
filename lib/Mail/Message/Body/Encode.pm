@@ -4,11 +4,13 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Body;
-use base 'Mail::Reporter';
+use parent 'Mail::Reporter';
 
 use strict;
 use warnings;
 use utf8;
+
+use Log::Report   'mail-message';
 
 use Carp;
 use MIME::Types    ();

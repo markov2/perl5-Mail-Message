@@ -8,6 +8,8 @@ package Mail::Message;
 use strict;
 use warnings;
 
+use Log::Report   'mail-message';
+
 use IO::Lines  ();
 
 #--------------------

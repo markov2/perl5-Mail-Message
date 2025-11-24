@@ -9,6 +9,8 @@ use strict;
 use warnings;
 use integer;
 
+use Log::Report   'mail-message';
+
 use Scalar::Util  qw/blessed/;
 
 #--------------------

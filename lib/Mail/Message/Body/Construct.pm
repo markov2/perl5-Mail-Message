@@ -9,6 +9,8 @@ package Mail::Message::Body;
 use strict;
 use warnings;
 
+use Log::Report   'mail-message';
+
 use Carp;
 use Scalar::Util  qw/blessed/;
 

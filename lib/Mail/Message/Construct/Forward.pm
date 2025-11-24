@@ -8,10 +8,12 @@ package Mail::Message;
 use strict;
 use warnings;
 
+use Log::Report   'mail-message';
+
 use Mail::Message::Body::Multipart ();
 use Mail::Message::Body::Nested    ();
 
-use Scalar::Util qw/blessed/;
+use Scalar::Util   qw/blessed/;
 
 #--------------------
 =chapter NAME

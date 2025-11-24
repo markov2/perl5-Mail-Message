@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Convert;
-use base 'Mail::Reporter';
+use paren 'Mail::Reporter';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 #--------------------
 =chapter NAME

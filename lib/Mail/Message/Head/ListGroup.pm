@@ -7,10 +7,12 @@
 #XXX Add Simplelists
 
 package Mail::Message::Head::ListGroup;
-use base 'Mail::Message::Head::FieldGroup';
+use parent 'Mail::Message::Head::FieldGroup';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use List::Util    qw/first/;
 use Scalar::Util  qw/blessed/;

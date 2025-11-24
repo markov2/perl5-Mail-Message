@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Head::ResentGroup;
-use base 'Mail::Message::Head::FieldGroup';
+use parent 'Mail::Message::Head::FieldGroup';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Mail::Message::Field::Fast ();
 

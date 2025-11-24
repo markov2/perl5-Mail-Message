@@ -8,6 +8,8 @@ package Mail::Message;
 use strict;
 use warnings;
 
+use Log::Report   'mail-message';
+
 use Mail::Box::Parser::Lines ();
 
 use Scalar::Util  qw/blessed/;
@@ -55,7 +57,7 @@ in the source, to avoid the risk that these fields accidentally interfere
 with your internal administration, which may have security implications.
 
 =option  strip_status_fields BOOLEAN
-=default strip_status_fields <true>
+=default strip_status_fields true
 Remove the C<Status> and C<X-Status> fields from the message after
 reading, to lower the risk that received messages from external
 sources interfere with your internal administration.  If you want

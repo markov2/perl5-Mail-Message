@@ -4,13 +4,15 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Body::File;
-use base 'Mail::Message::Body';
+use parent 'Mail::Message::Body';
 
 use strict;
 use warnings;
 
-use Mail::Box::Parser;
-use Mail::Message;
+use Log::Report   'mail-message';
+
+use Mail::Box::Parser ();
+use Mail::Message     ();
 
 use Carp;
 use File::Temp qw/tempfile/;

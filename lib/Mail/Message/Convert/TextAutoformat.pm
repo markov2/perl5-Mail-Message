@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Convert::TextAutoformat;
-use base 'Mail::Message::Convert';
+use parent 'Mail::Message::Convert';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Text::Autoformat qw/autoformat/;
 

@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Head::Complete;
-use base 'Mail::Message::Head';
+use parent 'Mail::Message::Head';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Mail::Box::Parser             ();
 use Mail::Message::Head::Partial  ();

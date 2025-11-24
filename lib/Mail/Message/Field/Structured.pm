@@ -4,13 +4,15 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::Structured;
-use base 'Mail::Message::Field::Full';
+use parent 'Mail::Message::Field::Full';
 
 use strict;
 use warnings;
 
-use Mail::Message::Field::Attribute;
-use Storable 'dclone';
+use Log::Report     'mail-message';
+
+use Mail::Message::Field::Attribute ();
+use Storable        qw/dclone/;
 
 #--------------------
 =chapter NAME

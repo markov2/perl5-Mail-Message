@@ -4,13 +4,15 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Body::Lines;
-use base 'Mail::Message::Body';
+use parent 'Mail::Message::Body';
 
 use strict;
 use warnings;
 
-use Mail::Box::Parser;
-use IO::Lines;
+use Log::Report   'mail-message';
+
+use Mail::Box::Parser ();
+use IO::Lines         ();
 
 use Carp;
 

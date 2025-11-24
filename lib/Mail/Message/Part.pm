@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Part;
-use base 'Mail::Message';
+use parent 'Mail::Message';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Scalar::Util    qw/weaken/;
 use Carp;

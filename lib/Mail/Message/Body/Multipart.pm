@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Body::Multipart;
-use base 'Mail::Message::Body';
+use parent 'Mail::Message::Body';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Carp;
 use Scalar::Util   qw/blessed/;

@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Body;
-use base 'Mail::Reporter';
+use parent 'Mail::Reporter';
 
 use strict;
 use warnings;
+
+use Log::Report     'mail-message';
 
 use Carp;
 use Scalar::Util     qw/weaken refaddr blessed/;

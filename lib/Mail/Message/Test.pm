@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Test;
-use base 'Exporter';
+use parent 'Exporter';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use File::Copy    qw/copy/;
 use List::Util    qw/first/;

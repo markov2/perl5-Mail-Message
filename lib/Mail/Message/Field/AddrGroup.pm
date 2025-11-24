@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::AddrGroup;
-use base 'User::Identity::Collection::Emails';
+use parent 'User::Identity::Collection::Emails';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Scalar::Util  qw/blessed/;
 

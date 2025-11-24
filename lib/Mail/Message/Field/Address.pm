@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::Address;
-use base 'Mail::Identity';
+use parent 'Mail::Identity';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Mail::Message::Field::Addresses ();
 use Mail::Message::Field::Full      ();

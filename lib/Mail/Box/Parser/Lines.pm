@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Box::Parser::Lines;
-use base 'Mail::Box::Parser';
+use parent 'Mail::Box::Parser';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Mail::Message::Field   ();
 

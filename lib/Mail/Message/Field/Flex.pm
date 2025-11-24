@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::Flex;
-use base 'Mail::Message::Field';
+use parent 'Mail::Message::Field';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 use Carp;
 

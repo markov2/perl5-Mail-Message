@@ -4,14 +4,16 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Box::Parser::Perl;
-use base 'Mail::Box::Parser';
+use parent 'Mail::Box::Parser';
 
 use strict;
 use warnings;
 
-use Mail::Message::Field;
-use List::Util 'sum';
-use IO::File   ();
+use Log::Report   'mail-message';
+
+use List::Util           qw/sum/;
+use Mail::Message::Field ();
+use IO::File             ();
 
 my $empty_line = qr/^\015?\012?$/;
 

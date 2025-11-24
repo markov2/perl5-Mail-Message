@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Replace::MailHeader;
-use base 'Mail::Message::Head::Complete';
+use parent 'Mail::Message::Head::Complete';
 
 use strict;
 use warnings;
+
+use Log::Report   'mail-message';
 
 #--------------------
 =chapter NAME

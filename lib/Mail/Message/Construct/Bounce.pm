@@ -8,6 +8,8 @@ package Mail::Message;
 use strict;
 use warnings;
 
+use Log::Report   'mail-message';
+
 use Mail::Message::Head::Complete ();
 use Mail::Message::Field          ();
 

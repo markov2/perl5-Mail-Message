@@ -4,10 +4,12 @@
 #oodist: testing, however the code of this development version may be broken!
 
 package Mail::Message::Field::DKIM;
-use base 'Mail::Message::Field::Structured';
+use parent 'Mail::Message::Field::Structured';
 
 use warnings;
 use strict;
+
+use Log::Report   'mail-message';
 
 use URI      ();
 
