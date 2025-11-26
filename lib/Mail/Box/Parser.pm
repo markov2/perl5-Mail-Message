@@ -30,7 +30,7 @@ There are currently three implementations of this module:
 
 =over 4
 
-=item * M<Mail::Box::Parser::C>
+=item * Mail::Box::Parser::C
 A fast parser written in C<C>.  This package is released as separate
 module on CPAN, because the module distribution via CPAN can not
 handle XS files which are not located in the root directory of the
@@ -147,6 +147,7 @@ sub defaultParserType(;$)
 
 	# Try to use C-based parser.
 	eval 'require Mail::Box::Parser::C';
+die $@ if $@;
 	$@ or return $parser_type = 'Mail::Box::Parser::C';
 
 	# Fall-back on Perl-based parser.

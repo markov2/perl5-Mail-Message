@@ -3,6 +3,8 @@
 #oodist: during its release in the distribution.  You can use this file for
 #oodist: testing, however the code of this development version may be broken!
 
+#XXX WARNING: large overlap with Mail::Box::Parser:C; you may need to change both!
+
 package Mail::Box::Parser::Perl;
 use base 'Mail::Box::Parser';
 
@@ -33,8 +35,8 @@ compiler is available.
 
 =c_method new %options
 
-=requires  filename FILENAME
-The name of the file to be read.
+=requires  filename $name
+The $name of the file to be read.
 
 =option  file $filehandle
 =default file undef
