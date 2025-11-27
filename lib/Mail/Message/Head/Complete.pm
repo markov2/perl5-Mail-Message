@@ -50,7 +50,7 @@ used.
 
 sub clone(;@)
 {	my $self   = shift;
-	my $copy   = ref($self)->new($self->logSettings);
+	my $copy   = (ref $self)->new;
 
 	$copy->addNoRealize($_->clone) for $self->grepNames(@_);
 	$copy->modified(1);
@@ -59,7 +59,7 @@ sub clone(;@)
 
 =c_method build [PAIR|$field], ...
 Undefined values are interpreted as empty field values, and therefore skipped.
-=warning Field objects have an implied name ($name)
+=warning field objects have an implied name ($name)
 =cut
 
 sub build(@)
@@ -78,7 +78,7 @@ sub build(@)
 		defined $content or next;
 
 		if(ref $content && $content->isa('Mail::Message::Field'))
-		{	$self->log(WARNING => "Field objects have an implied name ($name)");
+		{	warning __x"field objects have an implied name ({name})", name => $name;
 			$self->add($content);
 			next;
 		}
@@ -160,27 +160,22 @@ sub add(@)
 	# Create object for this field.
 
 	my $field
-	= @_==1 && blessed $_[0] ? shift     # A fully qualified field is added.
-	: ($self->{MMH_field_type} || 'Mail::Message::Field::Fast')->new(@_);
+	  = @_==1 && blessed $_[0] ? shift     # A fully qualified field is added.
+	  : ($self->{MMH_field_type} // 'Mail::Message::Field::Fast')->new(@_);
 
-	return if !defined $field;
-
-	$field->setWrapLength;
+	defined $field or return;
 
 	# Put it in place.
 
+	$field->setWrapLength;
 	my $known = $self->{MMH_fields};
 	my $name  = $field->name;  # is already lower-cased
 
 	$self->addOrderedFields($field);
 
-	if(defined $known->{$name})
-	{	if(ref $known->{$name} eq 'ARRAY') { push @{$known->{$name}}, $field }
-		else { $known->{$name} = [ $known->{$name}, $field ] }
-	}
-	else
-	{	$known->{$name} = $field;
-	}
+	   if(! defined $known->{$name}) { $known->{$name} = $field }
+	elsif(ref $known->{$name} eq 'ARRAY') { push @{$known->{$name}}, $field }
+	else { $known->{$name} = [ $known->{$name}, $field ] }
 
 	$self->{MMH_modified}++;
 	$field;
@@ -195,10 +190,7 @@ are usually present more than once.
 sub count($)
 {	my $known = shift->{MMH_fields};
 	my $value = $known->{lc shift};
-
-	! defined $value ? 0
-	: ref $value       ? @$value
-	:                    1;
+	! defined $value ? 0 : ref $value ? @$value : 1;
 }
 
 =method names
@@ -226,9 +218,9 @@ also specify one or more prepared regexes.
 
 sub grepNames(@)
 {	my $self = shift;
+
 	my @take;
 	push @take, (ref $_ eq 'ARRAY' ? @$_ : $_) for @_;
-
 	@take or return $self->orderedFields;
 
 	my $take;
@@ -241,7 +233,7 @@ sub grepNames(@)
 		$take    = qr/^(?:(?:@take))/i;
 	}
 
-	grep { $_->name =~ $take } $self->orderedFields;
+	grep $_->name =~ $take, $self->orderedFields;
 }
 
 =method set $field | $line | <$name, $body, [$attrs]>
@@ -257,7 +249,7 @@ sub set(@)
 {	my $self = shift;
 	@_!=1 || defined $_[0] or return;
 
-	my $type = $self->{MMH_field_type} || 'Mail::Message::Field::Fast';
+	my $type = $self->{MMH_field_type} // 'Mail::Message::Field::Fast';
 	$self->{MMH_modified}++;
 
 	# Create object for this field.
@@ -328,9 +320,7 @@ sub reset($@)
 	# removed from the ordered list: that's controled by 'weaken'
 
 	my @fields = map $_->clone, @_;
-
-	if(@_==1) { $known->{$name} = $fields[0] }
-	else      { $known->{$name} = [@fields]  }
+	$known->{$name} = @_==1 ? $fields[0] : \@fields;
 
 	$self->addOrderedFields(@fields);
 	$self;
@@ -385,11 +375,10 @@ the field content.  SAVE are all methods which return the text:
   my $s = $msg->subject;
   my $s = $msg->string;
 
-=warning Cannot remove field $name from header: not found.
+=warning cannot remove field $name from header: not found.
 You ask to remove a field which is not known in the header.  Using
 M<delete()>, M<reset()>, or M<set()> to do the job will not result
 in warnings: those methods check the existence of the field first.
-
 =cut
 
 sub removeField($)
@@ -410,9 +399,8 @@ sub removeField($)
 	{	return delete $known->{$name};
 	}
 
-	$self->log(WARNING => "Cannot remove field $name from header: not found.");
-
-	return;
+	warning __x"cannot remove field {name} from header: not found.";
+	undef;;
 }
 
 =method removeFields <STRING|Regexp>, ...
@@ -495,7 +483,7 @@ software, undef is returned.  The spamgroups which report spam are returned.
 sub spamDetected()
 {	my $self = shift;
 	my @sgs = $self->spamGroups or return undef;
-	grep { $_->spamDetected } @sgs;
+	grep $_->spamDetected, @sgs;
 }
 
 =method print [$fh]

@@ -11,13 +11,12 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use Mail::Box::Parser ();
-use Mail::Message     ();
-
-use Carp;
 use File::Temp qw/tempfile/;
 use File::Copy qw/copy/;
 use Fcntl      qw/SEEK_END/;
+
+use Mail::Box::Parser ();
+use Mail::Message     ();
 
 #--------------------
 =chapter NAME
@@ -41,26 +40,28 @@ access through a file is slower, it is saving a lot of memory.
 
 =c_method new %options
 
-=error Unable to read file $filename for message body file: $!
+=fault unable to read file $name for message body file: $!
 A Mail::Message::Body::File object is to be created from a named file, but
 it is impossible to read that file to retrieve the lines within.  Therefore,
 no copy to a temporary file can be made.
 
-=error Cannot write to temporary body file $filename: $!
+=fault cannot write to temporary body file $name: $!
 The message body is to be stored in a temporary file (probably because it is a
 large body), but for the indicated reason, this file cannot be created.
 
+=fault cannot write to temporary body file $name: $!
+=fault cannot write body to file $name: $!
 =cut
 
 sub _data_from_filename(@)
 {	my ($self, $filename) = @_;
 
 	open my $in, '<:raw', $filename
-		or $self->log(ERROR => "Unable to read file $filename for message body file: $!"), return;
+		or fault __x"unable to read file {name} for message body file", name => $filename;
 
 	my $file   = $self->tempFilename;
 	open my $out, '>:raw', $file
-		or $self->log(ERROR => "Cannot write to temporary body file $file: $!"), return;
+		or fault __x"cannot write to temporary body file {name}", name => $file;
 
 	my $nrlines = 0;
 	local $_;
@@ -75,7 +76,7 @@ sub _data_from_filehandle(@)
 	my $nrlines = 0;
 
 	open my $out, '>:raw', $file
-		or $self->log(ERROR => "Cannot write to temporary body file $file: $!"), return;
+		or fault __x"cannot write to temporary body file {name}", name => $file;
 
 	local $_;
 	while(<$fh>)
@@ -92,7 +93,7 @@ sub _data_from_lines(@)
 	my $file = $self->tempFilename;
 
 	open my $out, '>:raw', $file
-		or $self->log(ERROR => "Cannot write to $file: $!"), return;
+		or fault __x"cannot write body to file {name}", name => $file;
 
 	$out->print(@$lines);
 
@@ -112,17 +113,19 @@ sub clone()
 	$self;
 }
 
+=method nrLines
+=fault cannot read from file $name: $!
+=cut
+
 sub nrLines()
 {	my $self    = shift;
-
-	return $self->{MMBF_nrlines}
-		if defined $self->{MMBF_nrlines};
+	return $self->{MMBF_nrlines} if defined $self->{MMBF_nrlines};
 
 	my $file    = $self->tempFilename;
 	my $nrlines = 0;
 
 	open my $in, '<:raw', $file
-		or die "Cannot read from $file: $!\n";
+		or fault __x"cannot read from file {name}", name => $file;
 
 	local $_;
 	$nrlines++ while <$in>;
@@ -144,22 +147,30 @@ sub size()
 	$self->{MMBF_size} = $size;
 }
 
+=method string
+=fault cannot read from file $name: $!
+=cut
+
 sub string()
 {	my $self = shift;
 	my $file = $self->tempFilename;
 
 	open my $in, '<:raw', $file
-		or die "Cannot read from $file: $!\n";
+		or fault __x"cannot read from file {name}", name => $file;
 
 	join '', $in->getlines;
 }
+
+=method lines
+=fault cannot read from file $name: $!
+=cut
 
 sub lines()
 {	my $self = shift;
 	my $file = $self->tempFilename;
 
 	open my $in, '<:raw', $file
-		or die "Cannot read from $file: $!\n";
+		or fault __x"cannot read from file {name}", name => $file;
 
 	my $r = $self->{MMBF_nrlines} = [ $in->getlines ];
 	wantarray ? @$r: $r;
@@ -171,13 +182,17 @@ sub file()
 	$tmp;
 }
 
+=method print
+=fault cannot read from file $name: $!
+=cut
+
 sub print(;$)
 {	my $self = shift;
 	my $fh   = shift || select;
 
 	my $file = $self->tempFilename;
 	open my $in, '<:raw', $file
-		or croak "Cannot read from $file: $!\n";
+		or fault __x"cannot read from file {name}", name => $file;
 
 	$fh->print($_) while <$in>;
 	$in->close;
@@ -185,24 +200,32 @@ sub print(;$)
 	$self;
 }
 
+=method endsOnNewline
+=fault cannot read from file $name: $!
+=cut
+
 sub endsOnNewline()
 {	my $self = shift;
 
 	my $file = $self->tempFilename;
 	open my $in, '<:raw', $file
-		or croak "Cannot read from $file: $!\n";
+		or fault __x"cannot read from file {name}", name => $file;
 
 	$in->seek(-1, SEEK_END);
 	$in->read(my $char, 1);
 	$char eq "\n" || $char eq "\r";
 }
 
+=method read
+=fault cannot write to file $name: $!
+=cut
+
 sub read($$;$@)
 {	my ($self, $parser, $head, $bodytype) = splice @_, 0, 4;
 	my $file = $self->tempFilename;
 
 	open my $out, '>:raw', $file
-		or die "Cannot write to $file: $!.\n";
+		or fault __x"cannot write to file {name}", name => $file;
 
 	(my $begin, my $end, $self->{MMBF_nrlines}) = $parser->bodyAsFile($out, @_);
 	$out->close;
@@ -220,10 +243,7 @@ Returns the name of the temporary file which is used to store this body.
 
 sub tempFilename(;$)
 {	my $self = shift;
-
-	  @_                     ? ($self->{MMBF_filename} = shift)
-	: $self->{MMBF_filename} ? $self->{MMBF_filename}
-	:                          ($self->{MMBF_filename} = (tempfile)[1]);
+	@_ ? ($self->{MMBF_filename} = shift) : ($self->{MMBF_filename} //= (tempfile)[1]);
 }
 
 #--------------------

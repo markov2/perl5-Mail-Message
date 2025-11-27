@@ -11,7 +11,6 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use Carp;
 use Mail::Box::FastScalar ();
 
 #--------------------
@@ -38,7 +37,7 @@ slower.
 
 =c_method new %options
 
-=error Unable to read file $filename for message body scalar: $!
+=fault Unable to read file $name for message body scalar: $!
 A Mail::Message::Body::String object is to be created from a named
 file, but it is impossible to read that file to retrieve the lines within.
 =cut
@@ -51,7 +50,7 @@ sub _data_from_filename(@)
 
 	delete $self->{MMBS_nrlines};
 	open my $in, '<:raw', $filename
-		or $self->log(ERROR => "Unable to read file $filename for message body scalar: $!"), return;
+		or fault __x"unable to read file {name} for message body scalar", name => $filename;
 
 	my @lines = $in->getlines;
 	$in->close;

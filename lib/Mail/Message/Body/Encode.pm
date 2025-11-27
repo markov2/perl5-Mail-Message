@@ -12,7 +12,6 @@ use utf8;
 
 use Log::Report   'mail-message';
 
-use Carp;
 use MIME::Types    ();
 use File::Basename qw/basename/;
 use Encode         qw/find_encoding from_to encode_utf8/;
@@ -154,19 +153,19 @@ provide your own function for this parameter.  The function will get
 the transfer-decoded version of this body.  You can change the default
 globally via M<charsetDetectAlgorithm()>.
 
-=warning No decoder defined for transfer encoding $name.
+=warning no decoder defined for transfer encoding '$encoding'.
 The data (message body) is encoded in a way which is not currently understood,
 therefore no decoding (or recoding) can take place.
 
-=warning No encoder defined for transfer encoding $name.
+=warning no encoder defined for transfer encoding '$encoding'.
 The data (message body) has been decoded, but the required encoding is
 unknown.  The decoded data is returned.
 
-=warning Charset $name is not known
+=warning charset '$name' is not known.
 The encoding or decoding of a message body encounters a character set which
 is not understood by Perl's M<Encode> module.
 
-=warning Content-Transfer-Encoding `$encoding' requires explicit charset, defaulted to utf-8
+=warning Content-Transfer-Encoding '$te' requires explicit charset, defaulted to utf-8.
 =cut
 
 sub _char_enc($)
@@ -174,7 +173,7 @@ sub _char_enc($)
 	return undef if !$charset || $charset eq 'PERL';
 
 	my $enc = find_encoding $charset
-		or $self->log(WARNING => "Charset `$charset' is not known.");
+		or warning __x"charset '{name}' is not known.", name => $charset;
 
 	$enc;
 }
@@ -223,7 +222,7 @@ sub encode(@)
 
 		if($char_to && $trans_to ne 'none' && $char_to eq 'PERL')
 		{	# We cannot leave the body into the 'PERL' charset when transfer-encoding is applied.
-			$self->log(WARNING => "Content-Transfer-Encoding `$trans_to' requires explicit charset, defaulted to utf-8");
+			warning __x"Content-Transfer-Encoding '{te}' requires explicit charset, defaulted to utf-8.", te => $trans_to;
 			$char_to = 'utf-8';
 		}
 
@@ -255,7 +254,7 @@ sub encode(@)
 	elsif(my $decoder = $self->getTransferEncHandler($trans_was))
 	{	$decoded = $decoder->decode($self, result_type => $bodytype) }
 	else
-	{	$self->log(WARNING => "No decoder defined for transfer encoding $trans_was.");
+	{	warning __x"no decoder defined for transfer encoding '{encoding}'.", encoding => $trans_was;
 		return $self;
 	}
 
@@ -298,7 +297,7 @@ sub encode(@)
 	my $trans;
 	if($trans_to ne 'none')
 	{	$trans = $self->getTransferEncHandler($trans_to)
-			or $self->log(WARNING => "No encoder defined for transfer encoding `$trans_to'.");
+			or warning __x"no encoder defined for transfer encoding '{encoding}'.", encoding => $trans_to;
 	}
 
 	defined $trans ? $trans->encode($recoded, result_type => $bodytype) : $recoded;
@@ -412,7 +411,7 @@ translated to contain the specified line endings.
   my $body = $msg->decoded->eol('NATIVE');
   my $char = $msg->decoded->eol;
 
-=warning Unknown line terminator $eol ignored
+=error unknown line terminator '$eol'.
 =cut
 
 my $native_eol = $^O =~ m/^win/i ? 'CRLF' : $^O =~ m/^mac/i ? 'CR' : 'LF';
@@ -434,7 +433,7 @@ sub eol(;$)
 	  = $eol eq 'CRLF' ? first { !/\015\012$/ } @$lines
 	  : $eol eq 'CR'   ? first { !/\015$/ } @$lines
 	  : $eol eq 'LF'   ? first { /\015\012$|\015$/ } @$lines
-	  : ($self->log(WARNING => "Unknown line terminator $eol ignored"), 1);
+	  :   error(__x"unknown line terminator '{eol}'.", eol => $eol);
 
 	$wrong
 		or return $self;
@@ -542,8 +541,9 @@ sub dispositionFilename(;$)
 	{	$filename = basename $base =~ s/\s+/ /gr =~ s/ $//r =~ s/^ //r =~ s/[^\w .-]//gr;
 	}
 
-	my ($filebase, $ext) = length $filename && $filename =~ m/(.*)\.([^.]+)/ ? ($1, $2)
-	: (part => ($self->mimeType->extensions)[0] || 'raw');
+	my ($filebase, $ext)
+	  = length $filename && $filename =~ m/(.*)\.([^.]+)/ ? ($1, $2)
+	  : (part => ($self->mimeType->extensions)[0] || 'raw');
 
 	my $fn = File::Spec->catfile($dir, "$filebase.$ext");
 
@@ -582,7 +582,7 @@ sub getTransferEncHandler($)
 		or return;
 
 	eval "require $class";
-	confess "Cannot load $class: $@\n" if $@;
+	panic "Cannot load $class: $@\n" if $@;
 
 	$transfer_encoders{$type} = $class->new;
 }

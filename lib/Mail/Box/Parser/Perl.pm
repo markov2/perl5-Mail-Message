@@ -11,9 +11,10 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use List::Util           qw/sum/;
+use List::Util    qw/sum/;
+use IO::File      ();
+
 use Mail::Message::Field ();
-use IO::File             ();
 
 my $empty_line = qr/^\015?\012?$/;
 
@@ -50,15 +51,16 @@ File open $mode, which defaults to C<'r'>, which means `read-only'.
 See C<perldoc -f open> for possible modes.  Only applicable
 when no P<file> is specified.
 
+=error filename or handle required to create a parser.
 =cut
 
 sub init(@)
 {	my ($self, $args) = @_;
-	$self->SUPER::init($args) or return;
+	$self->SUPER::init($args);
 
 	$self->{MBPP_mode}     = $args->{mode} || 'r';
 	$self->{MBPP_filename} = $args->{filename} || ref $args->{file}
-		or $self->log(ERROR => "Filename or handle required to create a parser."), return;
+		or error __x"filename or handle required to create a parser.";
 
 	$self->start(file => $args->{file});
 	$self;
@@ -95,30 +97,18 @@ sub start(@)
 	$self->openFile(%args) or return;
 	$self->takeFileInfo;
 
-	$self->log(PROGRESS => "Opened folder ".$self->filename." to be parsed");
+	trace "opened folder ".$self->filename." to be parsed";
 	$self;
 }
 
 =method stop
 Stop the parser, which will include a close of the file.  The lock on the
 folder will not be removed (is not the responsibility of the parser).
-
-=warning File $file changed during access.
-When a message parser starts working, it takes size and modification time
-of the file at hand.  If the folder is written, it checks whether there
-were changes in the file made by external programs.
-
-Calling M<Mail::Box::update()> on a folder before it being closed
-will read these new messages.  But the real source of this problem is
-locking: some external program (for instance the mail transfer agent,
-like sendmail) uses a different locking mechanism as you do and therefore
-violates your rights.
-
 =cut
 
 sub stop()
 {	my $self = shift;
-	$self->log(NOTICE => "Close parser for file ".$self->filename);
+	trace "close parser for file " . $self->filename;
 	$self->closeFile;
 }
 
@@ -132,7 +122,7 @@ sub restart()
 	$self->closeFile;
 	$self->openFile(@_) or return;
 	$self->takeFileInfo;
-	$self->log(NOTICE => "Restarted parser for file ".$self->filename);
+	trace "restarted parser for file " . $self->filename;
 	$self;
 }
 
@@ -159,6 +149,10 @@ sub filePosition(;$)
 	@_ ? $self->file->seek(shift, 0) : $self->file->tell;
 }
 
+=method readHeader
+=warning unexpected end of header in $file:\n $line
+=cut
+
 sub readHeader()
 {	my $self  = shift;
 	my $file  = $self->file or return ();
@@ -171,7 +165,7 @@ sub readHeader()
 		my ($name, $body) = split /\s*\:\s*/, $line, 2;
 
 		unless(defined $body)
-		{	$self->log(WARNING => "Unexpected end of header in ".$self->filename.":\n $line");
+		{	warning __x"unexpected end of header in {file}:\n {line}", file => $self->filename, line => $line;
 
 			if(@ret && $self->fixHeaderErrors)
 			{	$ret[-1][1] .= ' '.$line;  # glue err line to previous field

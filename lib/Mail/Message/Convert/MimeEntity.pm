@@ -64,6 +64,8 @@ exception.
   my $convert = Mail::Message::Convert::MimeEntity->new;
   my Mail::Message $msg  = Mail::Message->new;
   my MIME::Entity  $copy = $convert->export($msg);
+
+=error export message must be a Mail::Message, but is a {class}.
 =cut
 
 sub export($$;$)
@@ -71,7 +73,7 @@ sub export($$;$)
 	defined $message or return ();
 
 	$message->isa('Mail::Message')
-		or $self->log(ERROR => "Export message must be a Mail::Message, but is a ".(ref $message)."."), return;
+		or error __x"export message must be a Mail::Message, but is a {class}.", class => ref $message;
 
 	$parser ||= MIME::Parser->new;
 	$parser->parse($message->file);
@@ -88,7 +90,7 @@ empty list is returned.
   my MIME::Entity  $msg  = MIME::Entity->new;
   my Mail::Message $copy = $convert->from($msg);
 
-=error Converting from MIME::Entity but got a $type, return
+=error converting from MIME::Entity but got a $class.
 =cut
 
 sub from($)
@@ -96,7 +98,7 @@ sub from($)
 	defined $mime_ent or return ();
 
 	$mime_ent->isa('MIME::Entity')
-		or $self->log(ERROR => 'Converting from MIME::Entity but got a '.(ref $mime_ent).'.'), return;
+		or error __x"converting from MIME::Entity but got a {class}.", class => ref $mime_ent;
 
 	Mail::Message->read($mime_ent->as_string);
 }

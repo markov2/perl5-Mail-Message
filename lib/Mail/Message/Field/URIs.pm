@@ -132,15 +132,14 @@ sub URIs() { @{ $_[0]->{MMFU_uris}} }
 =method addAttribute ...
 Attributes are not supported for URI fields.
 
-=error No attributes for URI fields.
+=error no attributes for URI fields.
 Is is not possible to add attributes to URI fields: it is not permitted
 by the RFCs.
 =cut
 
 sub addAttribute($;@)
 {	my $self = shift;
-	$self->log(ERROR => 'No attributes for URI fields.');
-	$self;
+	error __x"no attributes for URI fields.";
 }
 
 #--------------------

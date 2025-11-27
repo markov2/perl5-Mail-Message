@@ -70,7 +70,7 @@ Coerce an $object into a Mail::Message::Field::AddrGroup.  Currently,
 you can only coerce User::Identity::Collection::Emails (which is
 the base class for this one) into this one.
 
-=error Cannot coerce a $type into a Mail::Message::Field::AddrGroup
+=error cannot coerce a $type into a $class.
 =cut
 
 sub coerce($@)
@@ -84,8 +84,7 @@ sub coerce($@)
 			if $addr->isa('User::Identity::Collection::Emails');
 	}
 
-	$class->log(ERROR => "Cannot coerce a ".(ref($addr)|'string').  " into a $class");
-	();
+	error __x"cannot coerce a {type} into a {class}.", type => ref $addr // 'string', class => $class;
 }
 
 

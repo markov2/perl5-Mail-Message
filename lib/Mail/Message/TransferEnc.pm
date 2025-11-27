@@ -72,10 +72,10 @@ my %encoder = (
 =method create $type, %options
 Create a new coder/decoder based on the required type.
 
-=warning No decoder for transfer encoding $type.
+=error no decoder for transfer encoding $type.
 A decoder for the specified type of transfer encoding is not implemented.
 
-=error Decoder for transfer encoding $type does not work: $@
+=error decoder for transfer encoding $type does not work: $@
 Compiling the required transfer encoding resulted in errors, which means
 that the decoder can not be used.
 
@@ -84,17 +84,11 @@ that the decoder can not be used.
 sub create($@)
 {	my ($class, $type) = (shift, shift);
 
-	my $encoder = $encoder{lc $type};
-	unless($encoder)
-	{	$class->new(@_)->log(WARNING => "No decoder for transfer encoding $type.");
-		return;
-	}
+	my $encoder = $encoder{lc $type}
+		or error __x"no decoder for transfer encoding {type}.", type => $type;
 
 	eval "require $encoder";
-	if($@)
-	{	$class->new(@_)->log(ERROR => "Decoder for transfer encoding $type does not work:\n$@");
-		return;
-	}
+	$@ and error __x"decoder for transfer encoding {type} does not work:\n{error}", type => $type, error => $@;
 
 	$encoder->new(@_);
 }

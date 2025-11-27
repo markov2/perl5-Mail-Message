@@ -13,8 +13,6 @@ use Log::Report   'mail-message';
 use Mail::Message::Head::Complete ();
 use Mail::Message::Field          ();
 
-use Carp         qw/croak/;
-
 #--------------------
 =chapter NAME
 
@@ -73,7 +71,7 @@ still insist, use M<Mail::Message::body()>.
      Received => 'from ... by ...');
   $msg->bounce($rg)->send;
 
-=error Method bounce requires To, Cc, or Bcc
+=error method bounce requires To, Cc, or Bcc.
 The message M<bounce()> method forwards a received message off to someone
 else without modification; you must specified it's new destination.
 If you have the urge not to specify any destination, you probably
@@ -106,8 +104,7 @@ sub bounce(@)
 	{	$rg = Mail::Message::Head::ResentGroup->new(@_);
 	}
 	else
-	{	$self->log(ERROR => "Method bounce requires To, Cc, or Bcc");
-		return undef;
+	{	error __x"method bounce requires To, Cc, or Bcc.";
 	}
 
 	$rg->set(Date => Mail::Message::Field->toDate) unless defined $rg->date;

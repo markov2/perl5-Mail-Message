@@ -12,7 +12,6 @@ use warnings;
 use Log::Report   'mail-message';
 
 use Encode    ();
-use Carp;
 
 #--------------------
 =chapter NAME
@@ -53,7 +52,6 @@ When the second argument is a field, then both attribute name (case-sensitive)
 and the decoded value must be the same.  Otherwise, the value is compared.
 =cut
 
-use Carp 'cluck';
 use overload
 	'""' => sub { $_[0]->value },
 	cmp  => sub {
@@ -118,7 +116,7 @@ but not supported by some Mail User Agents.
   print $fn;
     # -->  filename*=iso-8859-15'nl-BE'Re%C7u
 
-=warning Illegal character in parameter name '$name'
+=warning illegal character in parameter name '$name'.
 The specified parameter name contains characters which are not permitted by
 the RFCs.  You can better change the name into something which is accepted,
 or risk applications to corrupt or ignore the message.
@@ -138,7 +136,7 @@ sub init($$)
 	my ($attr, $value, $cont) = @$args{ qw/attr value use_continuations/ };
 
 	my $name  = ($attr =~ m/^(.*?)(?:\*\d+)?\*?\s*\=\s*/ ? $1 : $attr);
-	$self->log(WARNING => "Illegal character in parameter name '$name'.")
+	warning __x"illegal character in parameter name '{name}'.", name => $name
 		if $name !~ m/^[!#-'*+\-.0-9A-Z^-~]+$/;
 
 	$self->{MMFF_name}     = $name;
@@ -284,7 +282,7 @@ sub encode()
 	{	# Simple string, but with continuations
 		while(1)
 		{	push @lines, $pre.'"'. substr($value, 0, 75-length($pre), '') .'"';
-			last unless length $value;
+			length $value or last;
 			$pre = $name . '*' . @lines . '=';
 		}
 
@@ -339,13 +337,13 @@ Merge the components from the specified attribute into this attribute.  This
 is needed when components of the same attribute are created separately.
 Merging is required by the field parsing.
 
-=error Too late to merge: value already changed.
+=error too late to merge: value already changed.
 =cut
 
 sub mergeComponent($)
 {	my ($self, $comp) = @_;
 	my $cont  = $self->{MMFF_cont}
-		or croak "ERROR: Too late to merge: value already changed.";
+		or error __x"too late to merge: value already changed.";
 
 	$self->addComponent($_) for @{$comp->{MMFF_cont}};
 	$self;

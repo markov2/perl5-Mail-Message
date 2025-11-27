@@ -42,7 +42,7 @@ implementation is based on RFC7601.
 
 =default attributes <ignored>
 
-=requires server DOMAIN
+=requires server $domain
 Where the authentication tool ran.  This should be your local service,
 otherwise you may accept spoofed headers!
 
@@ -202,13 +202,13 @@ sub produceBody()
 =method addAttribute ...
 Attributes are not supported here.
 
-=error No attributes for Authentication-Results
+=error no attributes for Authentication-Results.
 Is is not possible to add attributes to this field.
 =cut
 
 sub addAttribute($;@)
 {	my $self = shift;
-	$self->log(ERROR => 'No attributes for Authentication-Results.');
+	error __x"no attributes for Authentication-Results.";
 	$self;
 }
 

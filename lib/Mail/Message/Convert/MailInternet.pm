@@ -13,7 +13,6 @@ use Log::Report   'mail-message';
 
 use Mail::Internet ();
 use Mail::Header   ();
-use Carp;
 
 use Mail::Message                 ();
 use Mail::Message::Head::Complete ();
@@ -61,13 +60,15 @@ instance of a Mail::Message.
   my $convert = Mail::Message::Convert::MailInternet->new;
   my Mail::Message  $msg   = Mail::Message->new;
   my Mail::Internet $copy  = $convert->export($msg);
+
+=error export message must be a Mail::Message, but is a {kind}.
 =cut
 
 sub export($@)
 {	my ($thing, $message) = (shift, shift);
 
 	$message->isa('Mail::Message')
-		or croak "Export message must be a Mail::Message, but is a ".(ref $message).".";
+		or error __x"export message must be a Mail::Message, but is a {kind}.", kind => ref $message;
 
 	my $mi_head = Mail::Header->new;
 	foreach my $field ($message->head->orderedFields)
@@ -85,6 +86,8 @@ from a Mail::Internet object.
   my $convert = Mail::Message::Convert::MailInternet->new;
   my Mail::Internet $msg  = Mail::Internet->new;
   my Mail::Message  $copy = $convert->from($msg);
+
+=error converting from Mail::Internet but got a {class}.
 =cut
 
 my @pref_order = qw/From To Cc Subject Date In-Reply-To References Content-Type/;
@@ -93,7 +96,7 @@ sub from($@)
 {	my ($thing, $mi) = (shift, shift);
 
 	$mi->isa('Mail::Internet')
-		or croak "Converting from Mail::Internet but got a ".(ref $mi).'.';
+		or error __x"converting from Mail::Internet but got a {class}.", class => ref $mi;
 
 	my $head = Mail::Message::Head::Complete->new;
 	my $body = Mail::Message::Body::Lines->new(data => [ @{$mi->body} ]);
@@ -101,7 +104,7 @@ sub from($@)
 	my $mi_head = $mi->head;
 
 	# The tags of Mail::Header are unordered, but we prefer some ordering.
-	my %tags = map {lc $_ => ucfirst $_} $mi_head->tags;
+	my %tags = map +(lc $_ => ucfirst $_), $mi_head->tags;
 	my @tags;
 	foreach (@pref_order)
 	{	push @tags, $_ if delete $tags{lc $_};

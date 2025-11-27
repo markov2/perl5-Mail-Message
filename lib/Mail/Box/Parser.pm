@@ -11,8 +11,6 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use Carp;
-
 #--------------------
 =chapter NAME
 
@@ -140,7 +138,7 @@ sub defaultParserType(;$)
 	if(@_)
 	{	$parser_type = shift;
 		return $parser_type if $parser_type->isa( __PACKAGE__ );
-		confess "Parser $parser_type does not extend " . __PACKAGE__ . "\n";
+		panic "Parser $parser_type does not extend " . __PACKAGE__;
 	}
 
 	# Already determined which parser we want?

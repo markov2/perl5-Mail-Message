@@ -67,7 +67,7 @@ Converts a text message into text using Text::Autoformat.
 
 =c_method new %options
 
-=option  fields NAMES|ARRAY-OF-NAMES|REGEXS
+=option  fields $name|$regex|\@names|\@regexes
 =default fields <see description>
 
 Select the fields of a header which are to be handled.  Other
@@ -77,7 +77,6 @@ a need for header line selection.
 By default, the C<To>, C<From>, C<Cc>, C<Bcc>, C<Date>, C<Subject>, and their
 C<Resent-> counterparts will be selected.  Specify an empty list to get all
 fields.
-
 =cut
 
 sub init($)

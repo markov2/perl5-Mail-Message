@@ -90,16 +90,14 @@ sub date() { $_[0]->{MMFD_date} }
 =method addAttribute ...
 Attributes are not supported for date fields.
 
-=error No attributes for date fields.
+=error no attributes for date fields.
 It is not possible to add attributes to date fields: it is not permitted
 by the RFCs.
-
 =cut
 
 sub addAttribute($;@)
 {	my $self = shift;
-	$self->log(ERROR => 'No attributes for date fields.');
-	$self;
+	error __x"no attributes for date fields.";
 }
 
 =method time

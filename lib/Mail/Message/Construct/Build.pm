@@ -144,20 +144,21 @@ Start with a prepared header, otherwise one is created.
     data   => "<html></html>",
   );
 
-=error Only build() Mail::Message's; they are not in a folder yet
+=error only build() Mail::Message's; they are not in a folder yet.
 You may wish to construct a message to be stored in a some kind
 of folder, but you need to do that in two steps.  First, create a
 normal Mail::Message, and then add it to the folder.  During this
 M<Mail::Box::addMessage()> process, the message will get M<coerce()>-d
 into the right message type, adding storage information and the like.
 
+=warning skipped unknown key '$key' in build.
 =cut
 
 sub build(@)
 {	my $class = shift;
 
 	! $class->isa('Mail::Box::Message')
-		or $class->log(ERROR => "Only build() Mail::Message's; they are not in a folder yet"), return undef;
+		or error __x"only build() Mail::Message's; they are not in a folder yet.";
 
 	my @parts
 	  = ! blessed $_[0] ? ()
@@ -212,7 +213,7 @@ sub build(@)
 		elsif($key =~ m/^[A-Z]/)
 		{	push @headerlines, $key, $value }
 		else
-		{	$class->log(WARNING => "Skipped unknown key '$key' in build");
+		{	warning __x"skipped unknown key '{key}' in build.", key => $key;
 		}
 
 		push @parts, grep defined, @data;
@@ -271,13 +272,12 @@ supplied.
 
 sub buildFromBody(@)
 {	my ($class, $body) = (shift, shift);
-	my @log     = $body->logSettings;
 
 	my $head;
 	if(blessed $_[0] && $_[0]->isa('Mail::Message::Head')) { $head = shift }
 	else
 	{	defined $_[0] or shift;   # explicit undef as head
-		$head = Mail::Message::Head::Complete->new(@log);
+		$head = Mail::Message::Head::Complete->new;
 	}
 
 	while(@_)
@@ -285,7 +285,7 @@ sub buildFromBody(@)
 		else              { $head->add(shift, shift) }
 	}
 
-	my $message = $class->new(head => $head, @log);
+	my $message = $class->new(head => $head);
 	$message->body($body);
 
 	# be sure the message-id is actually stored in the header.

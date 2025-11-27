@@ -11,6 +11,8 @@ use warnings;
 
 use Log::Report   'mail-message';
 
+use Scalar::Util  qw/blessed/;
+
 #--------------------
 =chapter NAME
 
@@ -68,7 +70,7 @@ sub new(@)
 {	my $class = shift;
 
 	my @fields;
-	push @fields, shift while ref $_[0];
+	push @fields, shift while blessed $_[0];
 
 	$class->SUPER::new(@_, fields => \@fields);
 }
@@ -281,10 +283,8 @@ sub collectFields(;$) { $_[0]->notImplemented }
 =section Error handling
 
 =method print [$fh]
-
 Print the group to the specified $fh.  This is probably only useful for
 debugging purposed.  The output defaults to the selected file handle.
-
 =cut
 
 sub print(;$)
@@ -294,10 +294,8 @@ sub print(;$)
 }
 
 =method details
-
 Produce information about the detected/created field group, which may be
 helpful during debugging.  A nicely formatted string is returned.
-
 =cut
 
 sub details()

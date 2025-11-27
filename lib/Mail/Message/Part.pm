@@ -12,7 +12,6 @@ use warnings;
 use Log::Report   'mail-message';
 
 use Scalar::Util    qw/weaken/;
-use Carp;
 
 #--------------------
 =chapter NAME
@@ -53,6 +52,7 @@ Reference to the parental Mail::Message::Body object where this part
 is a member of.  That object may be a Mail::Message::Body::Multipart
 or a Mail::Message::Body::Nested.
 
+=error no container specified for part.
 =cut
 
 sub init($)
@@ -62,7 +62,7 @@ sub init($)
 	$self->SUPER::init($args);
 
 	exists $args->{container}
-		or confess "No container specified for part.\n";
+		or error __x"no container specified for part.";
 
 	weaken($self->{MMP_container})
 		if $self->{MMP_container} = $args->{container};
@@ -111,15 +111,14 @@ No extra headers are fabricated automatically.
 
 sub buildFromBody($$;@)
 {	my ($class, $body, $container) = (shift, shift, shift);
-	my @log  = $body->logSettings;
 
-	my $head = Mail::Message::Head::Complete->new(@log);
+	my $head = Mail::Message::Head::Complete->new;
 	while(@_)
 	{	if(ref $_[0]) {$head->add(shift)}
 		else          {$head->add(shift, shift)}
 	}
 
-	my $part = $class->new(head => $head, container => $container, @log);
+	my $part = $class->new(head => $head, container => $container);
 
 	$part->body($body);
 	$part;
@@ -127,7 +126,7 @@ sub buildFromBody($$;@)
 
 sub container(;$)
 {	my $self = shift;
-	return $self->{MMP_container} unless @_;
+	@_ or return $self->{MMP_container};
 
 	$self->{MMP_container} = shift;
 	weaken($self->{MMP_container});
@@ -143,7 +142,7 @@ sub isPart() { 1 }
 
 sub partNumber()
 {	my $self = shift;
-	my $body = $self->container or confess 'no container';
+	my $body = $self->container or panic 'no container';
 	$body->partNumberOf($self);
 }
 
@@ -151,7 +150,7 @@ sub readFromParser($;$)
 {	my ($self, $parser, $bodytype) = @_;
 
 	my $head = $self->readHead($parser) //
-		Mail::Message::Head::Complete->new(message => $self, field_type => $self->{MM_field_type}, $self->logSettings);
+		Mail::Message::Head::Complete->new(message => $self, field_type => $self->{MM_field_type});
 
 	my $body = $self->readBody($parser, $head, $bodytype) //
 		Mail::Message::Body::Lines->new(data => []);
@@ -184,15 +183,14 @@ be forcefully freed from memory.  Of course, you can M<delete()> separate
 parts, which only sets a flag not to write a part again.  Furthermore,
 you may cosider M<rebuild()> to get rit of deleted parts.
 
-=error You cannot destruct message parts, only whole messages
+=error you cannot destruct message parts, only whole messages.
 Message parts can not be destructed per part: only whole messages can
 be forcefully freed from memory. Consider M<delete()> or M<rebuild()>.
 =cut
 
 sub destruct()
 {	my $self = shift;
-	$self->log(ERROR =>'You cannot destruct message parts, only whole messages');
-	undef;
+	error __x"you cannot destruct message parts, only whole messages.";
 }
 
 1;

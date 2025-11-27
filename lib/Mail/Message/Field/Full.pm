@@ -387,20 +387,19 @@ header fields.
 [3.002] When the name of the field is given, the first encoded line will
 be shorter.
 
-=warning Illegal character in charset '$charset'
+=warning illegal character in charset '$name'.
 The field is created with an utf8 string which only contains data from the
 specified character set.  However, that character set can never be a valid
 name because it contains characters which are not permitted.
 
-=warning Illegal character in language '$lang'
+=warning illegal character in language '$name'.
 The field is created with data which is specified to be in a certain language,
 however, the name of the language cannot be valid: it contains characters
 which are not permitted by the RFCs.
 
-=warning Illegal encoding '$encoding', used 'q'
+=warning illegal encoding '$name', using 'q'.
 The RFCs only permit base64 (C<b > or C<B >) or quoted-printable
 (C<q> or C<Q>) encoding.  Other than these four options are illegal.
-
 =cut
 
 sub _mime_word($$) { "$_[0]$_[1]?=" }
@@ -420,7 +419,7 @@ sub encode($@)
 	my ($charset, $lang, $encoding);
 
 	if($charset = $args{charset})
-	{	$self->log(WARNING => "Illegal character in charset '$charset'")
+	{	warning __x"illegal character in charset '{name}'.", name => $charset
 			if $charset =~ m/[\x00-\ ()<>@,;:"\/[\]?.=\\]/;
 	}
 	else
@@ -428,13 +427,13 @@ sub encode($@)
 	}
 
 	if($lang = $args{language})
-	{	$self->log(WARNING => "Illegal character in language '$lang'")
+	{	warning __x"illegal character in language '{name}'.", name => $lang
 			if $lang =~ m/[\x00-\ ()<>@,;:"\/[\]?.=\\]/;
 	}
 
 	if($encoding = $args{encoding})
 	{	unless($encoding =~ m/^[bBqQ]$/ )
-		{	$self->log(WARNING => "Illegal encoding '$encoding', used 'q'");
+		{	warning __x"illegal encoding '{name}', using 'q'.", name => $encoding;
 			$encoding = 'q';
 		}
 	}

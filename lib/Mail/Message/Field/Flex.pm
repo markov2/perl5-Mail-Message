@@ -11,8 +11,6 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use Carp;
-
 #--------------------
 =chapter NAME
 

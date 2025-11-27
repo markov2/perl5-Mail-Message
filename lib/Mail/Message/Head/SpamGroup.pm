@@ -11,8 +11,6 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use Carp 'confess';
-
 #--------------------
 =chapter NAME
 
@@ -89,8 +87,8 @@ sub fighter($;@)
 
 	if(@_)
 	{	my %args   = @_;
-		defined $args{fields} or confess "Spamfighters require fields\n";
-		defined $args{isspam} or confess "Spamfighters require isspam\n";
+		defined $args{fields} or panic "requires fields";
+		defined $args{isspam} or panic "requires isspam";
 		$fighters{$name} = \%args;
 
 		my @fields = map $_->{fields}, values %fighters;
@@ -155,11 +153,10 @@ sub from($@)
 
 	foreach my $type (@types)
 	{	$self = $class->new(head => $head) unless defined $self;
-		next unless $self->collectFields($type);
+		$self->collectFields($type) or next;
 
 		my %fighter = $self->fighter($type);
-		my ($software, $version)
-			= defined $fighter{version} ? $fighter{version}->($self, $head) : ();
+		my ($software, $version) = defined $fighter{version} ? $fighter{version}->($self, $head) : ();
 
 		$self->detected($type, $software, $version);
 		$self->spamDetected( $fighter{isspam}->($self, $head) );
@@ -173,8 +170,7 @@ sub from($@)
 
 sub collectFields($)
 {	my ($self, $set) = @_;
-	my %fighter = $self->fighter($set)
-		or confess "ERROR: No spam set $set.";
+	my %fighter = $self->fighter($set) or panic "no spam set $set";
 
 	my @names = map $_->name, $self->head->grepNames($fighter{fields});
 	$self->addFields(@names) if @names;

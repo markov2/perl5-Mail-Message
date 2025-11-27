@@ -38,10 +38,10 @@ yourself, you probably need to use Mail::Message::Construct::Read.
 
 sub init(@)
 {	my ($self, $args) = @_;
-	$self->SUPER::init($args) or return;
+	$self->SUPER::init($args);
 
-	$self->{MBPL_lines}  = $args->{lines}  or die "No lines";
-	$self->{MBPL_source} = $args->{source} or die "No source";
+	$self->{MBPL_lines}  = $args->{lines}  or panic "No lines";
+	$self->{MBPL_source} = $args->{source} or panic "No source";
 	$self;
 }
 
@@ -60,6 +60,9 @@ sub source() { $_[0]->{MBPL_source} }
 
 #--------------------
 =section Parsing
+
+=method readHeader
+=warning unexpected end of header in $source:\n $line
 =cut
 
 my $is_empty_line = qr/^\015?\012?$/;
@@ -69,7 +72,7 @@ sub readHeader()
 	my $lines = $self->lines;
 	my @ret;
 
-LINE:
+  LINE:
 	while(@$lines)
 	{	my $line = shift @$lines;
 		last if $line =~ $is_empty_line;
@@ -77,7 +80,7 @@ LINE:
 		my ($name, $body) = split /\s*\:\s*/, $line, 2;
 
 		unless(defined $body)
-		{	$self->log(WARNING => "Unexpected end of header in ".$self->source.":\n $line");
+		{	warning __x"unexpected end of header in {source}:\n {line}", source => $self->source, line => $line;
 
 			if(@ret && $self->fixHeaderErrors)
 			{	$ret[-1][1] .= ' '.$line;  # glue err line to previous field
@@ -143,7 +146,7 @@ sub _read_stripped_lines(;$$)
 
 	if(@$seps)
 	{
-	LINE:
+	  LINE:
 		while(1)
 		{	my $line  = shift @$lines or last LINE;
 

@@ -14,7 +14,6 @@ use Log::Report   'mail-message';
 use Mail::Message::Head::Complete;
 use Mail::Message::Field::Fast;
 
-use Carp;
 use Scalar::Util   qw/weaken/;
 
 #--------------------
@@ -111,11 +110,11 @@ be upgraded to a Mail::Message::Head::Complete --a full head.
 The type of objects that all the fields will have.  This must be
 an extension of Mail::Message::Field.
 
-=option  message MESSAGE
+=option  message $message
 =default message undef
-The MESSAGE where this header belongs to.  Usually, this is not known
+The $message where this header belongs to.  Usually, this is not known
 at creation of the header, but sometimes it is.  If not, call the
-message() method later to set it.
+M<message()> method later to set it.
 =cut
 
 sub new(@)
@@ -279,16 +278,16 @@ sub get($;$)
 		  : $index == 0           ? $value
 		  :    undef;
 	}
-	elsif(wantarray)
+
+	if(wantarray)
 	{	return ! defined $value   ? ()
 		  : ref $value eq 'ARRAY' ? @$value
 		  :    ($value);
 	}
-	else
-	{	return ! defined $value   ? undef
-		  : ref $value eq 'ARRAY' ? $value->[-1]
-		  :    $value;
-	}
+
+	    ! defined $value      ? undef
+	  : ref $value eq 'ARRAY' ? $value->[-1]
+	  :    $value;
 }
 
 sub get_all(@) { my @all = shift->get(@_) }   # compatibility, force list
@@ -327,7 +326,7 @@ May trigger completion, when the C<Content-Type> field is not defined.
 =cut
 
 sub isMultipart()
-{	my $type = shift->get('Content-Type', 0);
+{	my $type = $_[0]->get('Content-Type', 0);
 	$type && scalar $type->body =~ m[^multipart/]i;
 }
 
@@ -346,9 +345,9 @@ sub read($)
 	my @fields = $parser->readHeader;
 	@$self{ qw/MMH_begin MMH_end/ } = (shift @fields, shift @fields);
 
-	my $type   = $self->{MMH_field_type} || 'Mail::Message::Field::Fast';
+	my $type   = $self->{MMH_field_type} // 'Mail::Message::Field::Fast';
 
-	$self->addNoRealize($type->new( @$_ )) for @fields;
+	$self->addNoRealize( $type->new(@$_) ) for @fields;
 	$self;
 }
 

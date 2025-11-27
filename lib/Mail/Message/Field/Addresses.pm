@@ -15,6 +15,7 @@ use Mail::Message::Field::AddrGroup ();
 use Mail::Message::Field::Address   ();
 
 use List::Util      qw/first/;
+use Scalar::Util    qw/blessed/;
 
 #--------------------
 =chapter NAME
@@ -25,11 +26,8 @@ Mail::Message::Field::Addresses - Fields with e-mail addresses
 
   my $cc = Mail::Message::Field::Full->new('Cc');
   my $me = Mail::Message::Field::Address->parse('"Test" <test@mail.box>')
-     or die;
-
   my $other = Mail::Message::Field::Address->new(phrase => 'Other',
-        address => 'other@example.com')
-     or die;
+        address => 'other@example.com');
 
   $cc->addAddress($me);
   $cc->addAddress($other, group => 'them');
@@ -96,8 +94,7 @@ sub init($)
 		delete $args->{body};
 	}
 
-	$self->SUPER::init($args) or return;
-	$self;
+	$self->SUPER::init($args);
 }
 
 #--------------------
@@ -117,7 +114,7 @@ M<Mail::Message::Field::Address::new()>.
 
 sub addAddress(@)
 {	my $self  = shift;
-	my $email = @_ && ref $_[0] ? shift : undef;
+	my $email = blessed $_[0] ? shift : undef;
 	my %args  = @_;
 	my $group = delete $args{group} // '';
 
@@ -185,19 +182,22 @@ sub addresses() { map $_->addresses, $_[0]->groups }
 =method addAttribute ...
 Attributes are not supported for address fields.
 
-=error No attributes for address fields.
+=error no attributes for address fields.
 Is is not possible to add attributes to address fields: it is not permitted
 by the RFCs.
 =cut
 
 sub addAttribute($;@)
 {	my $self = shift;
-	$self->log(ERROR => 'No attributes for address fields.');
-	$self;
+	error __x"no attributes for address fields.";
 }
 
 #--------------------
 =section Parsing
+
+=method parse $string
+=warning ignoring addressless phrase '$phrase'.
+=warning illegal part in address field $name: $part.
 =cut
 
 sub parse($)
@@ -246,7 +246,7 @@ sub parse($)
 			my $angle;
 			if($string =~ s/^\s*\<([^>]*)\>//s) { $angle = $1 }
 			elsif($real_phrase)
-			{	$self->log(WARNING => "Ignore unrelated phrase `$1'")
+			{	warning __x"ignoring addressless phrase '{phrase}'.", phrase => $1
 					if $string =~ s/^\s*\"(.*?)\r?\n//;
 				next ADDRESS;
 			}
@@ -258,7 +258,7 @@ sub parse($)
 			($comment, $string) = $self->consumeComment($string);
 
 			# remove obsoleted route info.
-			return 1 unless defined $angle;
+			defined $angle or return 1;
 			$angle =~ s/^\@.*?\://;
 
 			($email, $angle) = $self->consumeAddress($angle, phrase => $phrase, comment => $comment);
@@ -271,13 +271,13 @@ sub parse($)
 		last if $start_length == length $string;
 	}
 
-	$self->log(WARNING => 'Illegal part in address field '.$self->Name. ": $string\n");
-
+	warning __x"illegal part in address field {name}: {part}.", name => $self->Name, part => $string;
 	0;
 }
 
 sub produceBody()
-{	my @groups = sort {$a->name cmp $b->name} shift->groups;
+{	my $self   = shift;
+	my @groups = sort { $a->name cmp $b->name } $self->groups;
 
 	@groups     or return '';
 	@groups > 1 or return $groups[0]->string;

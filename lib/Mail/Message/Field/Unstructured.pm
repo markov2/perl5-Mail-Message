@@ -52,8 +52,8 @@ returned.
   my $s = Mail::Message::Field::Full->new('Comment', 'Hi!');
   my $s = Mail::Message::Field::Full->new('Comment: Hi!');
 
-=warning Attributes are not supported for unstructured fields
-=warning No extras for unstructured fields
+=warning attributes are not supported for unstructured fields.
+=warning no extras for unstructured fields.
 =cut
 
 sub init($)
@@ -63,14 +63,10 @@ sub init($)
 	{	$args->{body} = $self->encode($args->{body}, %$args);
 	}
 
-	$self->SUPER::init($args) or return;
+	$self->SUPER::init($args);
 
-	! defined $args->{attributes}
-		or $self->log(WARNING => "Attributes are not supported for unstructured fields");
-
-	! defined $args->{extra}
-		or $self->log(WARNING => "No extras for unstructured fields");
-
+	! defined $args->{attributes} or warning __x"attributes are not supported for unstructured fields.";
+	! defined $args->{extra}      or warning __x"no extras for unstructured fields.";
 	$self;
 }
 

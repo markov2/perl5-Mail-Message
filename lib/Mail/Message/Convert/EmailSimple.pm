@@ -14,7 +14,6 @@ use Log::Report   'mail-message';
 use Mail::Internet  ();
 use Mail::Header    ();
 use Email::Simple   ();
-use Carp;
 
 use Mail::Message                 ();
 use Mail::Message::Head::Complete ();
@@ -67,13 +66,14 @@ instance of a Mail::Message.
   my Mail::Message  $msg   = Mail::Message->new;
   my Mail::Internet $copy  = $convert->export($msg);
 
+=error export message must be a Mail::Message, but is a {class}.
 =cut
 
 sub export($@)
-{	my ($thing, $message) = (shift, shift);
+{	my ($thing, $message) = @_;
 
 	$message->isa('Mail::Message')
-		or croak "Export message must be a Mail::Message, but is a ".ref($message).".";
+		or error __x"export message must be a Mail::Message, but is a {class}.", class => ref $message;
 
 	Email::Simple->new($message->string);
 }
@@ -86,13 +86,15 @@ an Email::Simple.
   my $convert = Mail::Message::Convert::EmailSimple->new;
   my Mail::Internet $msg  = Mail::Internet->new;
   my Mail::Message  $copy = $convert->from($msg);
+
+=error converting from Email::Simple but got a {class}.
 =cut
 
 sub from($@)
 {	my ($thing, $email) = (shift, shift);
 
 	$email->isa('Email::Simple')
-		or croak "Converting from Email::Simple but got a ".ref($email).'.';
+		or error __x"converting from Email::Simple but got a {class}.", class => ref $email;
 
 	Mail::Message->read($email->as_string);
 }

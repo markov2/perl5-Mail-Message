@@ -47,7 +47,6 @@ PaperSize, PaperWidth, RightMargin, TopMargin, and VerticalMargin.
 sub init($)
 {	my ($self, $args)  = @_;
 	my @formopts = map +($_ => delete $args->{$_}), grep m/^[A-Z]/, keys %$args;
-
 	$self->SUPER::init($args);
 
 	$self->{MMCH_formatter} = HTML::FormatPS->new(@formopts);

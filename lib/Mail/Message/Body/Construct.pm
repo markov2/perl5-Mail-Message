@@ -11,7 +11,6 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use Carp;
 use Scalar::Util  qw/blessed/;
 
 use Mail::Message::Body::String ();
@@ -94,6 +93,7 @@ Specify a list of text @components.  Each component can be
   # all arguments are Mail::Message::Body's.
   my $sum = $body->concatenate($preamble, $body, $epilogue, "-- \n" , $sig);
 
+=error cannot concatenate element $which
 =cut
 
 sub concatenate(@)
@@ -103,14 +103,14 @@ sub concatenate(@)
 	my @unified;
 	foreach (grep defined, @_)
 	{	push @unified,
-		  ! ref $_          ? $_
-		: ref $_ eq 'ARRAY' ? @$_
-		: $_->isa('Mail::Message')       ? $_->body->decoded
-		: $_->isa('Mail::Message::Body') ? $_->decoded
-		: carp "Cannot concatenate element ".$_;
+			  ! ref $_          ? $_
+			: ref $_ eq 'ARRAY' ? @$_
+			: $_->isa('Mail::Message')       ? $_->body->decoded
+			: $_->isa('Mail::Message::Body') ? $_->decoded
+			: 	error(__x"cannot concatenate element {which}", which => $_);
 	}
 
-	ref($self)->new(
+	(ref $self)->new(
 		based_on  => $self,
 		mime_type => 'text/plain',
 		data      => join('', @unified),
@@ -208,28 +208,29 @@ sub stripSignature($@)
 
 	return $self if $self->mimeType->isBinary;
 
-	my $pattern = !defined $args{pattern} ? qr/^--\s?$/
-				: !ref $args{pattern}     ? qr/^\Q${args{pattern}}/
-				:                           $args{pattern};
+	my $p       = $args{pattern};
+	my $pattern = ! defined $p ? qr/^--\s?$/
+				: ! ref $p     ? qr/^\Q$p/
+				:    $p;
 
 	my $lines   = $self->lines;   # no copy!
-	my $stop    = defined $args{max_lines}? @$lines - $args{max_lines}
-				: exists $args{max_lines} ? 0
-				:                           @$lines-10;
+	my $stop    = defined $args{max_lines} ? @$lines - $args{max_lines}
+				: exists $args{max_lines}  ? 0
+				:    @$lines-10;
 
 	$stop = 0 if $stop < 0;
 	my ($sigstart, $found);
 
 	if(ref $pattern eq 'CODE')
 	{	for($sigstart = $#$lines; $sigstart >= $stop; $sigstart--)
-		{	next unless $pattern->($lines->[$sigstart]);
+		{	$pattern->($lines->[$sigstart]) or next;
 			$found = 1;
 			last;
 		}
 	}
 	else
 	{	for($sigstart = $#$lines; $sigstart >= $stop; $sigstart--)
-		{	next unless $lines->[$sigstart] =~ $pattern;
+		{	$lines->[$sigstart] =~ $pattern or next;
 			$found = 1;
 			last;
 		}

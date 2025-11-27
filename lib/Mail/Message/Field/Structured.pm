@@ -163,7 +163,7 @@ sub beautify()   { delete $_[0]->{MMFF_body} }
 Returns a list with attribute name and value pairs.
 =cut
 
-sub attrPairs() { map +($_->name, $_->value), $_[0]->attributes }
+sub attrPairs()  { map +($_->name, $_->value), $_[0]->attributes }
 
 #--------------------
 =section Parsing

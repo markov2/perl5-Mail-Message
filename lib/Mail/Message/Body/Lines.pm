@@ -14,8 +14,6 @@ use Log::Report   'mail-message';
 use Mail::Box::Parser ();
 use IO::Lines         ();
 
-use Carp;
-
 #--------------------
 =chapter NAME
 
@@ -39,7 +37,7 @@ for inspecting message bodies).
 
 =c_method new %options
 
-=error Unable to read file $filename for message body lines: $!
+=fault unable to read file $name for message body lines: $!
 A Mail::Message::Body::Lines object is to be created from a named file,
 but it is impossible to read that file to retrieve the lines within.
 
@@ -49,7 +47,7 @@ sub _data_from_filename(@)
 {	my ($self, $filename) = @_;
 
 	open my $in, '<:raw', $filename
-		or $self->log(ERROR => "Unable to read file $filename for message body lines: $!"), return;
+		or fault __x"unable to read file {name} for message body lines", name => $filename;
 
 	$self->{MMBL_array} = [ $in->getlines ];
 	$in->close;

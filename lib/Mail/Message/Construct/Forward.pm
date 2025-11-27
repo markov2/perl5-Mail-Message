@@ -51,9 +51,9 @@ one message remains, it will be the added as single attachment, otherwise
 a nested multipart will be the result.  The value of this option does not
 matter, as long as it is present.  See C<Mail::Message::Body::Multipart>.
 
-=option  body OBJECT
+=option  body $body
 =default body undef
-If you specify a fully prepared body OBJECT, it will be used as forwarded
+If you specify a fully prepared $body object, it will be used as forwarded
 message contents.  In this case, only the headers are constructed for you.
 
 =option  include 'NO'|'INLINE'|'ATTACH'|'ENCAPSULATE'
@@ -70,22 +70,22 @@ It is only possible to inline textual messages, therefore binary or
 multi-part messages will always be enclosed as attachment.
 Read the details in section L</Creating a forward>.
 
-=requires To ADDRESSES
-The destination of your message. Obligatory.  The ADDRESSES may be
-specified as string, a Mail::Address object, or as array of
+=requires To $string|$address|\@addresses
+The destination of your message. Obligatory.  The addresses may be
+specified as string, a Mail::Address object, or as ARRAY of
 Mail::Address objects.
 
-=option  From ADDRESSES
+=option  From $string|$address|\@addresses
 =default From <'to' in current>
 Your identification, by default taken from the P<To> field of the
 source message.
 
-=option  Bcc ADDRESSES
+=option  Bcc $string|$address|\@addresses
 =default Bcc undef
 Receivers of blind carbon copies: their names will not be published to
 other message receivers.
 
-=option  Cc ADDRESSES
+=option  Cc $string|$address|\@addresses
 =default Cc undef
 The carbon-copy receivers, by default none.
 
@@ -106,26 +106,23 @@ subroutine specified by CODE.  The subroutine will be called passing
 the subject of the original message as only argument.  By default,
 the M<forwardSubject()> method is used.
 
-=option  preamble STRING|BODY
+=option  preamble STRING|$body
 =default preamble C<constructed from prelude and postlude>
 Part which is attached before the forwarded message.  If no preamble
 is given, then it is constructed from the prelude and postlude.  When
 these are also not present, you will still get a one liner: the result
 of M<forwardPrelude()>
 
-=option  signature BODY|MESSAGE
+=option  signature $body|$message
 =default signature undef
 The signature to be added in case of a multi-part forward.  The mime-type
 of the signature body should indicate this is a used as such.  However,
 in INLINE mode, the body will be taken, a line containing C<'-- '> added
 before it, and added behind the epilogue.
 
-=error Cannot include forward source as $include.
+=error Cannot include forward source as $kind.
 Unknown alternative for the M<forward(include)>.  Valid choices are
 C<NO>, C<INLINE>, C<ATTACH>, and C<ENCAPSULATE>.
-
-=error No address to create forwarded to.
-If a forward message is created, a destination address must be specified.
 
 =cut
 
@@ -148,7 +145,7 @@ sub forward(@)
 	return $self->forwardAttach(@_)      if $include eq 'ATTACH';
 	return $self->forwardEncapsulate(@_) if $include eq 'ENCAPSULATE';
 
-	$self->log(ERROR => 'Cannot include forward source as $include.');
+	error __x"cannot include forward source as {kind}.", kind => $include;
 	undef;
 }
 
@@ -159,15 +156,20 @@ M<forwardAttach()>, or M<forwardEncapsulate()>.
 
 The %options are the same as for C<forward()> except that P<body> is
 required.  Some other options, like C<preamble>, are ignored.
+
 =requires body BODY
 
+=error method forwardNo requires a body.
+=error method forwardNo requires a To.
 =cut
 
 sub forwardNo(@)
 {	my ($self, %args) = @_;
-
 	my $body = $args{body}
-		or $self->log(INTERNAL => "No body supplied for forwardNo()");
+		or error __x"method forwardNo requires a body.";
+
+	my $to   = $args{To}
+		or error __x"method forwardNo requires a To.";
 
 	#
 	# Collect header info
@@ -181,10 +183,6 @@ sub forwardNo(@)
 	{	my @from = $self->to;
 		$from    = \@from if @from;
 	}
-
-	# To whom to send
-	my $to = $args{To}
-		or $self->log(ERROR => "No address to create forwarded to."), return;
 
 	# Create a subject
 	my $srcsub  = $args{Subject};
@@ -217,7 +215,7 @@ sub forwardNo(@)
 	# Ready
 
 	$self->label(passed => 1);
-	$self->log(PROGRESS => "Forward created from $origid");
+	trace "Forward created from $origid";
 	$forward;
 }
 
@@ -233,13 +231,13 @@ C<include> and C<body>.
 Passed to M<Mail::Message::Body::stripSignature(max_lines)>.  Only
 effective for single-part messages.
 
-=option  prelude BODY
+=option  prelude $body
 =default prelude undef
 The line(s) which will be added before the quoted forwarded lines.
 If nothing is specified, the result of the M<forwardPrelude()> method
 is used.  When undef is specified, no prelude will be added.
 
-=option  postlude BODY
+=option  postlude $body
 =default postlude undef
 The line(s) which to be added after the quoted reply lines.  Create a
 body for it first.  This should not include the signature, which has its
@@ -338,7 +336,7 @@ which is provided as body object is required, and any specified C<body>
 is ignored.
 
 =requires preamble BODY|PART
-=error Method forwardAttach requires a preamble
+=error method forwardAttach requires a preamble.
 =cut
 
 sub forwardAttach(@)
@@ -352,7 +350,7 @@ sub forwardAttach(@)
 	}
 
 	my $preamble = $args{preamble}
-		or $self->log(ERROR => 'Method forwardAttach requires a preamble'), return;
+		or error __x"method forwardAttach requires a preamble.";
 
 	my @parts = ($preamble, $body);
 	push @parts, $args{signature} if defined $args{signature};
@@ -372,14 +370,14 @@ is ignored.  Signatures are not stripped.  Signatures are not stripped.
 
 =requires preamble BODY|PART
 
-=error Method forwardEncapsulate requires a preamble
+=error method forwardEncapsulate requires a preamble.
 =cut
 
 sub forwardEncapsulate(@)
 {	my ($self, %args) = @_;
 
 	my $preamble = $args{preamble}
-		or $self->log(ERROR => 'Method forwardEncapsulate requires a preamble'), return;
+		or error __x"method forwardEncapsulate requires a preamble.";
 
 	my $nested   = Mail::Message::Body::Nested->new(nested => $self->clone);
 	my @parts    = ($preamble, $nested);

@@ -63,7 +63,7 @@ sub new(@)
 
 sub init($)
 {	my ($self, $args) = @_;
-	defined $self->SUPER::init($args) or return;
+	$self->SUPER::init($args);
 
 	$self->modify($args->{Modify} || $args->{Reformat} || 0);
 	$self->fold_length($args->{FoldLength} || 79);
@@ -155,9 +155,10 @@ sub modify(;$)
 =method mail_from ['IGNORE'|'ERROR'|'COERCE'|'KEEP']
 What to do when a header line in the form `From ' is encountered. Valid
 values are P<IGNORE> - ignore and discard the header, P<ERROR> - invoke
-an error (call die), P<COERCE> - rename them as Mail-From and P<KEEP>
+an error (die), P<COERCE> - rename them as Mail-From and P<KEEP>
 - keep them.
 
+=error bad Mail-From choice: '{pick}'.
 =cut
 
 sub mail_from(;$)
@@ -166,7 +167,7 @@ sub mail_from(;$)
 
 	my $choice = uc(shift);
 	$choice =~ /^(IGNORE|ERROR|COERCE|KEEP)$/
-		or die "bad Mail-From choice: '$choice'";
+		or error __x"bad Mail-From choice: '{pick}'.", pick => $choice;
 
 	$self->{MH_mail_from} = $choice;
 }
@@ -247,13 +248,13 @@ If you are using this method, you must be stupid... anyway: I do not want to
 support it for now: use M<add()> and friends.
 =cut
 
-sub header_hashref($) { die "Don't use header_hashref!!!" }
+sub header_hashref($) { panic "Don't use header_hashref!!!" }
 
 =method combine $tag, [$with]
 I do not see any valid reason for this command, so did not implement it.
 =cut
 
-sub combine($;$) { die "Don't use combine()!!!" }
+sub combine($;$) { panic "Don't use combine()!!!" }
 
 =method exists
 Returns whether there are any fields.

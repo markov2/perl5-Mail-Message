@@ -46,9 +46,7 @@ This implementation is based on RFC6376.
 sub init($)
 {	my ($self, $args) = @_;
 	$self->{MMFD_tags} = +{ v => 1, a => 'rsa-sha256' };
-
 	$self->SUPER::init($args);
-	$self;
 }
 
 sub parse($)
@@ -77,14 +75,13 @@ sub produceBody()
 =method addAttribute ...
 Attributes are not supported here.
 
-=error No attributes for DKIM headers
+=error no attributes for DKIM headers.
 Is is not possible to add attributes to this field.
 =cut
 
 sub addAttribute($;@)
 {	my $self = shift;
-	$self->log(ERROR => 'No attributes for DKIM headers.');
-	$self;
+	error __x"no attributes for DKIM headers.";
 }
 
 =method addTag $name, $value|@values
@@ -105,7 +102,6 @@ Returns the value for the named tag.
 =cut
 
 sub tag($) { $_[0]->{MMFD_tags}{lc $_[1]} }
-
 
 #--------------------
 =subsection DKIM-Signature tags

@@ -88,10 +88,9 @@ line.  Passed to M<Mail::Message::Replace::MailHeader::new(FoldLength)>.
   use Mail::Message::Replace::MailInternet;
   my $mi = Mail::Internet->new(@options);
 
-=error Mail::Internet does not support this kind of data
-The ARGS data can only be a file handle or an ARRAY.  Other data types
+=error Mail::Internet does not support '$kind' data.
+The data can only be a file handle or an ARRAY.  Other data types
 are not supported (see M<read()> if you want to have more).
-
 =cut
 
 sub new(@)
@@ -106,8 +105,7 @@ sub init($)
 	$args->{head_type} ||= 'Mail::Message::Replace::MailHeader';
 	$args->{head}      ||= $args->{Header};
 	$args->{body}      ||= $args->{Body};
-
-	defined $self->SUPER::init($args) or return;
+	$self->SUPER::init($args);
 
 	$self->{MI_wrap}      = $args->{FoldLength} || 79;
 	$self->{MI_mail_from} = $args->{MailFrom};
@@ -133,8 +131,7 @@ sub processRawData($$$)
 		$lines    = [ $data->getlines ];
 	}
 	else
-	{	$self->log(ERROR=> "Mail::Internet does not support this kind of data");
-		return undef;
+	{	error __x"Mail::Internet does not support '{kind EL(30)}' data.", kind => ref $data // $data;
 	}
 
 	@$lines or return;
@@ -375,7 +372,7 @@ method of Mail::Message.
 sub head(;$)
 {	my $self = shift;
 	return $self->SUPER::head(@_) if @_;
-	$self->SUPER::head || $self->{MM_head_type}->new(message => $self);
+	$self->SUPER::head // $self->{MM_head_type}->new(message => $self);
 }
 
 =method header [\@lines]
@@ -483,7 +480,7 @@ sub body(@)
 
 	unless(@_)
 	{	my $body = $self->body;
-		return defined $body ? scalar($body->lines) : [];
+		return defined $body ? (scalar $body->lines) : [];
 	}
 
 	my $data = ref $_[0] eq 'ARRAY' ? shift : \@_;
@@ -514,9 +511,8 @@ M<Mail::Message::Body::stripSignature()>.
 =cut
 
 sub remove_sig(;$)
-{	my $self  = shift;
-	my $lines = shift || 10;
-	my $stripped = $self->decoded->stripSignature(max_lines => $lines);
+{	my ($self, $lines) = @_;
+	my $stripped = $self->decoded->stripSignature(max_lines => $lines // 10);
 	$self->body($stripped) if defined $stripped;
 	$stripped;
 }
@@ -635,6 +631,6 @@ M<Mail::Message::coerce()> accepts) into an Mail::Internet simulating
 object.
 =cut
 
-sub coerce() { confess }
+sub coerce() { $_[0]->notImplemented }
 
 1;

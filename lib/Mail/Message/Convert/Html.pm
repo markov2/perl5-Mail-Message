@@ -11,8 +11,6 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use Carp;
-
 #--------------------
 =chapter NAME
 
@@ -47,6 +45,7 @@ Whether to replace e-mail addresses in some header lines with links.
 Produce HTML or XHTML output.  The output is slightly different, even
 html browsers will usually accept the XHTML data.
 
+=error produce XHTML or HTML, not {kind}.
 =cut
 
 sub init($)
@@ -59,7 +58,7 @@ sub init($)
 	$self->{MMCH_tail}
 	  = $produce eq 'HTML'  ?   '>'
 	  : $produce eq 'XHTML' ? ' />'
-	  :   carp "Produce XHTML or HTML, not $produce.";
+	  :    error __x"produce XHTML or HTML, not {kind}.", kind => $produce;
 
 	$self;
 }

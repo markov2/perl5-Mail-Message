@@ -9,12 +9,12 @@ use parent 'Mail::Reporter';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report      'mail-message';
 
-use Carp;
 use Mail::Address    ();
 use IO::Handle       ();
 use Date::Format     qw/strftime/;
+use Scalar::Util     qw/blessed/;
 
 our %_structured;  # not to be used directly: call isStructured!
 my $default_wrap_length = 78;
@@ -134,9 +134,9 @@ Returns the total length of the field in characters, which includes the
 field's name, body and folding characters.
 =cut
 
-sub length { length shift->folded }
+sub length { length $_[0]->folded }
 
-=ci_method isStructured
+=ci_method isStructured [$name]
 Some fields are described in the RFCs as being I<structured>: having a
 well described syntax.  These fields have common ideas about comments
 and the like, what they do not share with unstructured fields, like
@@ -162,7 +162,7 @@ BEGIN {
 }
 
 sub isStructured(;$)
-{	my $name  = ref $_[0] ? shift->name : $_[1];
+{	my $name  = $_[1] // (blessed $_[0] ? $_[0]->name : panic);
 	exists $_structured{lc $name};
 }
 
@@ -184,7 +184,8 @@ M<folded()>. However, the optional $wrap will cause to re-fold to take
 place (without changing the folding stored inside the field).
 =cut
 
-sub toString(;$) {shift->string(@_)}
+sub toString(;$) { shift->string(@_) }
+
 sub string(;$)
 {	my $self  = shift;
 	return $self->folded unless @_;
@@ -494,7 +495,7 @@ sub attributes()
 Returns the value which is related to this field as integer.  A check is
 performed whether this is right.
 
-=warning Field content is not numerical: $content
+=warning field content is not numerical: $content
 The numeric value of a field is requested (for instance the C<Lines> or
 C<Content-Length> fields should be numerical), however the data contains
 weird characters.
@@ -505,7 +506,7 @@ sub toInt()
 	$self->body =~ m/^\s*(\d+)\s*$/
 		and return $1;
 
-	$self->log(WARNING => "Field content is not numerical: ". $self->toString);
+	warning __x"field content is not numerical: {content}", content => $self->toString;
 	undef;
 }
 
@@ -622,11 +623,10 @@ This method is called by M<new()>, and usually not by an application
 program. The details about converting the $objects to a field content
 are explained in L</Specifying field data>.
 
-=warning Illegal character in field name $name
+=warning illegal character in field name $name.
 A new field is being created which does contain characters not permitted
 by the RFCs.  Using this field in messages may break other e-mail clients
 or transfer agents, and therefore mutulate or extinguish your message.
-
 =cut
 
 sub consume($;$)
@@ -634,7 +634,8 @@ sub consume($;$)
 	my ($name, $body) = defined $_[1] ? @_ : split(/\s*\:\s*/, (shift), 2);
 
 	$name !~ m/[^\041-\071\073-\176]/
-		or Mail::Reporter->log(WARNING => "Illegal character in field name $name");
+		or warning __x"illegal character in field name '{name}'.", name => $name;
+panic $name if $name =~ m/[^\041-\071\073-\176]/;
 
 	#
 	# Compose the body.
@@ -731,7 +732,7 @@ as possible.
 The RFC requests for folding on nice spots, but this request is
 mainly ignored because it would make folding too slow.
 
-=error Field name too long (max $length), in '$name'
+=error field name too long (max $count), in '$name'.
 It is not specified in the RFCs how long a field name can be, but
 at least it should be a few characters shorter than the line wrap.
 =cut
@@ -748,7 +749,7 @@ sub fold($$;$)
 
 	my $lname = CORE::length($name);
 	$lname <= $wrap -5  # Cannot find a real limit in the spec
-		or $thing->log(ERROR => "Field name too long (max ".($wrap-5)."), in '$name'"), return ();
+		or error __x"field name too long (max {count}), in '{name}'.", count => $wrap - 5, name => $name;
 
 	my @folded;
 	while(1)
@@ -1132,8 +1133,7 @@ fast, the flexible, and the full understander:
 
 C<Fast> objects are not derived from a C<Mail::Reporter>.  The consideration
 is that fields are so often created, and such a small objects at the same
-time, that setting-up a logging for each of the objects is relatively
-expensive and not really useful.
+time.
 The fast field implementation uses an array to store the data: that
 will be faster than using a hash.  Fast fields are not easily inheritable,
 because the object creation and initiation is merged into one method.

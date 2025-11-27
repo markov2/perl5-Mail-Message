@@ -11,11 +11,11 @@ use warnings;
 
 use Log::Report   'mail-message';
 
-use Mail::Message::Field::Fast ();
-
 use Scalar::Util  qw/weaken/;
 use Sys::Hostname qw/hostname/;
 use Mail::Address ();
+
+use Mail::Message::Field::Fast ();
 
 #--------------------
 =chapter NAME
@@ -93,7 +93,7 @@ it selects one of these addresses as the main originator of the message.
 
 =option  Message-ID $text|$field
 =default Message-ID <uniquely created>
-The C<Resent-Message-ID> which identifies this resent group.  The FIELD
+The C<Resent-Message-ID> which identifies this resent group.  The $field
 must contain a message id.
 
 =option  Return-Path $text|$field
@@ -101,13 +101,6 @@ must contain a message id.
 
 =option  Delivered-To $text|$field
 =default Delivered-To undef
-
-=error Message header required for creation of ResentGroup.
-It is required to know to which header the resent-group
-is created.  Use the P<head> option.  Maybe you should use
-M<Mail::Message::Head::Complete::addResentGroup()> with DATA, which will
-organize the correct initiations for you.
-
 =cut
 
 # all lower cased!
@@ -143,7 +136,7 @@ is returned, taken from the specified $message or message $head.
 =cut
 
 sub from($@)
-{	return $_[0]->resentFrom if @_ == 1;   # backwards compat
+{	@_==1 and return $_[0]->resentFrom;   # backwards compat
 
 	my ($class, $from, %args) = @_;
 	my $head = $from->isa('Mail::Message::Head') ? $from : $from->head;
@@ -284,7 +277,7 @@ local system time.
 =cut
 
 sub receivedTimestamp()
-{	my $received = shift->received or return;
+{	my $received = $_[0]->received or return;
 	my $comment  = $received->comment or return;
 	Mail::Message::Field->dateToTimestamp($comment);
 }

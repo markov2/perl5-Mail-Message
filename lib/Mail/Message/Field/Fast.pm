@@ -32,17 +32,14 @@ many of these lines, so speed is very important here.
 =chapter METHODS
 =cut
 
-#
 # The DATA is stored as:   [ NAME, FOLDED-BODY ]
 # The body is kept in a folded fashion, where each line starts with
 # a single blank.
 
 =c_method new ($line | $name, $body, [$attributes]), %options
-
 The constructor of this object does not follow the usual practise within
 the Mail::Box suite: it does not use the constructor
 M<Mail::Reporter::new()>.
-Therefor it has no logging or tracing facilities.
 
 The method can be used in one of the following ways:
 
@@ -102,9 +99,6 @@ But in practice, you can simply call
 which implicitly calls this constructor (when needed).  You can specify
 the same things for M<Mail::Message::Head::Complete::add()> as this
 C<new> accepts.
-
-=default log   <disabled>
-=default trace <disabled>
 =cut
 
 sub new($;$@)

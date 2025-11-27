@@ -46,13 +46,13 @@ You may reply to a whole message or a message part.  You may wish to
 overrule some of the default header settings for the reply immediately,
 or you may do that later with C<set> on the header.
 
-ADDRESSES may be specified as string, or
-a Mail::Address object, or as array of Mail::Address objects.
+Addresses may be specified as string, or a Mail::Address object, or as
+array of Mail::Address objects.
 
 All %options which are not listed below AND start with a capital, will
 be added as additional headers to the reply message.
 
-=option  body BODY
+=option  body $body
 =default body undef
 Usually, the reply method can create a nice, sufficient message from the
 source message's body.  In case you like more complicated reformatting,
@@ -86,15 +86,15 @@ the correct folder message type when it is added to that folder.
 Passed to C<stripSignature> on the body as parameter C<max_lines>.  Only
 effective for single-part messages.
 
-=option  prelude BODY|LINES
+=option  prelude $body|\@lines
 =default prelude undef
-The line(s) which will be added before the quoted reply lines.  If nothing
+The @lines which will be added before the quoted reply lines.  If nothing
 is specified, the result of the M<replyPrelude()> method
 is taken.  When undef is specified, no prelude will be added.
 
-=option  postlude BODY|LINES
+=option  postlude $body|\@lines
 =default postlude undef
-The line(s) which to be added after the quoted reply lines.  Create a
+The @lines which to be added after the quoted reply lines.  Create a
 body for it first.  This should not include the signature, which has its
 own option.  The signature will be added after the postlude when the
 reply is INLINEd.
@@ -108,7 +108,7 @@ line is in C<$_>.
 By default, C<'E<gt> '> is added before each line.  Specify undef to
 disable quoting.  This option is processed after the body has been decoded.
 
-=option  signature BODY|MESSAGE
+=option  signature $body|$message
 =default signature undef
 The signature to be added in case of a multi-part reply.  The mime-type
 of the signature body should indicate this is a used as such.  However,
@@ -128,24 +128,24 @@ one message remains, it will be the added as single attachment, otherwise
 a nested multipart will be the result.  The value of this option does not
 matter, as long as it is present.  See Mail::Message::Body::Multipart.
 
-=option  To ADDRESSES
+=option  To $body|$address|\@addresses
 =default To <sender in current>
 The destination of your message.  By default taken from the C<Reply-To>
 field in the source message.  If that field is not present as well, the
 P<From> line is scanned.  If they all fail, undef is returned by this
 method: no reply message produced.
 
-=option  From ADDRESSES
+=option  From $body|$address|\@addresses
 =default From <'to' in current>
 Your identification, by default taken from the P<To> field of the
 source message.
 
-=option  Bcc ADDRESSES
+=option  Bcc $body|$address|\@addresses
 =default Bcc undef
 Receivers of blind carbon copies: their names will not be published to
 other message receivers.
 
-=option  Cc ADDRESSES
+=option  Cc $body|$address|\@addresses
 =default Cc <'cc' in current>
 The carbon-copy receivers, by default a copy of the P<Cc> field of
 the source message.
@@ -173,10 +173,9 @@ M<Mail::Message::replySubject()> is used.
     'X-Extra'       => 'additional header',
   );
 
-=error Cannot include reply source as $include.
+=error cannot include reply source as $kind.
 Unknown alternative for the P<include> option of M<reply()>.  Valid
 choices are C<NO>, C<INLINE>, and C<ATTACH>.
-
 =cut
 
 # tests in t/55reply1r.t, demo in the examples/ directory
@@ -221,8 +220,7 @@ sub reply(@)
 		}
 	}
 	else
-	{	$self->log(ERROR => "Cannot include reply source as $include.");
-		return;
+	{	error __x"cannot include reply source as {kind}.", kind => $include;
 	}
 
 	#
@@ -252,9 +250,9 @@ sub reply(@)
 	# Create a subject
 	my $srcsub  = delete $args{Subject};
 	my $subject
-	= ! defined $srcsub ? $self->replySubject($self->subject)
-	: ref $srcsub       ? $srcsub->($self->subject)
-	:                     $srcsub;
+	  = ! defined $srcsub ? $self->replySubject($self->subject)
+	  : ref $srcsub       ? $srcsub->($self->subject)
+	  :    $srcsub;
 
 	# Create a nice message-id
 	my $msgid   = delete $args{'Message-ID'};
@@ -268,7 +266,7 @@ sub reply(@)
 	my $prelude
 	  = defined $args{prelude} ? $args{prelude}
 	  : exists $args{prelude}  ? undef
-	  :   [ $self->replyPrelude($to) ];
+	  :    [ $self->replyPrelude($to) ];
 
 	$prelude     = Mail::Message::Body->new(data => $prelude)
 		if defined $prelude && ! blessed $prelude;
@@ -312,7 +310,7 @@ sub reply(@)
 		for sort grep /^[A-Z]/, keys %args;
 
 	# Ready
-	$self->log(PROGRESS => 'Reply created from '.$origid);
+	trace "Reply created from $origid";
 	$self->label(replied => 1);
 	$reply;
 }

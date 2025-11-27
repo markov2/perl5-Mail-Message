@@ -79,25 +79,21 @@ The $object may currently be a Mail::Address, a Mail::Identity, or
 a User::Identity.  In case of the latter, one of the user's addresses
 is chosen at random.
 
-=error Cannot coerce a $type into a Mail::Message::Field::Address
+=error cannot coerce a $type into a $class
 When addresses are specified to be included in header fields, they may
 be coerced into Mail::Message::Field::Address objects first.  What
 you specify is not accepted as address specification.  This may be an
 internal error.
-
 =cut
 
 sub coerce($@)
 {	my ($class, $addr, %args) = @_;
-	return () unless defined $addr;
-
+	defined $addr or return ();
 	blessed $addr or return $class->parse($addr);
 	$addr->isa($class) and return $addr;
 
-	my $from = $class->from($addr, %args);
-
-	Mail::Reporter->log(ERROR => "Cannot coerce a ".ref($addr)." into a $class"),
-	return () unless defined $from;
+	my $from = $class->from($addr, %args)
+		or error __x"cannot coerce a {type} into a {class}.", type => ref $addr // $addr, class => $class;
 
 	bless $from, $class;
 }
@@ -110,12 +106,10 @@ sub init($)
 }
 
 =method parse STRING
-
 Parse the string for an address.  You never know whether one or more
 addresses are specified on a line (often applications are wrong), therefore,
 the STRING is first parsed for as many addresses as possible and then the
 one is taken at random.
-
 =cut
 
 sub parse($)

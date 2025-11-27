@@ -11,7 +11,6 @@ use warnings;
 
 use Log::Report     'mail-message';
 
-use Carp;
 use Scalar::Util     qw/weaken refaddr blessed/;
 use File::Basename   qw/basename/;
 
@@ -116,12 +115,12 @@ already in place.  The options will not trigger conversions.  When you
 need conversions, first create a body with options which tell what you've
 got, and then call M<encode()> for what you need.
 
-=option  based_on BODY
+=option  based_on $body
 =default based_on undef
-The information about encodings must be taken from the specified BODY,
+The information about encodings must be taken from the specified $body,
 unless specified differently.
 
-=option  charset CHARSET|'PERL'|<undef>
+=option  charset $charset|'PERL'|<undef>
 =default charset 'PERL'
 Defines the character-set which is used in the data.  Only useful in
 combination with a P<mime_type> which refers to C<text> in any shape,
@@ -139,7 +138,7 @@ Whether the added information has been check not to contain illegal
 octets with respect to the transfer encoding and mime type.  If not
 checked, and then set as body for a message, it will be.
 
-=option  data ARRAY-OF-LINES | STRING
+=option  data \@lines|$text
 =default data undef
 The content of the body.  The only way to set the content of a body
 is during the creation of the body.  So if you want to modify the content
@@ -149,26 +148,26 @@ and body information must be guaranteed.  It avoids your hassle in
 calculating the number of lines in the body, and checking whether bad
 characters are enclosed in text.
 
-Specify a reference to an ARRAY of lines, each terminated by a newline.
-Or one STRING which may contain multiple lines, separated and terminated
+Specify @lines each terminated by a newline, or one $text which may
+contain multiple lines, separated and terminated
 by a newline.
 
-=option  description STRING|FIELD
+=option  description STRING|$field
 =default description undef
 Informal information about the body content.  The data relates to the
 C<Content-Description> field.  Specify a STRING which will become the
-field content, or a real FIELD.
+field content, or a real $field object.
 
-=option  language    STRING|ARRAY|LIST|FIELD
+=option  language    STRING|\@lang|$field
 =default language    undef
 [3.017] RFC3282 C<Content-Language> field, containing a comma separated
 list of language codes.
 
-=option  disposition STRING|FIELD
+=option  disposition STRING|$field
 =default disposition undef
 How this message can be decomposed.  The data relates to the
 C<Content-Disposition> field.  Specify a STRING which will become the
-field content, or a real FIELD.
+field content, or a real $field.
 
 The content of this field is specified in RFC 1806.  The body of the
 field can be C<inline>, to indicate that the body is intended to be
@@ -209,23 +208,23 @@ BE WARNED that folders with a non-native encoding may appear on your
 platform, for instance in Windows folders handled from a UNIX system.
 The eol encoding has effect on the size of the body!
 
-=option  file FILENAME|FILEHANDLE|IOHANDLE
+=option  file $file|$handle|$io
 =default file undef
-Read the data from the specified file, file handle, or object of
+Read the data from the specified $file name, file $handle, or object of
 type C<IO::Handle>.
 
-=option  filename FILENAME
+=option  filename $file
 =default filename undef
-[3.001] Overrule/set filename for content-disposition
+[3.001] Overrule/set $file name for content-disposition.
 
-=option  message MESSAGE
+=option  message $message
 =default message undef
-The message where this body belongs to.
+The $message where this body belongs to.
 
-=option  mime_type STRING|FIELD|MIME
+=option  mime_type STRING|$field|$mime
 =default mime_type C<'text/plain'>
 The type of data which is added.  You may specify a content of a header
-line as STRING, or a FIELD object.  You may also specify a MIME::Type
+line as STRING, or a $field object.  You may also specify a MIME::Type
 object.  In any case, it will be kept internally as
 a real field (a Mail::Message::Field object).  This relates to the
 C<Content-Type> header field.
@@ -236,15 +235,15 @@ specific classes with C<text> are C<plain>, C<html>, and C<xml>.  This
 field is case-insensitive but case preserving.  The default mime-type
 is C<text/plain>,
 
-=option  transfer_encoding STRING|FIELD
+=option  transfer_encoding STRING|$field
 =default transfer_encoding C<'none'>
 The encoding that the data has.  If the data is to be encoded, than you
 will have to call M<encode()> after the body is created.  That will
-return a new encoded body.  This field is case-insensitive and relates
+return a new encoded body.  This $field is case-insensitive and relates
 to the C<Content-Transfer-Encoding> field in the header.
 
 =option  modified BOOLEAN
-=default modified <false>
+=default modified false
 Whether the body is flagged modified, directly from its creation.
 
 =examples
@@ -262,15 +261,15 @@ Whether the body is flagged modified, directly from its creation.
      mime_type => 'image/gif', content_id => '<12345@example.com>',
      disposition => 'inline');
 
+=error message body: illegal datatype '$type' for file option.
+=error message body: illegal datatype '$type' for data option.
 =cut
 
 my $body_count = 0;  # to be able to compare bodies for equivalence.
 
 sub new(@)
 {	my $class = shift;
-
-	$class eq __PACKAGE__
-		or return $class->SUPER::new(@_);
+	$class eq __PACKAGE__ or return $class->SUPER::new(@_);
 
 	my %args  = @_;
 	exists $args{file} ? Mail::Message::Body::File->new(@_) : Mail::Message::Body::Lines->new(@_);
@@ -283,7 +282,6 @@ sub _data_from_lines(@)      { $_[0]->notImplemented }
 
 sub init($)
 {	my ($self, $args) = @_;
-
 	$self->SUPER::init($args);
 
 	$self->{MMB_modified} = $args->{modified} || 0;
@@ -302,7 +300,7 @@ sub init($)
 		{	$self->_data_from_filehandle($file) or return;
 		}
 		else
-		{	croak "message body: illegal datatype `".ref($file)."' for file option";
+		{	error __x"message body: illegal datatype '{type}' for file option.", type => ref $file // $file;
 		}
 	}
 	elsif(defined(my $data = $args->{data}))
@@ -315,7 +313,7 @@ sub init($)
 		{	$self->_data_from_lines($data) or return;
 		}
 		else
-		{	croak "message body: illegal datatype `".ref($data)."' for data option";
+		{	error __x"message body: illegal datatype '{type}' for data option.", type => ref $data // $data;
 		}
 	}
 	elsif(! $self->isMultipart && ! $self->isNested)
@@ -325,8 +323,7 @@ sub init($)
 
 	# Set the content info
 
-	my ($transfer, $disp, $descr, $cid, $lang) = @$args{
-		qw/transfer_encoding disposition description content_id language/ };
+	my ($transfer, $disp, $descr, $cid, $lang) = @$args{ qw/transfer_encoding disposition description content_id language/ };
 
 	if(defined $filename)
 	{	$disp //= Mail::Message::Field->new(
@@ -465,11 +462,11 @@ sub isNested() {0}
 =method partNumberOf $part
 Returns a string for multiparts and nested, otherwise an error.  It is
 used in M<Mail::Message::partNumber()>.
+=error part number needs multi-part or nested.
 =cut
 
 sub partNumberOf($)
-{	shift->log(ERROR => 'part number needs multi-part or nested');
-	'ERROR';
+{	error __x"part number needs multi-part or nested.";
 }
 
 #--------------------
@@ -511,7 +508,7 @@ sub type(;$)
 	delete $self->{MMB_mime};
 	my $type = shift // 'text/plain';
 
-	$self->{MMB_type} = ref $type ? $type->clone : Mail::Message::Field->new('Content-Type' => $type);
+	$self->{MMB_type} = blessed $type ? $type->clone : Mail::Message::Field->new('Content-Type' => $type);
 }
 
 =method mimeType
@@ -664,7 +661,7 @@ Returns the number of lines in the message body.  For multi-part messages,
 this includes the header lines and boundaries of all the parts.
 =cut
 
-sub nrLines(@)  { $_[0]->notImplemented }
+sub nrLines(@) { $_[0]->notImplemented }
 
 =method size
 The total number of bytes in the message body. The size of the body
@@ -673,7 +670,7 @@ encoded message, the size of the encoded data is returned; you may
 want to call M<Mail::Message::decoded()> first.
 =cut
 
-sub size(@)  { $_[0]->notImplemented }
+sub size(@)    { $_[0]->notImplemented }
 
 #--------------------
 =section Access to the payload
@@ -687,7 +684,7 @@ a copy of the internally kept information.
   print "Body: $body\n";     # by overloading
 =cut
 
-sub string() { $_[0]->notImplemented }
+sub string()   { $_[0]->notImplemented }
 
 sub string_unless_carp()
 {	my $self  = shift;
@@ -763,26 +760,32 @@ decode the body before writing it!
 =example write the data to a file
   use File::Temp;
   my $fn = tempfile;
-  $message->decoded->write(filename => $fn)
-     or die "Couldn't write to $fn: $!\n";
+  $message->decoded->write(filename => $fn);
 
 =example using the content-disposition information to write
   use File::Temp;
   my $dir = tempdir; mkdir $dir or die;
   my $fn  = $message->body->dispositionFilename($dir);
-  $message->decoded->write(filename => $fn)
-     or die "Couldn't write to $fn: $!\n";
+  $message->decoded->write(filename => $fn);
 
+=error no filename parameter for write() body.
+=fault cannot open {file} to write body: $!
+=fault __x"error closing {file} after write body: $!
 =cut
 
 sub write(@)
 {	my ($self, %args) = @_;
 	my $filename = $args{filename}
-		or die "No filename for write() body";
+		or error __x"no filename parameter for write() body.";
 
-	open my $out, '>', $filename or return;
+#XXX encoding?
+	open my $out, '>', $filename
+		or fault __x"cannot open {file} to write body", file => $filename;
+
 	$self->print($out);
-	$out->close or return undef;
+	$out->close
+		or fault __x"error closing {file} after write body", file => $filename;
+
 	$self;
 }
 
@@ -955,7 +958,7 @@ sub AUTOLOAD(@)
 	return $self->$call(@_) if $self->can($call);  # now loaded
 
 	# AUTOLOAD inheritance is a pain
-	confess "Method $call() is not defined for a ", ref $self;
+	panic "method $call() is not defined for a " . ref $self;
 }
 
 #--------------------

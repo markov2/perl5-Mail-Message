@@ -87,7 +87,7 @@ the parser class otherwise taken.
 =examples
 
   my $msg1 = Mail::Message->read(\*STDIN);
-  my $msg2 = Mail::Message->read(\@lines, log => 'PROGRESS');
+  my $msg2 = Mail::Message->read(\@lines);
   $folder->addMessages($msg1, $msg2);
 
   my $msg3 = Mail::Message->read(<<MSG);
@@ -103,6 +103,7 @@ the parser class otherwise taken.
   my $coerced  = $mboxfolder->addMessage($msg);
   $coerced->fromLine($fromline);
 
+=error cannot read message from a $source}.
 =cut
 
 sub _scalar2lines($)
@@ -146,7 +147,7 @@ sub read($@)
 			$lines  = _scalar2lines \$_[1]->getline;
 		}
 		else
-		{	$class->log(ERROR => "Cannot read message from $_[1]/$ref");
+		{	error __x"cannot read message from a {source}.", source => $_[1]/$ref;
 			return undef;
 		}
 
@@ -158,13 +159,10 @@ sub read($@)
 
 	my $self = $class->new(%args);
 	$self->readFromParser($parser, $body_type);
-	$self->addReport($parser);
-
 	$parser->stop;
 
 	my $head = $self->head;
-	$head->get('Message-ID')
-		or $head->set('Message-ID' => '<'.$self->messageId.'>');
+	$head->set('Message-ID' => '<'.$self->messageId.'>') unless $head->get('Message-ID');
 
 	$head->delete('Status', 'X-Status')
 		if $strip_status;

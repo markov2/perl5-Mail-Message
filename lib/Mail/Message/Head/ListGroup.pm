@@ -63,7 +63,7 @@ Address of the mailing list, which may be specified as STRING
 or e-mail containing object (a Mail::Address or Mail::Identity.
 In any case, the data is converted into a Mail::Identity.
 
-=error Cannot convert "$string" into an address object
+=error cannot convert "$string" into an address object.
 The M<new(address)> is coerced into a Mail::Message::Field::Address,
 which fails.  Have a look at M<Mail::Message::Field::Address::coerce()>
 to see what valid arguments are.
@@ -78,10 +78,8 @@ sub init($$)
 	   if(!defined $address) { ; }
 	elsif(!ref $address || !$address->isa('Mail::Message::Field::Address'))
 	{	require Mail::Message::Field::Address;
-		my $mi   = Mail::Message::Field::Address->coerce($address);
-
-		defined $mi
-			or $self->log(ERROR => "Cannot convert \"$address\" into an address object"), return;
+		my $mi   = Mail::Message::Field::Address->coerce($address)
+			or error __x"cannot convert '{address}' into an address object.", address => $address;
 
 		$address = $mi;
 	}

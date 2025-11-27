@@ -19,17 +19,7 @@ use Mail::Message::Body::Lines     ();
 use Mail::Message::Body::Multipart ();
 use Mail::Message::Body::Nested    ();
 
-use Carp;
 use Scalar::Util   qw/weaken blessed/;
-
-BEGIN {
-	unless($ENV{HARNESS_ACTIVE}) {   # no tests during upgrade
-		# v3 splits Mail::Box in a few distributions
-		eval { require Mail::Box };
-		my $v = $Mail::Box::VERSION || 3;
-		$v >= 3 or die "You need to upgrade the Mail::Box module";
-	}
-}
 
 #--------------------
 =chapter NAME
@@ -234,7 +224,7 @@ sub clone(@)
 	my ($head, $body) = ($self->head, $self->body);
 	$head = $head->clone unless $args{shallow} || $args{shallow_head};
 	$body = $body->clone unless $args{shallow} || $args{shallow_body};
-	my $clone  = Mail::Message->new(head => $head, body => $body, $self->logSettings);
+	my $clone  = Mail::Message->new(head => $head, body => $body);
 
 	my $labels = $self->labels;
 	my %labels = %$labels;
@@ -476,9 +466,7 @@ sub head(;$)
 	{	delete $self->{MM_head};
 		return undef;
 	}
-
-	blessed $head && $head->isa('Mail::Message::Head')
-		or $self->log(INTERNAL => "wrong type of head ($head) for message $self");
+	blessed $head && $head->isa('Mail::Message::Head') or panic;
 
 	$head->message($self);
 
@@ -738,9 +726,7 @@ sub body(;$@)
 		$body->message(undef) if defined $body;
 		return $body;
 	}
-
-	blessed $rawbody && $rawbody->isa('Mail::Message::Body')
-		or $self->log(INTERNAL => "wrong type of body for message $rawbody");
+	blessed $rawbody && $rawbody->isa('Mail::Message::Body') or panic;
 
 	# Bodies of real messages must be encoded for safe transmission.
 	# Message parts will get encoded on the moment the whole multipart
@@ -836,6 +822,7 @@ each part of the message; each part as P<RECURSE> would return.
   my @parts = $msg->parts;           # returns ($msg)
   my $parts = $msg->parts('ACTIVE'); # returns ()
 
+=error select parts via '$what'?
 =cut
 
 sub parts(;$)
@@ -855,7 +842,7 @@ sub parts(;$)
 	: $what eq 'DELETED'  ? (grep $_->isDeleted, @parts)
 	: $what eq 'ALL'      ? @parts
 	: $recurse            ? @parts
-	:    confess "Select parts via $what?";
+	:    error __x"select parts via '{what}'?", what => $what;
 }
 
 #--------------------
@@ -1106,8 +1093,11 @@ Simpler replacement for the previous two lines:
 
   my $coerced = $folder->addMessage($message);
 
-=error coercion starts with some object
-=error Cannot coerce a $class object into a $class object
+=error coercion starts with some object, not '$type'.
+=error please install MIME::Entity.
+=error please install Mail::Internet.
+=error please install Email::Simple.
+=error cannot coerce a $type object into a $me object.
 =cut
 
 my $mail_internet_converter;
@@ -1118,7 +1108,7 @@ sub coerce($@)
 {	my ($class, $message) = @_;
 
 	blessed $message
-		or die "coercion starts with some object";
+		or error __x"coercion starts with some object, not '{type}'.", type => ref $message // $message ;
 
 	return $message
 		if ref $message eq $class;
@@ -1132,7 +1122,7 @@ sub coerce($@)
 	if($message->isa('MIME::Entity'))
 	{	unless($mime_entity_converter)
 		{	eval {require Mail::Message::Convert::MimeEntity};
-			$@ and confess "Install MIME::Entity";
+			$@ and error __x"please install MIME::Entity.";
 			$mime_entity_converter = Mail::Message::Convert::MimeEntity->new;
 		}
 
@@ -1142,8 +1132,8 @@ sub coerce($@)
 
 	elsif($message->isa('Mail::Internet'))
 	{	unless($mail_internet_converter)
-		{	eval {require Mail::Message::Convert::MailInternet};
-			$@ and confess "Install Mail::Internet";
+		{	eval { require Mail::Message::Convert::MailInternet };
+			$@ and error __x"please install Mail::Internet.";
 			$mail_internet_converter = Mail::Message::Convert::MailInternet->new;
 		}
 
@@ -1154,7 +1144,7 @@ sub coerce($@)
 	elsif($message->isa('Email::Simple'))
 	{	unless($email_simple_converter)
 		{	eval {require Mail::Message::Convert::EmailSimple};
-			$@ and confess "Install Email::Simple";
+			$@ and error __x"please install Email::Simple.";
 			$email_simple_converter = Mail::Message::Convert::EmailSimple->new;
 		}
 
@@ -1167,7 +1157,7 @@ sub coerce($@)
 	}
 
 	else
-	{	$class->log(INTERNAL =>  "Cannot coerce a ". ref($message) . " object into a ". __PACKAGE__." object");
+	{	error __x"cannot coerce a {type} object into a {me} object.", type => ref $message, me => __PACKAGE__;
 	}
 
 	$message->{MM_modified}  ||= 0;
@@ -1198,12 +1188,10 @@ which returns a body-class based on the header.
 sub readFromParser($;$)
 {	my ($self, $parser, $bodytype) = @_;
 
-	my $head = $self->readHead($parser) // Mail::Message::Head::Complete->new(
-		message => $self, field_type => $self->{MM_field_type}, $self->logSettings);
+	my $head = $self->readHead($parser) //
+		Mail::Message::Head::Complete->new(message => $self, field_type => $self->{MM_field_type});
 
-	my $body = $self->readBody($parser, $head, $bodytype)
-		or return;
-
+	my $body = $self->readBody($parser, $head, $bodytype) or return;
 	$self->head($head);
 	$self->storeBody($body);
 	$self;
@@ -1218,7 +1206,7 @@ sub readHead($;$)
 {	my ($self, $parser, $headtype) = @_;
 	$headtype //= $self->{MM_head_type} // 'Mail::Message::Head::Complete';
 
-	$headtype->new(message => $self, field_type => $self->{MM_field_type}, $self->logSettings)
+	$headtype->new(message => $self, field_type => $self->{MM_field_type})
 		->read($parser);
 }
 
@@ -1246,7 +1234,7 @@ sub readBody($$;$$)
 	my $body;
 	if($bodytype->isDelayed)
 	{	# autodetect charset after transfer decoding.
-		$body = $bodytype->new(message => $self, charset => undef, $self->logSettings);
+		$body = $bodytype->new(message => $self, charset => undef);
 	}
 	else
 	{	my $ct   = $head->get('Content-Type', 0);
@@ -1265,7 +1253,7 @@ sub readBody($$;$$)
 				if $enc =~ m/^(?:none|7bit|8bit|binary)$/i && ! $bodytype->isNested;
 		}
 
-		$body = $bodytype->new(message => $self, checked => $self->{MM_trusted}, charset => undef, $self->logSettings);
+		$body = $bodytype->new(message => $self, checked => $self->{MM_trusted}, charset => undef);
 		$body->contentInfoFrom($head);
 	}
 

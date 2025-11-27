@@ -13,7 +13,6 @@ use Log::Report   'mail-message';
 
 use Mail::Message::Body::Lines ();
 use Mail::Message::Part        ();
-use Carp;
 
 #--------------------
 =chapter NAME
@@ -52,9 +51,9 @@ like normal message parts (the same as a pdf or image).
 
 =default mime_type C<'message/rfc822'>
 
-=option  nested MESSAGE
+=option  nested $message
 =default nested undef
-The message which is encapsulated within this body.
+The $message which is encapsulated within this body.
 
 =examples
 
@@ -66,6 +65,7 @@ The message which is encapsulated within this body.
   my $intro = Mail::Message::Body->new(data => ...);
   my $body  = Mail::Message::Body::Nested->new(nested  => $intro);
 
+=error data not convertible to a message (type is {class})
 =cut
 
 sub init($)
@@ -77,7 +77,7 @@ sub init($)
 	my $nested;
 	if(my $raw = $args->{nested})
 	{	$nested = Mail::Message::Part->coerce($raw, $self)
-			or croak 'Data not convertible to a message (type is ', ref $raw,")\n";
+			or error __x"data not convertible to a message (type is {class})", class => ref $raw;
 	}
 
 	$self->{MMBN_nested} = $nested;
@@ -86,7 +86,7 @@ sub init($)
 
 sub clone()
 {	my $self     = shift;
-	(ref $self)->new($self->logSettings, based_on => $self, nested => $self->nested->clone);
+	(ref $self)->new(based_on => $self, nested => $self->nested->clone);
 }
 
 sub isNested() { 1 }
@@ -109,7 +109,7 @@ sub partNumberOf($)
 It is NOT possible to call some code for each line of a nested
 because that would damage the header of the encapsulated message
 
-=error You cannot use foreachLine on a nested
+=error you cannot use foreachLine on a nested.
 M<foreachLine()> should be used on decoded message bodies only, because
 it would modify the header of the encapsulated message. which is
 clearly not acceptable.
@@ -118,15 +118,14 @@ clearly not acceptable.
 
 sub foreachLine($)
 {	my ($self, $code) = @_;
-	$self->log(ERROR => "You cannot use foreachLine on a nested");
-	confess;
+	error __x"you cannot use foreachLine on a nested.";
 }
 
-sub check() { $_[0]->forNested( sub {$_[1]->check} ) }
+sub check() { $_[0]->forNested( sub { $_[1]->check } ) }
 
 sub encode(@)
 {	my ($self, %args) = @_;
-	$self->forNested( sub {$_[1]->encode(%args)} );
+	$self->forNested( sub { $_[1]->encode(%args) } );
 }
 
 sub encoded() { $_[0]->forNested( sub { $_[1]->encoded } ) }
@@ -135,26 +134,25 @@ sub read($$$$)
 {	my ($self, $parser, $head, $bodytype) = @_;
 
 	my $nest = Mail::Message::Part->new(container => undef);
-	$nest->readFromParser($parser, $bodytype)
-		or return;
-
+	$nest->readFromParser($parser, $bodytype) or return;
 	$nest->container($self);
+
 	$self->{MMBN_nested} = $nest;
 	$self;
 }
 
 sub fileLocation()
-{	my $nested   = shift->nested;
+{	my $nested   = $_[0]->nested;
 	( ($nested->head->fileLocation)[0], ($nested->body->fileLocation)[1] );
 }
 
 sub moveLocation($)
-{	my $self   = shift;
-	my $dist   = shift or return $self;  # no move
+{	my ($self, $dest) = @_;
+	$dest or return $self;  # no move
 
 	my $nested = $self->nested;
-	$nested->head->moveLocation($dist);
-	$nested->body->moveLocation($dist);
+	$nested->head->moveLocation($dest);
+	$nested->body->moveLocation($dest);
 	$self;
 }
 

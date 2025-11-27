@@ -104,7 +104,7 @@ means that it cancels the effect of the default rule C<replaceDeletedParts>.
     extra_rules => [ 'removeEmpty', 'flattenMultiparts' ],
   );
 
-=error No rebuild rule $name defined.
+=error no rebuild rule $name defined.
 =cut
 
 my @default_rules =
@@ -123,7 +123,7 @@ sub rebuild(@)
 	foreach my $rule (@rules)
 	{	next if ref $rule;
 		$self->can($rule)
-			or $self->log(ERROR => "No rebuild rule '$rule' defined.\n"), return 1;
+			or error __x"no rebuild rule '{name}' defined.", name => $rule;
 	}
 
 	# Start off with the message
@@ -226,8 +226,8 @@ sub descendNested($@)
 	return $part if $newnested==$srcnested;
 
 	# Changes in the encapsulated message
-	my $newbody = ref($body)->new(based_on => $body, nested => $newnested);
-	my $rebuild = ref($part)->new(head => $part->head->clone, container => undef);
+	my $newbody   = (ref $body)->new(based_on => $body, nested => $newnested);
+	my $rebuild   = (ref $part)->new(head => $part->head->clone, container => undef);
 
 	$rebuild->body($newbody);
 	$rebuild;
@@ -298,8 +298,7 @@ sub textAlternativeForHtml($@)
 		or return $part;
 
 	my $container = $part->container;
-	my $in_alt    = defined $container
-					&& $container->mimeType eq 'multipart/alternative';
+	my $in_alt    = defined $container && $container->mimeType eq 'multipart/alternative';
 
 	return $part
 		if $in_alt && first { $_->body->mimeType eq 'text/plain' } $container->parts;
@@ -334,8 +333,7 @@ sub textAlternativeForHtml($@)
 
 =method recursiveRebuildPart $part, %options
 
-=requires rules ARRAY-OF-RULES
-
+=requires rules \@rules
 Rules are method names which can be called on messages and message parts
 objects.  The ARRAY can also list code references which can be called.
 In any case, each rule will be called the same way:
