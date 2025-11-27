@@ -64,7 +64,6 @@ lib/Mail/Message/TransferEnc/QuotedPrint.pm
 lib/Mail/Message/TransferEnc/SevenBit.pm
 lib/Mail/Reporter.pm
 t/001use.t
-t/010reporter-errors.t
 t/011reporter-reports.t
 t/012reporter-callback.t
 t/100field-cfws.t
