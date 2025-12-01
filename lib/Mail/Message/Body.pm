@@ -871,8 +871,8 @@ sub contentInfoFrom($)
 
 }
 
-=method modified [BOOLEAN]
-Change the body modification flag.  This will force a re-write of the body
+=method modified [$flag]
+Change the body modification $flag.  This will force a re-write of the body
 to a folder file when it is closed.  It is quite dangerous to change the
 body: the same body may be shared between messages within your program.
 

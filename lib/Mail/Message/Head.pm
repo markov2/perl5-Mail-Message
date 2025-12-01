@@ -173,9 +173,9 @@ Will never trigger completion.
 
 sub isDelayed { 1 }
 
-=method modified [BOOLEAN]
-Sets the modified flag to BOOLEAN.  Without value, the current setting is
-returned, but in that case you can better use M<isModified()>.
+=method modified [$flage]
+Sets the modified $flag (a BOOLEAN).  Without value, the current setting
+is returned, but in that case you can better use M<isModified()>.
 Changing this flag will not trigger header completion.
 
 =examples

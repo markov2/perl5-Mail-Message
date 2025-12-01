@@ -147,7 +147,6 @@ sub defaultParserType(;$)
 
 	# Try to use C-based parser.
 	eval 'require Mail::Box::Parser::C';
-die $@ if $@;
 	$@ or return $parser_type = 'Mail::Box::Parser::C';
 
 	# Fall-back on Perl-based parser.

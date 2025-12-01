@@ -863,7 +863,7 @@ sub parts(;$)
 #--------------------
 =section Flags
 
-=method modified [BOOLEAN]
+=method modified [$flag]
 Returns (optionally after setting) whether this message is flagged as
 being modified.  See isModified().
 =cut
