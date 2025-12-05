@@ -9,7 +9,7 @@ use parent 'Mail::Message::Convert';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 use Mail::Internet  ();
 use Mail::Header    ();
@@ -66,7 +66,7 @@ instance of a Mail::Message.
   my Mail::Message  $msg   = Mail::Message->new;
   my Mail::Internet $copy  = $convert->export($msg);
 
-=error export message must be a Mail::Message, but is a {class}.
+=error export message must be a Mail::Message, but is a $class.
 =cut
 
 sub export($@)
@@ -87,7 +87,7 @@ an Email::Simple.
   my Mail::Internet $msg  = Mail::Internet->new;
   my Mail::Message  $copy = $convert->from($msg);
 
-=error converting from Email::Simple but got a {class}.
+=error converting from Email::Simple but got a $class.
 =cut
 
 sub from($@)

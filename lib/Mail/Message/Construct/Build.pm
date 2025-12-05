@@ -8,7 +8,7 @@ package Mail::Message;
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error info warning/ ];
 
 use Mail::Message::Head::Complete  ();
 use Mail::Message::Body::Lines     ();

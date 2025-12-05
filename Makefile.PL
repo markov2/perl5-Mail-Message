@@ -79,6 +79,7 @@ my %requires = (
 	'POSIX'          => 0,
 	'Scalar::Util'   => 1.13,
 	'Storable'       => 0,
+	'String::Print'  => 1.01,
 	'Sys::Hostname'  => 0,
 	'Time::HiRes'    => 1.51,
 	'Time::Zone'     => 0,

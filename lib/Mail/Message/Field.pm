@@ -9,7 +9,7 @@ use parent 'Mail::Reporter';
 use strict;
 use warnings;
 
-use Log::Report      'mail-message';
+use Log::Report      'mail-message', import => [ qw/__x error info panic warning/ ];
 
 use Mail::Address    ();
 use IO::Handle       ();

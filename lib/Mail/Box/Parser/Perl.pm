@@ -9,7 +9,7 @@ use parent 'Mail::Box::Parser';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error fault info warning trace/ ];
 
 use List::Util    qw/sum/;
 use IO::File      ();

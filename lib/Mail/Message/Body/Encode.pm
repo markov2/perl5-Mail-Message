@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error panic warning/ ];
 
 use MIME::Types    ();
 use File::Basename qw/basename/;

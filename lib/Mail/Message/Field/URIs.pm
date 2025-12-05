@@ -9,10 +9,10 @@ use parent 'Mail::Message::Field::Structured';
 use warnings;
 use strict;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
-use URI          ();
-use Scalar::Util qw/blessed/;
+use URI           ();
+use Scalar::Util  qw/blessed/;
 
 #--------------------
 =chapter NAME

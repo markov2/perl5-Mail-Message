@@ -9,7 +9,7 @@ use parent 'Exporter';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw// ];
 
 use File::Copy    qw/copy/;
 use List::Util    qw/first/;

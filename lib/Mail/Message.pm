@@ -9,7 +9,7 @@ use parent 'Mail::Reporter';
 use strict;
 use warnings;
 
-use Log::Report     'mail-message';
+use Log::Report     'mail-message', import => [ qw/__x error info panic trace/ ];
 
 use Mail::Message::Part            ();
 use Mail::Message::Head::Complete  ();
@@ -998,9 +998,8 @@ value is given, M<delete()> is called.
 
 sub deleted(;$)
 {	my $self = shift;
-
 	@_ ? $self->label(deleted => shift)
-		: $self->label('deleted')   # compat 2.036
+	   : $self->label('deleted')   # compat 2.036
 }
 
 =method labelsToStatus

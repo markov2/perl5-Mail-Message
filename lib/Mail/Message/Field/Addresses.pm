@@ -9,7 +9,7 @@ use parent 'Mail::Message::Field::Structured';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error info warning/ ];
 
 use Mail::Message::Field::AddrGroup ();
 use Mail::Message::Field::Address   ();

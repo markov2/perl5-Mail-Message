@@ -9,7 +9,7 @@ use parent 'Mail::Message::Head::Complete';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error panic/ ];
 
 #--------------------
 =chapter NAME
@@ -158,7 +158,7 @@ values are P<IGNORE> - ignore and discard the header, P<ERROR> - invoke
 an error (die), P<COERCE> - rename them as Mail-From and P<KEEP>
 - keep them.
 
-=error bad Mail-From choice: '{pick}'.
+=error bad Mail-From choice: '$pick'.
 =cut
 
 sub mail_from(;$)

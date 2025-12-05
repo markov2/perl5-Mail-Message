@@ -9,7 +9,7 @@ use parent 'Mail::Message::Head';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x info trace warning/ ];
 
 use Mail::Box::Parser             ();
 use Mail::Message::Head::Partial  ();

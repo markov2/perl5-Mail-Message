@@ -9,7 +9,7 @@ use parent 'Mail::Message::Body';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 use Mail::Message::Body::Lines ();
 use Mail::Message::Part        ();
@@ -65,7 +65,7 @@ The $message which is encapsulated within this body.
   my $intro = Mail::Message::Body->new(data => ...);
   my $body  = Mail::Message::Body::Nested->new(nested  => $intro);
 
-=error data not convertible to a message (type is {class})
+=error data not convertible to a message (type is $class)
 =cut
 
 sub init($)

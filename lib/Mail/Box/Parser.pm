@@ -9,7 +9,7 @@ use parent 'Mail::Reporter';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 #--------------------
 =chapter NAME
@@ -67,12 +67,6 @@ When header errors are detected, the parsing of the header will
 be stopped.  Other header lines will become part of the body of
 the message.  Set this flag to have the erroneous line added to
 the previous header line.
-
-=error Filename or handle required to create a parser.
-A message parser needs to know the source of the message at creation.  These
-sources can be a filename (string), file handle object, or GLOB.
-See new(filename) and new(file).
-
 =cut
 
 sub new(@)
@@ -127,6 +121,8 @@ The $class argument allows you to specify a package name to force a
 particular parser to be used (such as your own custom parser). You have
 to C<use> or C<require> the package yourself before calling this method
 with an argument. The parser must be a sub-class of C<Mail::Box::Parser>.
+
+=error parser $type does not extend $pkg.
 =cut
 
 my $parser_type;
@@ -138,7 +134,7 @@ sub defaultParserType(;$)
 	if(@_)
 	{	$parser_type = shift;
 		return $parser_type if $parser_type->isa( __PACKAGE__ );
-		panic "Parser $parser_type does not extend " . __PACKAGE__;
+		error __x"parser {type} does not extend {pkg}.", type => $parser_type, pkg => __PACKAGE__;
 	}
 
 	# Already determined which parser we want?
@@ -167,7 +163,7 @@ header starts.  The follows the list of header field names and bodies.
 =example
   my ($where, @header) = $parser->readHeader;
 
-=warning Unexpected end of header in $source: $line
+=warning unexpected end of header in $source: $line
 While parsing a message from the specified source (usually a file name),
 the parser found a syntax error.  According to the MIME specification in the
 RFCs, each header line must either contain a colon, or start with a blank

@@ -12,7 +12,7 @@ use parent 'Mail::Message::Head::FieldGroup';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 use List::Util    qw/first/;
 use Scalar::Util  qw/blessed/;

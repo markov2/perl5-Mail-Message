@@ -9,7 +9,7 @@ use parent 'Mail::Message';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 use Mail::Box::FastScalar        ();
 use Mail::Box::Parser::Perl      ();
@@ -88,7 +88,7 @@ line.  Passed to M<Mail::Message::Replace::MailHeader::new(FoldLength)>.
   use Mail::Message::Replace::MailInternet;
   my $mi = Mail::Internet->new(@options);
 
-=error Mail::Internet does not support '$kind' data.
+=error Mail::Internet does not support $what data.
 The data can only be a file handle or an ARRAY.  Other data types
 are not supported (see M<read()> if you want to have more).
 =cut
@@ -131,7 +131,7 @@ sub processRawData($$$)
 		$lines    = [ $data->getlines ];
 	}
 	else
-	{	error __x"Mail::Internet does not support '{kind EL(30)}' data.", kind => ref $data // $data;
+	{	error __x"Mail::Internet does not support {what UNKNOWN} data.", what => $data;
 	}
 
 	@$lines or return;

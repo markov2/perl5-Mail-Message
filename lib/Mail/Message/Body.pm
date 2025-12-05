@@ -9,7 +9,7 @@ use parent 'Mail::Reporter';
 use strict;
 use warnings;
 
-use Log::Report     'mail-message';
+use Log::Report     'mail-message', import => [ qw/__x error fault info panic/ ];
 
 use Scalar::Util     qw/weaken refaddr blessed/;
 use File::Basename   qw/basename/;
@@ -769,8 +769,8 @@ decode the body before writing it!
   $message->decoded->write(filename => $fn);
 
 =error no filename parameter for write() body.
-=fault cannot open {file} to write body: $!
-=fault __x"error closing {file} after write body: $!
+=fault cannot open $file to write body: $!
+=fault error closing $file after write body: $!
 =cut
 
 sub write(@)

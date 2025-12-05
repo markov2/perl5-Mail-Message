@@ -9,7 +9,7 @@ use parent 'Mail::Message::Convert';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 #--------------------
 =chapter NAME
@@ -37,7 +37,7 @@ which do require extra packages to be installed.
 =c_method new %options
 
 =option  head_mailto BOOLEAN
-=default head_mailto <true>
+=default head_mailto true
 Whether to replace e-mail addresses in some header lines with links.
 
 =option  produce 'HTML'|'XHTML'
@@ -45,7 +45,7 @@ Whether to replace e-mail addresses in some header lines with links.
 Produce HTML or XHTML output.  The output is slightly different, even
 html browsers will usually accept the XHTML data.
 
-=error produce XHTML or HTML, not {kind}.
+=error produce XHTML or HTML, not $what.
 =cut
 
 sub init($)
@@ -58,7 +58,7 @@ sub init($)
 	$self->{MMCH_tail}
 	  = $produce eq 'HTML'  ?   '>'
 	  : $produce eq 'XHTML' ? ' />'
-	  :    error __x"produce XHTML or HTML, not {kind}.", kind => $produce;
+	  :    error __x"produce XHTML or HTML, not {what UNKNOWN}.", what => $produce;
 
 	$self;
 }

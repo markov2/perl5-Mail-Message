@@ -9,7 +9,7 @@ use parent 'Mail::Message::Field::Structured';
 use warnings;
 use strict;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 use URI;
 

@@ -9,7 +9,7 @@ use parent 'Mail::Message::TransferEnc';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/warning/ ];
 
 use MIME::Base64  qw/decode_base64 encode_base64/;
 

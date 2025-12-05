@@ -9,7 +9,7 @@ use parent 'Mail::Message';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error panic/ ];
 
 use Scalar::Util    qw/weaken/;
 

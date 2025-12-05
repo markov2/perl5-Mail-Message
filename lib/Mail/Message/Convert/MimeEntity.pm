@@ -9,7 +9,7 @@ use parent 'Mail::Message::Convert';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 use MIME::Entity   ();
 use MIME::Parser   ();
@@ -65,7 +65,7 @@ exception.
   my Mail::Message $msg  = Mail::Message->new;
   my MIME::Entity  $copy = $convert->export($msg);
 
-=error export message must be a Mail::Message, but is a {class}.
+=error export message must be a Mail::Message object, but is $what.
 =cut
 
 sub export($$;$)
@@ -73,7 +73,7 @@ sub export($$;$)
 	defined $message or return ();
 
 	$message->isa('Mail::Message')
-		or error __x"export message must be a Mail::Message, but is a {class}.", class => ref $message;
+		or error __x"export message must be a Mail::Message object, but is {what UNKNOWN}.", what => $message;
 
 	$parser ||= MIME::Parser->new;
 	$parser->parse($message->file);

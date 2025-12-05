@@ -9,7 +9,7 @@ use parent 'Mail::Message::Convert';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/__x error/ ];
 
 use Mail::Internet ();
 use Mail::Header   ();
@@ -61,14 +61,14 @@ instance of a Mail::Message.
   my Mail::Message  $msg   = Mail::Message->new;
   my Mail::Internet $copy  = $convert->export($msg);
 
-=error export message must be a Mail::Message, but is a {kind}.
+=error export message must be a Mail::Message object, but is $what.
 =cut
 
 sub export($@)
 {	my ($thing, $message) = (shift, shift);
 
 	$message->isa('Mail::Message')
-		or error __x"export message must be a Mail::Message, but is a {kind}.", kind => ref $message;
+		or error __x"export message must be a Mail::Message object, but is {what UNKNOWN}.", what => $message;
 
 	my $mi_head = Mail::Header->new;
 	foreach my $field ($message->head->orderedFields)
@@ -87,7 +87,7 @@ from a Mail::Internet object.
   my Mail::Internet $msg  = Mail::Internet->new;
   my Mail::Message  $copy = $convert->from($msg);
 
-=error converting from Mail::Internet but got a {class}.
+=error converting from Mail::Internet but got a $what.
 =cut
 
 my @pref_order = qw/From To Cc Subject Date In-Reply-To References Content-Type/;
@@ -96,7 +96,7 @@ sub from($@)
 {	my ($thing, $mi) = (shift, shift);
 
 	$mi->isa('Mail::Internet')
-		or error __x"converting from Mail::Internet but got a {class}.", class => ref $mi;
+		or error __x"converting from Mail::Internet but got {what UNKNOWN}.", what => $mi;
 
 	my $head = Mail::Message::Head::Complete->new;
 	my $body = Mail::Message::Body::Lines->new(data => [ @{$mi->body} ]);

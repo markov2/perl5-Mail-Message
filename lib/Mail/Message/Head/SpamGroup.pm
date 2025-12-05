@@ -9,7 +9,7 @@ use parent 'Mail::Message::Head::FieldGroup';
 use strict;
 use warnings;
 
-use Log::Report   'mail-message';
+use Log::Report   'mail-message', import => [ qw/panic/ ];
 
 #--------------------
 =chapter NAME
