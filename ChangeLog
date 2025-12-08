@@ -14,6 +14,13 @@ Limitations to be fixed:
 
 version 3.020:
 
+	Fixes:
+	- ::Field::Date regex [Andy Beverley]
+
+	Improvements:
+	- added tests for parsing date field.
+	- added tests for parsing comment field to release.
+
 version 3.019: Mon 24 Nov 19:46:56 CET 2025
 
 	Changes:
