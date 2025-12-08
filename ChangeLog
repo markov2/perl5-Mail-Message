@@ -18,9 +18,14 @@ version 4.000:
 	Changes:
 	- use Mail::Box 4 exception model: use Log::Report
 
+	Fixes:
+	- ::Field::Date regex [Andy Beverley]
+
 	Improvements:
 	- use Log::Report
 	- use base -> use parent
+	- added tests for parsing date field.
+	- added tests for parsing comment field to release.
 
 version 3.019:
 
