@@ -1566,18 +1566,6 @@ Mbox folders have no special means of storing information about messages
 adding fields to the message header when something special comes up.
 This feature is also enabled for POP3, although whether that works
 depends on the POP server.
-A mail user agent (MUA) will set this flag when the user has opened the
-message once.
-
-=back
-
-=subsection Status and X-Status fields
-
-Mbox folders have no special means of storing information about messages
-(except the message separator line), and therefore have to revert to
-adding fields to the message header when something special comes up.
-This feature is also enabled for POP3, although whether that works
-depends on the POP server.
 
 All applications which can handle mbox folders support the C<Status> and
 C<X-Status> field convensions.  The following encoding is used:
