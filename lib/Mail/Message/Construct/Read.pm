@@ -34,10 +34,10 @@ handle.
 
 =section Constructing a message
 
-=c_method read $fh|STRING|SCALAR|ARRAY, %options
+=c_method read $fh|$text|\$text|\@lines, %options
 
-Read a message from a $fh, STRING, SCALAR, or a reference to an
-ARRAY of lines.  Most %options are passed to the M<new()> of the message
+Read a message from a $fh, $text string, reference to a text string, or an
+ARRAY of @lines.  Most %options are passed to the M<new()> of the message
 which is created, but a few extra are defined.
 
 Please have a look at M<build()> and M<buildFromBody()> before thinking about
@@ -64,9 +64,9 @@ sources interfere with your internal administration.  If you want
 fields not to be stripped (you would like to disable the stripping)
 you probably process folders yourself, which is a Bad Thing!
 
-=option  body_type CLASS
+=option  body_type $type
 =default body_type undef
-Force a body type (any specific implementation of a Mail::Message::Body)
+Force a body $type (any specific extension of the Mail::Message::Body class)
 to be used to store the message content.  When the body is a multipart or
 nested, this will be overruled.
 
@@ -79,10 +79,10 @@ Indicate that a seekable file-handle has been passed. In this case, we
 can use the Mail::Box::Parser::Perl parser which reads messages
 directly from the input stream.
 
-=option  parser_class CLASS
+=option  parser_class $type
 =default parser_class undef
-Enforce a certain parser type to be used, which must be an extension of
-the parser class otherwise taken.
+Enforce a certain parser $type to be used, which must be an extension of
+the Mail::Box::Parser class otherwise taken.
 
 =examples
 

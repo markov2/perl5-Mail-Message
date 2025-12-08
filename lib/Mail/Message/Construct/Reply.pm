@@ -369,15 +369,18 @@ sub replySubject($)
 }
 
 
-=method replyPrelude [STRING|$field|$address|ARRAY-$of-$things]
-Produces a list of lines (usually only one), which will preceded the
+=method replyPrelude [STRING|$field|$address|\@addrs|\@fields]
+Produces a LIST of lines (usually only one), which will preceed the
 quoted body of the message.  STRING must comply to the RFC822 email
 address specification, and is usually the content of a C<To> or C<From>
-header line.  If a $field is specified, the field's body must be
-compliant.  Without argument -or when the argument is undef- a
+header line.  If a $field is given, the field's body must be
+compliant.  Without argument --or when the argument is undef-- a
 slightly different line is produced.
 
-An characteristic example of the output is
+In case an ARRAY of @addrs or @fields is passed, the first one is taken.
+This simplified situations where multiple addresses are a allowed.
+
+=example characteristic example of the output
 
   On Thu Oct 13 04:54:34 1995, him@example.com wrote:
 

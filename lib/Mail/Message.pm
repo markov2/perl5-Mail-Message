@@ -124,13 +124,13 @@ body data is decoded or used for transmission.
 =default deleted false
 Is the file deleted from the start?
 
-=option  labels ARRAY|HASH
+=option  labels \@pairs|\%settings
 =default labels +{}
-Initial values of the labels.  In case of Mail::Box::Message's, this
-shall reflect the state the message is in.  For newly constructed
-Mail::Message's, this may be anything you want, because M<coerce()>
-will take care of the folder specifics once the message is added to one.
-
+Initial %settings of the labels.  In case of Mail::Box::Message type
+objectss, this shall reflect the state the message is in inside the
+folder.  For newly constructed Mail::Message objectss, this may be
+anything you want, because M<coerce()> will take care of the folder
+specifics once the message is added to one.
 =cut
 
 sub init($)
@@ -1539,18 +1539,6 @@ set if you use M<reply()>, but not with M<forward()> or M<bounce()>.
 =item * seen
 
 When this flag is set, the receiver of the message has consumed the message.
-A mail user agent (MUA) will set this flag when the user has opened the
-message once.
-
-=back
-
-=subsection Status and X-Status fields
-
-Mbox folders have no special means of storing information about messages
-(except the message separator line), and therefore have to revert to
-adding fields to the message header when something special comes up.
-This feature is also enabled for POP3, although whether that works
-depends on the POP server.
 A mail user agent (MUA) will set this flag when the user has opened the
 message once.
 
