@@ -265,7 +265,7 @@ sub reply(@)
 	# Prelude
 	my $prelude
 	  = defined $args{prelude} ? $args{prelude}
-	  : exists $args{prelude}  ? undef
+	  : exists  $args{prelude} ? undef
 	  :    [ $self->replyPrelude($to) ];
 
 	$prelude     = Mail::Message::Body->new(data => $prelude)
@@ -286,7 +286,7 @@ sub reply(@)
 		$signature    = $signature->body
 			if defined $signature && $signature->isa('Mail::Message');
 
-		$total = $body->concatenate($prelude, $body, $postlude, (defined $signature ? "-- \n" : undef), $signature);
+		$total = $body->concatenate($prelude, $body, $postlude, (defined $signature ? "-- \n$signature" : undef));
 	}
 	elsif($include eq 'ATTACH')
 	{	my $intro = $prelude->concatenate($prelude, ["\n", "[Your message is attached]\n"], $postlude);

@@ -145,7 +145,7 @@ sub forward(@)
 	return $self->forwardAttach(@_)      if $include eq 'ATTACH';
 	return $self->forwardEncapsulate(@_) if $include eq 'ENCAPSULATE';
 
-	error __x"cannot include forward source as {kind}.", kind => $include;
+	error __x"cannot include forward source as {kind UNKNOWN}.", kind => $include;
 	undef;
 }
 
@@ -165,11 +165,8 @@ required.  Some other options, like C<preamble>, are ignored.
 
 sub forwardNo(@)
 {	my ($self, %args) = @_;
-	my $body = $args{body}
-		or error __x"method forwardNo requires a body.";
-
-	my $to   = $args{To}
-		or error __x"method forwardNo requires a To.";
+	my $body = $args{body} or error __x"method forwardNo requires a body.";
+	my $to   = $args{To}   or error __x"method forwardNo requires a To.";
 
 	#
 	# Collect header info

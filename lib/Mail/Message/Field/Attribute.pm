@@ -140,7 +140,7 @@ sub init($$)
 		if $name !~ m/^[!#-'*+\-.0-9A-Z^-~]+$/;
 
 	$self->{MMFF_name}     = $name;
-	$self->{MMFF_usecont}  = defined $cont ? $cont : 1;
+	$self->{MMFF_usecont}  = $cont // 1;
 	$self->{MMFF_charset}  = $args->{charset}  if defined $args->{charset};
 	$self->{MMFF_language} = $args->{language} if defined $args->{language};
 
