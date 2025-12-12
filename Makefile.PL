@@ -118,8 +118,8 @@ WriteMakefile
 		},
 		prereqs => {
 			runtime => {
-				requires => \%requires,
-				optional => \%optional,
+				requires    => \%requires,
+				recommended => \%optional,
 			},
 			develop => {
 				requires => {
