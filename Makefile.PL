@@ -91,7 +91,9 @@ my %requires = (
 my %optional = (
 	'HTML::FormatText'  => '2.01',
 	'HTML::TreeBuilder' => '3.13',
+	'Mail::Box'         => '4.00',
 	'Mail::Internet'    => '2.01',
+	'Mail::Transport'   => '4.00',
 	'MIME::Entity'      => '3.0',
 	'Net::Domain'       => 0,
 );

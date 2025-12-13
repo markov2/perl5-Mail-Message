@@ -17,6 +17,7 @@ version 4.01:
 
 	Fixes:
 	- optional modules -> recommends.
+	- recommends minimal Mail::Box 4.
 
 version 4.00: Thu 11 Dec 13:58:01 CET 2025
 
