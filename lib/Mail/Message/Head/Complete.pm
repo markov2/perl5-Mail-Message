@@ -30,9 +30,9 @@ Mail::Message::Head::Complete - the header of one message
 
 =chapter DESCRIPTION
 
-E-mail's message can be in various states: unread, partially read, and
-fully read.  The class stores a message of which all header lines are
-known for sure.
+Message headers can be in various states: unread, partially read, and
+fully read.  This class represents a header of which all fields are
+known for sure: the complete set.
 
 =chapter METHODS
 
