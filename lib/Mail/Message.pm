@@ -201,7 +201,7 @@ original message cannot get undeleted after the move.
 
 =option  shallow_head BOOLEAN
 =default shallow_head false
-Only the head uses is reused, not the body.  This is probably a bad choice,
+Only the head is reused, not the body.  This is probably a bad choice,
 because the header fields can be updated, for instance when labels change.
 
 =option  shallow_body BOOLEAN
