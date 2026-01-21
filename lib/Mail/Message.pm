@@ -542,7 +542,7 @@ or better:
 =cut
 
 sub study($)
-{	my $head = $_[0]->head or return;
+{	my $head = shift->head or return;
 	scalar $head->study(@_);    # return only last
 }
 
