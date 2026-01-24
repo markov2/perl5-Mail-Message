@@ -14,6 +14,9 @@ Limitations to be fixed:
 
 version 3.022:
 
+	Fixes:
+	- field attributes must be handled case-insensitive [Andy Beverley]
+
 version 3.021: Thu 22 Jan 09:15:28 CET 2026
 
 	Fixes:

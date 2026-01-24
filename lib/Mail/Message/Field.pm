@@ -10,9 +10,10 @@ use strict;
 use warnings;
 
 use Carp;
-use Mail::Address    ();
-use IO::Handle       ();
-use Date::Format     qw/strftime/;
+use Mail::Address        ();
+use IO::Handle           ();
+use Date::Format         qw/strftime/;
+use Hash::Case::Preserve ();
 
 our %_structured;  # not to be used directly: call isStructured!
 my $default_wrap_length = 78;
@@ -441,7 +442,7 @@ sub attribute($;$)
 	# broken messages do repeat them.  See github issue 20.  Apple Mail and
 	# Outlook will take the last of the repeated in such case, so we do that
 	# as well.
-	my %attrs = $self->attributes;
+	tie my %attrs, 'Hash::Case::Preserve', [ $self->attributes ];
 	@_ or return $attrs{$attr};
 
 	# set the value
@@ -470,7 +471,8 @@ sub attribute($;$)
 
 =method attributes
 Returns a list of key-value pairs, where the values are not yet decoded.
-Keys may appear more than once.
+Keys may appear more than once and must be interpreted case insensitive
+(RFC2073 section 5.1)
 
 =example
   my @pairs = $head->get('Content-Disposition')->attributes;
