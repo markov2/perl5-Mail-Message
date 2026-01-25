@@ -16,7 +16,10 @@ Limitations to be fixed:
 version 4.03:
 
 	Fixes:
-	- field attributes must be handled case-insensitive [Andy Beverley]
+	- field attributes must be handled case-insensitive.
+	  GitHub issue #5 [Andy Beverley]
+	- wrongly added LF after multipart parts which do not end in a LF
+	  [Andy Beverly]
 	
 version 4.02: Thu 22 Jan 09:18:53 CET 2026
 

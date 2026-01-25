@@ -178,7 +178,7 @@ sub _read_stripped_lines(;$$)
 	}
 
 	unless($self->trusted)
-	{	s/\015// for @$take;
+	{	s/\015// for @$take;   # remove \r, keep \n
 	}
 
 	$take;
