@@ -351,7 +351,7 @@ sub print(;$)
 	$self->head->print($out);
 	my $body = $self->body;
 	$body->print($out) if $body;
-	$body->endsOnNewline or $out->print("\n");
+	ref $self ne __PACKAGE__ or $body->endsOnNewline or $out->print("\n");
 	$self;
 }
 

@@ -17,6 +17,8 @@ version 3.022:
 	Fixes:
 	- field attributes must be handled case-insensitive
 	  github issue #5 [Andy Beverley]
+	- wrongly added LF after multipart parts which do not end in a LF
+	  [Andy Beverly]
 
 version 3.021: Thu 22 Jan 09:15:28 CET 2026
 
