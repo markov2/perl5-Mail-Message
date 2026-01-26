@@ -12,10 +12,12 @@ Limitations to be fixed:
 #!!! go for version 4 (or higher).  On github, this code is branch 'maint3'
 #!!! Convert? See F<https://github.com/markov2/perl5-Mail-Box/wiki/>
 
-version 3.022:
+version 3.023:
+
+version 3.022: Mon 26 Jan 14:32:35 CET 2026
 
 	Fixes:
-	- field attributes must be handled case-insensitive
+	- field attributes must be handled case-insensitive.
 	  github issue #5 [Andy Beverley]
 	- wrongly added LF after multipart parts which do not end in a LF
 	  [Andy Beverly]
