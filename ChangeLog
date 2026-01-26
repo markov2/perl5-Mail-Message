@@ -13,7 +13,7 @@ Limitations to be fixed:
 #!!! number 3.  Use (at least) version 4 for new developments.
 #!!! Convert? See https://github.com/markov2/perl5-Mail-Box/wiki/
 
-version 4.03:
+version 4.03: Mon 26 Jan 14:53:24 CET 2026
 
 	Fixes:
 	- field attributes must be handled case-insensitive.
