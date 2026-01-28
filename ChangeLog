@@ -15,6 +15,10 @@ Limitations to be fixed:
 
 version 4.04:
 
+	Fixes:
+	- date field parsing regression
+	  GitHub issue #28 [Andy Beverley]
+
 version 4.03: Mon 26 Jan 14:53:24 CET 2026
 
 	Fixes:

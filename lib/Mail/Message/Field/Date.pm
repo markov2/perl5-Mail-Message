@@ -46,9 +46,10 @@ form.
 my $dayname = qr/Mon|Tue|Wed|Thu|Fri|Sat|Sun/;
 my @months  = qw/Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec/;
 my %monthnr; { my $i; $monthnr{$_} = ++$i for @months }
-my %tz      = qw/EDT -0400  EST -0500  CDT -0500  CST -0600
-				MDT -0600  MST -0700  PDT -0700  PST -0800
-				UT  +0000  GMT +0000/;
+my %tz      = qw/
+	EDT -0400  EST -0500  CDT -0500  CST -0600
+	MDT -0600  MST -0700  PDT -0700  PST -0800
+	UT  +0000  GMT +0000/;
 
 sub parse($)
 {	my ($self, $string) = @_;
@@ -60,11 +61,11 @@ sub parse($)
 			( [A-Z][a-z][a-z]|[0-9][0-9]  ) \s+  # month
 			( (?: 19 | 20 | ) [0-9][0-9]  ) \s+  # year
 			( [0-1]?[0-9] | 2[0-3] )        \s*  # hour
-				[:.] ( [0-5][0-9] )         \s*  # minute
+			    [:.] ( [0-5][0-9] )         \s*  # minute
 			(?: [:.] ( [0-5][0-9] ) )?      \s*  # second (optional)
 			( [+-][0-9]{4} | [A-Z]+ )?           # zone
-			\s*
-		$ /x or return undef;
+			                                     # optionally followed by trash
+		/x or return undef;
 
 	$dn //= '';
 	$dn   =~ s/\s+//g;
