@@ -14,6 +14,10 @@ Limitations to be fixed:
 
 version 3.023:
 
+	Fixes:
+	- date field parsing regression.
+	  GitHub issue #28 [Andy Beverley]
+
 version 3.022: Mon 26 Jan 14:32:35 CET 2026
 
 	Fixes:

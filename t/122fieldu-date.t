@@ -21,4 +21,7 @@ is $date3->date, 'Fri, 28 Nov 2025 09:27:00 +0000', 'optional seconds';
 my $date4 = Mail::Message::Field::Date->new(Date => "Fri,28  Nov  2025 09 :27 :51+0001");
 is $date4->date, 'Fri, 28 Nov 2025 09:27:51 +0001', 'optional blanks';
 
+my $date5 = Mail::Message::Field::Date->new(Date => 'Tue, 27 Jan 2026 08:51:08 -0500 (EST)');
+is $date5->date, 'Tue, 27 Jan 2026 08:51:08 -0500', 'trailing text';
+
 done_testing;
