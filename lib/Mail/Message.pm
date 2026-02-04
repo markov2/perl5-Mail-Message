@@ -37,15 +37,15 @@ Mail::Message - general message object
 =chapter SYNOPSIS
 
   use Mail::Box::Manager;
-  my $mgr    = Mail::Box::Manager->new;
-  my $folder = $mgr->open(folder => 'InBox');
-  my $msg    = $folder->message(2);    # $msg is a Mail::Message now
+  my $mgr     = Mail::Box::Manager->new;
+  my $folder  = $mgr->open(folder => 'InBox');
+  my $msg     = $folder->message(2);    # $msg is a Mail::Message now
 
   my $subject = $msg->subject;         # The message's subject
   my @cc      = $msg->cc;              # List of Mail::Address'es
 
-  my Mail::Message::Head $head = $msg->head;
-  my Mail::Message::Body $body = $msg->decoded;
+  my $head    = $msg->head;    # Mail::Message::Head
+  my $body    = $msg->decoded;    # Mail::Message::Body
   $msg->decoded->print($outfile);
 
   # Send a simple email
@@ -53,11 +53,13 @@ Mail::Message - general message object
     To             => 'you@example.com',
     From           => 'me@example.com',
     Subject        => "My subject",
-    data           => "Some plain text content"
+    data           => "Some plain text content",
   )->send(via => 'postfix');
 
-  my $reply_msg = Mail::Message->reply(...);
-  my $frwd_msg  = Mail::Message->forward(...);
+  my $msg       = Mail::Message->read(\*STDIN);
+  my $reply_msg = $msg->reply(...);
+  my $frwd_msg  = $msg->forward(...);
+  my $bounce    = $msg->bounce(...);
 
 =chapter DESCRIPTION
 
