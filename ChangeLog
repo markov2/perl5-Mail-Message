@@ -12,6 +12,8 @@ Limitations to be fixed:
 #!!! go for version 4 (or higher).  On github, this code is branch 'maint3'
 #!!! Convert? See F<https://github.com/markov2/perl5-Mail-Box/wiki/>
 
+version 3.024:
+
 version 3.023: Wed  4 Feb 15:37:17 CET 2026
 
 	Fixes:

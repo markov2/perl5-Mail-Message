@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 
 require 5.016;
 
-my $VERSION = '3.023';
+my $VERSION = '3.024';
 
 # This is an attempt to automatically convert you configuration parameters.
 # More docs: https://github.com/markov2/perl5-OODoc/wiki/oodist-config
