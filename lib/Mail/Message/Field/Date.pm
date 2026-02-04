@@ -21,7 +21,9 @@ Mail::Message::Field::Date - message header field with uris
 =chapter SYNOPSIS
 
   my $f = Mail::Message::Field->new(Date => time);
-  my $date = $f->date;  # cleaned-up and validated.
+  my $f = Mail::Message::Field::Date->new(Date => time);
+  my $date = $f->date;    # cleaned-up and validated
+  my $time = $date->time; # converted to POSIX time
 
 =chapter DESCRIPTION
 Dates are a little more tricky than it should be: the formatting permits
@@ -84,7 +86,6 @@ sub parse($)
 }
 
 sub produceBody() { $_[0]->{MMFD_date} }
-sub date() { $_[0]->{MMFD_date} }
 
 #--------------------
 =section Access to the content
@@ -102,12 +103,20 @@ sub addAttribute($;@)
 	error __x"no attributes for date fields.";
 }
 
+=method date
+The validated and standardized date representation for this field.
+When the body of this field is not recognized, then this will return
+undef.
+=cut
+
+sub date() { $_[0]->{MMFD_date} }
+
 =method time
 Convert date into a timestamp, as produced with POSIX::time().
 =cut
 
 sub time()
-{	my $date = shift->{MMFD_date};
+{	my $date = shift->date or return;
 	my ($d, $mon, $y, $h, $min, $s, $z) = $date =~ m/
 		^ (?:\w\w\w\,\s+)? (\d\d)\s+(\w+)\s+(\d\d\d\d) \s+ (\d\d)\:(\d\d)\:(\d\d) \s+ ([+-]\d\d\d\d)? \s* $
 	/x;

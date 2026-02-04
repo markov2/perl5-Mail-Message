@@ -155,14 +155,9 @@ sub init($)
 		$body->message($self);
 	}
 
-	$self->{MM_body_type} = $args->{body_type}
-		if defined $args->{body_type};
-
-	$self->{MM_head_type} = $args->{head_type}
-		if defined $args->{head_type};
-
-	$self->{MM_field_type} = $args->{field_type}
-		if defined $args->{field_type};
+	$self->{MM_body_type}  = $args->{body_type}  if defined $args->{body_type};
+	$self->{MM_head_type}  = $args->{head_type}  if defined $args->{head_type};
+	$self->{MM_field_type} = $args->{field_type} if defined $args->{field_type};
 
 	my $labels = $args->{labels} || [];
 	my @labels = ref $labels eq 'ARRAY' ? @$labels : %$labels;

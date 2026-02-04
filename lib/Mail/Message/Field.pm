@@ -62,7 +62,7 @@ added methods of a message:
 
 =chapter OVERLOADED
 
-=overload "" stringification
+=overload '""' stringification
 Produces the unfolded body of the field, which may be what you expect.
 This is what makes what the field object seems to be a simple string. The
 string is produced by M<unfoldedBody()>.
@@ -75,7 +75,7 @@ string is produced by M<unfoldedBody()>.
   my $subject = $msg->get('subject') || 'your mail';
   print "Re: $subject\n";
 
-=overload 0+ numification
+=overload '0+' numification
 When the field is numeric, the value will be returned.
 The result is produced by M<toInt()>.  If the value is not correct,
 a C<0> is produced, to simplify calculations.
@@ -87,7 +87,7 @@ Always true, to make it possible to say C<if($field)>.
 Compare the unfolded body of a field with another field or a string,
 using the buildin C<cmp>.
 
-=overload <=> numeric comparison
+=overload '<=>' numeric comparison
 Compare the integer field contents with something else.
 
 =example
@@ -126,6 +126,116 @@ sub new(@)
 =method clone
 Create a copy of this field object.
 =cut
+
+#--------------------
+=section Attributes
+
+=method name
+Returns the name of this field, with all characters lower-cased for
+ease of comparison.  See M<Name()> as well.
+
+=method Name
+Returns the name of this field in original casing.  See M<name()> as well.
+
+=method wellformedName [STRING]
+(Instance method class method)
+As instance method, the current field's name is correctly formatted
+and returned.  When a STRING is used, that one is formatted.
+
+=examples
+  print Mail::Message::Field->Name('content-type')
+    # -->  Content-Type
+
+  my $field = $head->get('date');
+  print $field->Name;
+    # -->  Date
+
+=cut
+
+# attempt to change the case of a tag to that required by RFC822. That
+# being all characters are lowercase except the first of each
+# word. Also if the word is an `acronym' then all characters are
+# uppercase. We, rather arbitrarily, decide that a word is an acronym
+# if it does not contain a vowel and isn't the well-known 'Cc' or
+# 'Bcc' headers.
+
+my %wf_lookup = qw/mime MIME  ldap LDAP  soap SOAP  swe SWE  bcc Bcc  cc Cc  id ID/;
+
+sub wellformedName(;$)
+{	my $thing = shift;
+	my $name = @_ ? shift : $thing->name;
+
+	join '-',
+		map { $wf_lookup{lc $_} || ( /[aeiouyAEIOUY]/ ? ucfirst lc : uc ) }
+		split /\-/, $name, -1;
+}
+
+=method folded
+Returns the folded version of the whole header.  When the header is
+shorter than the wrap length, a list of one line is returned.  Otherwise
+more lines will be returned, all but the first starting with at least
+one blank.  See also M<foldedBody()> to get the same information without
+the field's name.
+
+In scalar context, the lines are delived into one string, which is
+a little faster because that's the way they are stored internally...
+
+=examples
+  my @lines = $field->folded;
+  print $field->folded;
+  print scalar $field->folded; # faster
+
+=cut
+
+sub folded { $_[0]->notImplemented }
+
+=method body
+This method may not be what you want: the M<foldedBody()> and
+M<unfoldedBody()> are probably where you are looking for.  Those will
+return the full content of a field, even when it is structured.
+
+Returns the body of the field.  When this field is structured, it will
+be B<stripped> from everything what is behind the first semi-color (C<;>).
+In any case, the string is unfolded.
+Whether the field is structured is defined by M<isStructured()>.
+=cut
+
+sub body()
+{	my $self = shift;
+	my $body = $self->unfoldedBody;
+	$self->isStructured or return $body;
+
+	my ($first) = $body =~ m/^((?:"[^"]*"|'[^']*'|[^;])*)/;
+	$first =~ s/\s+$//r;
+}
+
+=method foldedBody [$body]
+Returns the body as a set of lines. In scalar context, this will be
+one line containing newlines.  Be warned about the newlines when you do
+pattern matching on the result of this method.
+
+The optional $body argument changes the field's body.  The folding of the
+argument must be correct.
+=cut
+
+sub foldedBody { $_[0]->notImplemented }
+
+=method unfoldedBody [$body, [$wrap]]
+Returns the body as one single line, where all folding information (if
+available) is removed.  This line will also NOT end on a new-line.
+
+The optional $body argument changes the field's body.  The right folding is
+performed before assignment.  The $wrap may be specified to enforce a
+folding size.
+
+=examples
+
+  my $body = $field->unfoldedBody;
+  print "$field";   # via overloading
+
+=cut
+
+sub unfoldedBody { $_[0]->notImplemented }
 
 #--------------------
 =section The field
@@ -228,117 +338,7 @@ as M<length()>.
 *size = \&length;
 
 #--------------------
-=section Access to the name
-
-=method name
-Returns the name of this field, with all characters lower-cased for
-ease of comparison.  See M<Name()> as well.
-
-=method Name
-Returns the name of this field in original casing.  See M<name()> as well.
-
-=method wellformedName [STRING]
-(Instance method class method)
-As instance method, the current field's name is correctly formatted
-and returned.  When a STRING is used, that one is formatted.
-
-=examples
-  print Mail::Message::Field->Name('content-type')
-    # -->  Content-Type
-
-  my $field = $head->get('date');
-  print $field->Name;
-    # -->  Date
-
-=cut
-
-# attempt to change the case of a tag to that required by RFC822. That
-# being all characters are lowercase except the first of each
-# word. Also if the word is an `acronym' then all characters are
-# uppercase. We, rather arbitrarily, decide that a word is an acronym
-# if it does not contain a vowel and isn't the well-known 'Cc' or
-# 'Bcc' headers.
-
-my %wf_lookup = qw/mime MIME  ldap LDAP  soap SOAP  swe SWE  bcc Bcc  cc Cc  id ID/;
-
-sub wellformedName(;$)
-{	my $thing = shift;
-	my $name = @_ ? shift : $thing->name;
-
-	join '-',
-		map { $wf_lookup{lc $_} || ( /[aeiouyAEIOUY]/ ? ucfirst lc : uc ) }
-		split /\-/, $name, -1;
-}
-
-#--------------------
-=section Access to the body
-
-=method folded
-Returns the folded version of the whole header.  When the header is
-shorter than the wrap length, a list of one line is returned.  Otherwise
-more lines will be returned, all but the first starting with at least
-one blank.  See also M<foldedBody()> to get the same information without
-the field's name.
-
-In scalar context, the lines are delived into one string, which is
-a little faster because that's the way they are stored internally...
-
-=examples
-  my @lines = $field->folded;
-  print $field->folded;
-  print scalar $field->folded; # faster
-
-=cut
-
-sub folded { $_[0]->notImplemented }
-
-=method body
-This method may not be what you want: the M<foldedBody()> and
-M<unfoldedBody()> are probably where you are looking for.  Those will
-return the full content of a field, even when it is structured.
-
-Returns the body of the field.  When this field is structured, it will
-be B<stripped> from everything what is behind the first semi-color (C<;>).
-In any case, the string is unfolded.
-Whether the field is structured is defined by M<isStructured()>.
-=cut
-
-sub body()
-{	my $self = shift;
-	my $body = $self->unfoldedBody;
-	$self->isStructured or return $body;
-
-	my ($first) = $body =~ m/^((?:"[^"]*"|'[^']*'|[^;])*)/;
-	$first =~ s/\s+$//r;
-}
-
-=method foldedBody [$body]
-Returns the body as a set of lines. In scalar context, this will be
-one line containing newlines.  Be warned about the newlines when you do
-pattern matching on the result of this method.
-
-The optional $body argument changes the field's body.  The folding of the
-argument must be correct.
-=cut
-
-sub foldedBody { $_[0]->notImplemented }
-
-=method unfoldedBody [$body, [$wrap]]
-Returns the body as one single line, where all folding information (if
-available) is removed.  This line will also NOT end on a new-line.
-
-The optional $body argument changes the field's body.  The right folding is
-performed before assignment.  The $wrap may be specified to enforce a
-folding size.
-
-=examples
-
-  my $body = $field->unfoldedBody;
-  print "$field";   # via overloading
-
-=cut
-
-sub unfoldedBody { $_[0]->notImplemented }
+=section Access to the content
 
 =ci_method stripCFWS [STRING]
 Remove the I<comments> and I<folding white spaces> from the STRING.  Without
@@ -367,7 +367,7 @@ sub stripCFWS($)
 	while(@s)
 	{	my $s = shift @s;
 
-			if(CORE::length($r)&& substr($r, -1) eq "\\")  { $r .= $s }
+		   if(CORE::length($r)&& substr($r, -1) eq "\\")  { $r .= $s }
 		elsif($s eq '"')   { $in_dquotes = not $in_dquotes; $r .= $s }
 		elsif($s eq '(' && !$in_dquotes) { $open_paren++ }
 		elsif($s eq ')' && !$in_dquotes) { $open_paren-- }
@@ -378,9 +378,6 @@ sub stripCFWS($)
 	# beautify and unfold at the same time
 	$r =~ s/\s+/ /grs =~ s/\s+$//r =~ s/^\s+//r;
 }
-
-#--------------------
-=section Access to the content
 
 =method comment [STRING]
 
@@ -414,21 +411,19 @@ sub comment(;$)
 sub content() { shift->unfoldedBody }  # Compatibility
 
 =method attribute $name, [$value]
-Get the value of an attribute, optionally after setting it to a new value.
-Attributes are part of some header lines, and hide themselves in the
-comment field.  If the attribute does not exist, then undef is
-returned.  The attribute is still encoded.
+Get the value of an B<body> attribute, optionally after setting it
+to a new value.  Attributes are part of some header lines, and hide
+themselves in the comment field.  If the attribute does not exist,
+then undef is returned.  The attribute is still encoded.
 
 =examples
 
   my $field = Mail::Message::Field->new(
-   'Content-Type: text/plain; charset="us-ascii"');
+    'Content-Type: text/plain; charset="us-ascii"');
 
-  print $field->attribute('charset');
-    # --> us-ascii
+  print $field->attribute('charset');   # --> us-ascii
 
-  print $field->attribute('bitmap') || 'no'
-    # --> no
+  print $field->attribute('bitmap') || 'no'; # --> no
 
   $field->atrribute(filename => '/tmp/xyz');
   $field->print;
@@ -560,13 +555,15 @@ sub _tz_offset($)
 }
 
 =method addresses
-Returns a list of Mail::Address objects, which represent the
-e-mail addresses found in this header line.
+Returns a list of Mail::Address objects, which represent the e-mail addresses
+found in this header line.  Only applicable to fields which contain addresses.
 
 =example
-  my @addr = $message->head->get('to')->addresses;
-  my @addr = $message->to;
+  my @addrs = $message->get('to')->addresses;
+  my @addrs = $message->to;
 
+  # Better, uses Mail::Message::Field::Addresses
+  my @addrs = $message->study('to')->addresses;
 =cut
 
 sub addresses() { Mail::Address->parse(shift->unfoldedBody) }
@@ -580,6 +577,7 @@ Mail::Message::Field::Full object.
 =examples
 
   my $subject = $msg->head->get('subject')->study;
+  my $subject = $msg->get('subject')->study;   # same
   my $subject = $msg->head->study('subject');  # same
   my $subject = $msg->study('subject');        # same
 
@@ -591,13 +589,15 @@ sub study()
 	Mail::Message::Field::Full->new(scalar $self->folded);
 }
 
-#--------------------
-=section Other methods
-
 =ci_method dateToTimestamp STRING
-
 Convert a STRING which represents and RFC compliant time string into
-a timestamp like is produced by the C<time> function.
+a timestamp like is produced by the local C<POSIX::time()> function.
+Only applicable to fields which contain a date.
+
+Better result:
+
+  my $df = $msg->study('Date') or return;
+  $df->time;
 
 =cut
 
@@ -611,9 +611,8 @@ sub dateToTimestamp($)
 	Date::Parse::str2time($string, 'GMT');
 }
 
-
 #--------------------
-=section Internals
+=section Parsing
 
 =method consume $line | <$name,<$body|$objects>>
 Accepts a whole field $line, or a pair with the field's $name and $body. In

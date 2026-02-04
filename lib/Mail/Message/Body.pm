@@ -56,7 +56,7 @@ are performance differences.  Each body type has its own documentation
 with details about its implementation.
 =chapter OVERLOADED
 
-=overload @{} addressed as array
+=overload '@{}' addressed as array
 When a body object is used as being an array reference, the lines of
 the body are returned.  This is the same as using M<lines()>.
 
@@ -73,7 +73,7 @@ Always returns a true value, which is needed to have overloaded
 objects to be used as in C<if($body)>.  Otherwise, C<if(defined $body)>
 would be needed to avoid a runtime error.
 
-=overload "" stringification
+=overload '""' stringification
 Returns the body as string --which will trigger completion-- unless called
 to produce a string for C<Carp>.  The latter to avoid deep recursions.
 
