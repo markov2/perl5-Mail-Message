@@ -9,7 +9,7 @@ use parent 'Mail::Reporter';
 use strict;
 use warnings;
 
-use Log::Report     'mail-message', import => [ qw/__x error info panic trace/ ];
+use Log::Report     'mail-message', import => [ qw/__x error info panic/ ];
 
 use Mail::Message::Part            ();
 use Mail::Message::Head::Complete  ();
@@ -29,15 +29,15 @@ Mail::Message - general message object
 =chapter SYNOPSIS
 
   use Mail::Box::Manager;
-  my $mgr    = Mail::Box::Manager->new;
-  my $folder = $mgr->open(folder => 'InBox');
-  my $msg    = $folder->message(2);    # $msg is a Mail::Message now
+  my $mgr     = Mail::Box::Manager->new;
+  my $folder  = $mgr->open(folder => 'INBOX');
+  my $msg     = $folder->message(2);   # $msg is a Mail::Message
 
   my $subject = $msg->subject;         # The message's subject
   my @cc      = $msg->cc;              # List of Mail::Address'es
 
-  my Mail::Message::Head $head = $msg->head;
-  my Mail::Message::Body $body = $msg->decoded;
+  my $head    = $msg->head;            # Mail::Message::Head
+  my $body    = $msg->decoded;         # Mail::Message::Body
   $msg->decoded->print($outfile);
 
   # Send a simple email
@@ -48,8 +48,10 @@ Mail::Message - general message object
     data           => "Some plain text content"
   )->send(via => 'postfix');
 
-  my $reply_msg = Mail::Message->reply(...);
-  my $frwd_msg  = Mail::Message->forward(...);
+  my $msg       = Mail::Message->read(\@lines);
+  my $reply_msg = $msg->reply(...);
+  my $frwd_msg  = $msg->forward(...);
+  my $bounce    = $msg->bounce(...);
 
 =chapter DESCRIPTION
 
@@ -170,8 +172,8 @@ sub init($)
 =method clone %options
 
 Create a copy of this message.  Returned is a C<Mail::Message> object.
-The head and body, the log and trace levels are taken.  Labels are
-copied with the message, but the delete and modified flags are not.
+The head and body are taken.  Labels are copied with the message, but
+the delete and modified flags are not.
 
 BE WARNED: the clone of any kind of message (or a message part)
 will B<always> be a C<Mail::Message> object.  For example, a
@@ -204,8 +206,8 @@ because the header fields can be updated, for instance when labels change.
 A rather safe bet, because you are not allowed to modify the body of a
 message: you may only set a new body with M<body()>.
 
-=example
-  $copy = $msg->clone;
+=example of cloning
+  my $copy = $msg->clone;
 
 =cut
 
@@ -221,8 +223,7 @@ sub clone(@)
 	$body = $body->clone unless $args{shallow} || $args{shallow_body};
 	my $clone  = Mail::Message->new(head => $head, body => $body);
 
-	my $labels = $self->labels;
-	my %labels = %$labels;
+	my %labels = %{$self->labels};
 	delete $labels{deleted};
 	$clone->{MM_labels} = \%labels;
 
