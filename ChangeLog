@@ -16,8 +16,10 @@ Limitations to be fixed:
 version 4.05:
 
 	Improvements:
-	- Mail::Message->new(message_id) replaces messageId: attributes should
+	- Mail::Message->new(message_id) replaces messageId: parameters should
 	  not use camel-casing.  Old attribute now deprecated.
+	- Mail::Message add clean attributes for fieldType, headType, bodyType,
+	  and isTrusted.
 
 version 4.04: Wed  4 Feb 15:52:45 CET 2026
 

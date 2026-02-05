@@ -162,8 +162,8 @@ sub init($)
 		$body->message($self);
 	}
 
-	$self->{MM_body_type}  = $args->{body_type}  if defined $args->{body_type};
-	$self->{MM_head_type}  = $args->{head_type}  if defined $args->{head_type};
+	$self->{MM_body_type}  = $args->{body_type}  // 'Mail::Message::Body::Lines';
+	$self->{MM_head_type}  = $args->{head_type}  // 'Mail::Message::Head::Complete';
 	$self->{MM_field_type} = $args->{field_type} if defined $args->{field_type};
 
 	my $labels = $args->{labels} || [];
@@ -239,9 +239,7 @@ sub clone(@)
 }
 
 #--------------------
-=section Constructing a message
-
-=section The message
+=section Attributes
 
 =method messageId
 Retrieve the message's id.  Every message has a unique message-id.  This id
@@ -250,6 +248,32 @@ is used mainly for recognizing discussion threads.
 
 sub messageId() { $_[0]->{MM_message_id} || $_[0]->takeMessageId}
 sub messageID() { $_[0]->messageId }   # compatibility
+
+=method fieldType
+[4.05] The class used to manange the field in the header.  This is either
+Mail::Message::Field::Fast or Mail::Message::Field::Full.  Defaults
+to the preference of the used head class (C<::Fast>).
+
+=method headType
+[4.05] The class used to administer the header fields.  This is either
+Mail::Message::Head::Complete (default) or Mail::Message::Head::Partial.
+
+=method bodyType
+[4.05] The class to contain the text of normal bodies.  This can be
+Mail::Message::Body::Lines (default, kept in an ARRAY of lines),
+Mail::Message::Body::String (kept in a single string), or
+Mail::Message::Body::File (kept externally in a file).  The multipart
+and nested body types are not configured here.
+=cut
+
+sub fieldType() { $_[0]->{MM_field_type} }
+sub headType()  { $_[0]->{MM_head_type} }
+sub bodyType()  { $_[0]->{MM_body_type} }
+
+#--------------------
+=section Constructing a message
+
+=section The message
 
 =method container
 If the message is a part of another message, C<container> returns the
@@ -1191,7 +1215,7 @@ sub readFromParser($;$)
 {	my ($self, $parser, $bodytype) = @_;
 
 	my $head = $self->readHead($parser) //
-		Mail::Message::Head::Complete->new(message => $self, field_type => $self->{MM_field_type});
+		Mail::Message::Head::Complete->new(message => $self, field_type => $self->fieldType);
 
 	my $body = $self->readBody($parser, $head, $bodytype) or return;
 	$self->head($head);
@@ -1206,9 +1230,9 @@ M<new(head_type)>.  The $parser is the access to the folder's file.
 
 sub readHead($;$)
 {	my ($self, $parser, $headtype) = @_;
-	$headtype //= $self->{MM_head_type} // 'Mail::Message::Head::Complete';
+	$headtype //= $self->headType;
 
-	$headtype->new(message => $self, field_type => $self->{MM_field_type})
+	$headtype->new(message => $self, field_type => $self->fieldType)
 		->read($parser);
 }
 
@@ -1229,7 +1253,7 @@ sub readBody($$;$$)
 {	my ($self, $parser, $head, $getbodytype) = @_;
 
 	my $bodytype
-	  = ! $getbodytype   ? ($self->{MM_body_type} // 'Mail::Message::Body::Lines')
+	  = ! $getbodytype   ? $self->bodyType
 	  : ref $getbodytype ? $getbodytype->($self, $head)
 	  :    $getbodytype;
 
@@ -1255,7 +1279,7 @@ sub readBody($$;$$)
 				if $enc =~ m/^(?:none|7bit|8bit|binary)$/i && ! $bodytype->isNested;
 		}
 
-		$body = $bodytype->new(message => $self, checked => $self->{MM_trusted}, charset => undef);
+		$body = $bodytype->new(message => $self, checked => $self->isTrusted, charset => undef);
 		$body->contentInfoFrom($head);
 	}
 
@@ -1305,6 +1329,13 @@ sub takeMessageId(;$)
 
 	$self->{MM_message_id} = $msgid || $self->head->createMessageId;
 }
+
+=method isTrusted
+[4.05] Returns whether the message comes from an external source, which
+requires extra checking.  Trusted messages must have correct use of CRLF.
+=cut
+
+sub isTrusted() { $_[0]->{MM_trusted} }
 
 #--------------------
 =section Error handling
