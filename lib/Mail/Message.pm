@@ -45,9 +45,10 @@ Mail::Message - general message object
     To             => 'you@example.com',
     From           => 'me@example.com',
     Subject        => "My subject",
-    data           => "Some plain text content"
+    data           => "Some plain text content.\n"
   )->send(via => 'postfix');
 
+  # See related Mail::Message::Construct::* manuals
   my $msg       = Mail::Message->read(\@lines);
   my $reply_msg = $msg->reply(...);
   my $frwd_msg  = $msg->forward(...);
@@ -103,12 +104,16 @@ of Mail::Message::Head. See also M<head()>.
 =default head_type Mail::Message::Head::Complete
 Default type of head to be created for M<readHead()>.
 
+=option  message_id $id
+=default message_id undef
+[4.05] The $id string on which this message can be recognized.  If none
+specified and not defined in the header --but one is needed-- there will
+be one assigned to the message to be able to pass unique message-ids
+between objects.
+
 =option  messageId $id
 =default messageId undef
-The $id string on which this message can be recognized.  If none specified
-and not defined in the header --but one is needed-- there will be one
-assigned to the message to be able to pass unique message-ids between
-objects.
+Deprecated alternative to P<message_id>.
 
 =option  modified BOOLEAN
 =default modified false
@@ -147,7 +152,7 @@ sub init($)
 
 	my $head;
 	if(defined($head = $args->{head})) { $self->head($head) }
-	elsif(my $msgid = $args->{messageId} || $args->{messageID})
+	elsif(my $msgid = $args->{message_id} || $args->{messageId} || $args->{messageID})
 	{	$self->takeMessageId($msgid);
 	}
 

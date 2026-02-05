@@ -15,6 +15,10 @@ Limitations to be fixed:
 
 version 4.05:
 
+	Improvements:
+	- Mail::Message->new(message_id) replaces messageId: attributes should
+	  not use camel-casing.  Old attribute now deprecated.
+
 version 4.04: Wed  4 Feb 15:52:45 CET 2026
 
 	Fixes:
