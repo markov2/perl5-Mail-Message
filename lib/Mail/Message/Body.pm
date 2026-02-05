@@ -160,8 +160,8 @@ field content, or a real $field object.
 
 =option  language    STRING|\@lang|$field
 =default language    undef
-[3.017] RFC3282 C<Content-Language> field, containing a comma separated
-list of language codes.
+RFC3282 C<Content-Language> field, containing a comma separated list of
+language codes.
 
 =option  disposition STRING|$field
 =default disposition undef
@@ -179,9 +179,9 @@ upon some further action of the user.
 The P<filename> attribute specifies a name to which is suggested to the
 reader of the message when it is extracted.
 
-[3.017] RFC9078 adds type C<reaction>.  This part content is restricted
-to a single line of emoji's.  For this kind, you need to pass the FIELD
-here, as well as mime-type C<text/plain>.
+RFC9078 adds type C<reaction>.  This part content is restricted to a
+single line of emoji's.  For this kind, you need to pass the $field here,
+as well as mime-type C<text/plain>.
 
 =option  content_id STRING
 =default content_id undef
@@ -215,7 +215,7 @@ type C<IO::Handle>.
 
 =option  filename $file
 =default filename undef
-[3.001] Overrule/set $file name for content-disposition.
+Overrule/set $file name for content-disposition.
 
 =option  message $message
 =default message undef
@@ -592,9 +592,8 @@ was specified.
 The argument can be a STRING (which is converted into a field), or a
 fully prepared header field.
 
-[3.017] RFC9078 adds type C<reaction>.  This part content is restricted
-to a single line of emoji's.
-
+RFC9078 adds type C<reaction>.  This part content is restricted to a
+single line of emoji's.
 =cut
 
 sub disposition(;$)
@@ -606,8 +605,8 @@ sub disposition(;$)
 }
 
 =method language [@langs|\@langs|$langs|$field]
-[3.017] Returns (optionally after setting) the C<Content-Language> header,
-as specified in RFC3282.  Returns the field with a comma separated list of
+Returns (optionally after setting) the C<Content-Language> header, as
+specified in RFC3282.  Returns the field with a comma separated list of
 languages as body.
 =cut
 
@@ -1097,7 +1096,7 @@ Using M<encode()> (maybe via M<decoded()>), you can convert bodies from one
 state into a different one.  In one go, you can change the transfer-encoding,
 the character-set, or whether it is in PERL string format or raw (in bytes).
 
-[3.013] A serious problem is created when a conversion is needed, while the input
+A serious problem is created when a conversion is needed, while the input
 or output character-set is not explicitly known.  The email RFCs state that
 the default is C<us-ascii>.  However, in the real world it can be anything.
 Therefore, in such situations autodetection kicks in.

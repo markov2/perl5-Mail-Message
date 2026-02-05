@@ -384,8 +384,7 @@ header fields.
 
 =option  name STRING
 =default name undef
-[3.002] When the name of the field is given, the first encoded line will
-be shorter.
+When the name of the field is given, the first encoded line will be shorter.
 
 =warning illegal character in charset '$name'.
 The field is created with an utf8 string which only contains data from the

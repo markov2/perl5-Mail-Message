@@ -358,7 +358,7 @@ sub bodyDelayed(;$$)
 }
 
 =method openFile %options
-[3.012] Open the file to be parsed.
+Open the file to be parsed.
 =cut
 
 sub openFile(%)

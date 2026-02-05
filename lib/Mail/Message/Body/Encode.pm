@@ -83,10 +83,10 @@ NOT IMPLEMENTED YET
 =section Attributes
 
 =method charsetDetectAlgorithm [CODE|undef|METHOD]
-[3.013] When a body object does not specify its character-set, but that
-detail is required, then it gets autodetected.  The default algorithm is
-implemented in M<charsetDetect()>.  You may change this default algorithm,
-or pass option C<charset_detect> for each call to M<encode()>.
+When a body object does not specify its character-set, but that detail is
+required, then it gets autodetected.  The default algorithm is implemented
+in M<charsetDetect()>.  You may change this default algorithm, or pass
+option C<charset_detect> for each call to M<encode()>.
 
 When you call this method with an explicit undef, you reset the default.
 (Without parameter) the current algorithm (CODE or method name) is
@@ -143,10 +143,10 @@ needed) will use this type. CLASS must extend Mail::Message::Body.
 
 =option  charset_detect CODE
 =default charset_detect <built-in>
-[3.013] When the body does not contain an explicit charset specification,
-then the RFC says it is C<us-ascii>.  In reality, this is not true:
-it is just an unknown character set. This often happens when text files
-are included as attachment, for instance a footer attachment.
+When the body does not contain an explicit charset specification, then
+the RFC says it is C<us-ascii>.  In reality, this is not true: it is
+just an unknown character set. This often happens when text files are
+included as attachment, for instance a footer attachment.
 
 When you want to be smarter than the default charset detector, you can
 provide your own function for this parameter.  The function will get
@@ -304,7 +304,7 @@ sub encode(@)
 }
 
 =method charsetDetect %options
-[3.013] This is tricky.  It is hard to detect whether the body originates from the
+This is tricky.  It is hard to detect whether the body originates from the
 program, or from an external source.  And what about a database database?
 are those octets or strings?
 Please read L<Mail::Message::Body/Autodetection of character-set>.

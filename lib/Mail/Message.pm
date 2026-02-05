@@ -339,9 +339,9 @@ this will return false.
 sub isDummy() { 0 }
 
 =method endsOnNewline
-[3.018] Return true when the printed message has a trailing "\n".  In
-rare cases, that's not the case.  For instance, when the body is read
-from a file which was generated without trailing new-line.
+Return true when the printed message has a trailing "\n".  In rare cases,
+that's not the case.  For instance, when the body is read from a file
+which was generated without trailing new-line.
 =cut
 
 sub endsOnNewline() { $_[0]->body->endsOnNewline }
