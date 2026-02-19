@@ -140,7 +140,7 @@ sub from($)
 	elsif(defined($field) && $field =~ m/(ezmlm)/i )
 	{	$type    = 'Ezmlm' }
 	elsif(my $fml = $head->get('X-MLServer'))
-	{	($software, $version) = $fml =~ m/^\s*(\S+)\s*\[\S*\s*([^\]]*?)\s*\]/;
+	{	($software, $version) = $fml =~ m/^\s*([^\s\[]+)\s*\[\S*\s*([^\]]*?)\s*\]/;
 		$type    = 'FML';
 	}
 	elsif(defined($field = $head->get('List-Subscribe') || $head->get('List-Unsubscribe')) && $field =~ m/sympa/i)

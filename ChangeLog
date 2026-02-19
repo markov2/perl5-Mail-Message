@@ -19,6 +19,7 @@ version 3.023: Wed  4 Feb 15:37:17 CET 2026
 	Fixes:
 	- date field parsing regression.
 	  GitHub issue #28 [Andy Beverley]
+	- parse X-MLServer [Edoardo Geraci]
 
 version 3.022: Mon 26 Jan 14:32:35 CET 2026
 
