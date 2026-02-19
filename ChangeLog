@@ -15,6 +15,9 @@ Limitations to be fixed:
 
 version 4.05:
 
+	Fixes:
+	- parse X-MLServer [Edoardo Geraci]
+
 	Improvements:
 	- Mail::Message->new(message_id) replaces messageId: parameters should
 	  not use camel-casing.  Old attribute now deprecated.
