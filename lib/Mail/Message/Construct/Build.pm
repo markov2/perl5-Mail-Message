@@ -63,10 +63,10 @@ You may pass @fields as objects, even mixed with option PAIRS.  The
 fields will be transmitted in the order they were created, so that
 might be needed.
 
-In the %options LIST, the keys which start with a capital are used
-as header-lines.  Lower-cased fields are used for other purposes as
-listed below.  Each field may be used more than once.  Pairs where the
-value is undef are ignored.
+In the %options LIST of paris, all keys which start with a capital are
+used as header-lines.  Lower-cased fields are used for other purposes
+as listed below.  Each field may be used more than once.  Pairs where
+the value is undef are ignored.
 
 If more than one P<data>, P<file>, and P<attach> is specified,
 a multi-parted message is created.  Some C<Content-*> fields are
@@ -303,9 +303,10 @@ sub buildFromBody(@)
 
 =subsection Rapid building
 
-Most messages you need to construct are relatively simple.  Therefore,
-this module provides a method to prepare a message with only one method
-call: M<build()>.
+Most messages you need to construct are relatively simple.  MailBox tries
+to keep the message content immutable: only the administration around the
+message may change.  Therefore: the only way to create a message is by
+specifying all content and header fields in one method call.
 
 =subsection Compared to MIME::Entity::build()
 
@@ -313,13 +314,13 @@ The C<build> method in MailBox is modelled after the C<build> method
 as provided by MIMETools, but with a few simplifications:
 
 =over 4
-=item When a keys starts with a capital, than it is always a header field
-=item When a keys is lower-cased, it is always something else
-=item You use the real field-names, not abbreviations
-=item All field names are accepted
-=item You may specify field objects between key-value pairs
-=item A lot of facts are auto-detected, like content-type and encoding
-=item You can create a multipart at once
+=item * When a keys starts with a capital, than it is always a header field
+=item * When a keys is lower-cased, it is always something else
+=item * You use the real field-names, not abbreviations
+=item * All field names are accepted
+=item * You may specify field objects between key-value pairs
+=item * A lot of facts are auto-detected, like content-type and encoding
+=item * You can create a multipart at once
 =back
 
 Hum, reading the list above... what is equivalent?  L<MIME::Entity> is
@@ -359,9 +360,9 @@ The MailBox equivalent could be
     data     => $contents,
   );
 
-One of the simplifications is that MIME::Types is used to lookup
-the right content type and optimal transfer encoding.  Good values
-for content-disposition and such are added as well.
+One of the simplifications is that MIME::Types is used to lookup the right
+content type and optimal transfer encoding based on MIME::Types knowledge.
+Suitable values for Content-Disposition and such fields are added as well.
 
 =subsection build, starting with nothing
 

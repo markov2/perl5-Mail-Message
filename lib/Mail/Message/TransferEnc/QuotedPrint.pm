@@ -8,6 +8,7 @@ use parent 'Mail::Message::TransferEnc';
 
 use strict;
 use warnings;
+use utf8;
 
 use Log::Report   'mail-message', import => [ qw// ];
 
@@ -48,7 +49,7 @@ sub check($@)
 Decoding is tricky, and not without loss of information.  Lines will
 stay separate lines, although they might have been joined before the
 encoding split them up.  Characters which are not printable will be
-replaced by their octal value, and carriage returns (C<'=0D'>) at
+replaced by their octal value, and carriage returns (“C<=0D>”) at
 end of line are removed.
 =cut
 
@@ -61,8 +62,8 @@ sub decode($@)
 
 =method encode $body, %options
 Encoding is to quoted-printable is a careful process: All characters
-outside the normal printing range, and including C<'='> are encoded.
-They are translated into a C<'='> followed by a two digit hex of the
+outside the normal printing range, and including “C<< = >>” are encoded.
+They are translated into a “C<< = >>” followed by a two digit hex of the
 ascii value of the character.  The same treatment is for white-spaces
 at the end of a line.
 

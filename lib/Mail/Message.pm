@@ -272,7 +272,13 @@ sub bodyType()  { $_[0]->{MM_body_type} }
 
 #--------------------
 =section Constructing a message
+Complex construction of messages is implemented in different Perl modules,
+which have their own manual page.  Although coded in separate files and
+described in separate manuals, they are all directly addressable from the
+Mail::Message class.
+=cut
 
+#--------------------
 =section The message
 
 =method container
@@ -347,8 +353,10 @@ which was generated without trailing new-line.
 sub endsOnNewline() { $_[0]->body->endsOnNewline }
 
 =method print [$fh]
-Print the message to the FILE-HANDLE, which defaults to the selected
+Print the message to the $fh (file handle), which defaults to the selected
 filehandle, without the encapsulation sometimes required by a folder
+
+=examples
   $message->print(\*STDERR);  # to the error output
   $message->print;            # to the selected file
 
@@ -404,24 +412,21 @@ for possible options M<Mail::Transport::Send::new()> and
 M<Mail::Transport::Send::send()>.  That object also provides a C<trySend()>
 method which gives more low-level control.
 
+See C<examples/send.pl> in the distribution of Mail::Box.
+
 =example
   $message->send;
-
-is short (but little less flexibile) for
-
+  # is short (but little less flexibile) for
   my $mailer = Mail::Transport::SMTP->new(@smtpopts);
   $mailer->send($message, @sendopts);
-
-See examples/send.pl in the distribution of Mail::Box.
 
 =example
   $message->send(via => 'sendmail')
 
 =error No default mailer found to send message.
-The message M<send()> mechanism had not enough information to automatically
-find a mail transfer agent to sent this message.  Specify a mailer
-explicitly using the C<via> options.
-
+The message M<send()> mechanism had not enough information to
+automatically find a mail transfer agent to sent this message.  Specify a
+mailer explicitly using the C<via> options.
 =cut
 
 my $default_mailer;
@@ -521,9 +526,7 @@ want to be smart, doing the better (but slower) job.
 =example the get() short-cut for header fields
 
   print $msg->get('Content-Type'), "\n";
-
-Is equivalent to:
-
+  # is equivalent to:
   print $msg->head->get('Content-Type')->body, "\n";
 
 =cut
@@ -543,13 +546,11 @@ then undef is returned.  See M<Mail::Message::Field::study()>.
 
 =example the study() short-cut for header fields
   print $msg->study('to'), "\n";
-
-Is equivalent to:
-
+  # is equivalent to:
   print $msg->head->study('to'), "\n";       # and
   print $msg->head->get('to')->study, "\n";
 
-or better:
+  # or better:
   if(my $to = $msg->study('to')) { print "$to\n" }
   if(my $to = $msg->get('to')) { print $to->study, "\n" }
 =cut
@@ -1115,8 +1116,7 @@ can also be coerced directly from a Mail::Message::Body.
   my $coerced = Mail::Box::Mbox::Message->coerce($message);
   $folder->addMessage($coerced);
 
-Simpler replacement for the previous two lines:
-
+  # simpler replacement for the previous two lines:
   my $coerced = $folder->addMessage($message);
 
 =error coercion starts with some object, not '$type'.
@@ -1415,14 +1415,13 @@ Mail::Message::Field objects.
 
 =subsection The body
 
-The body contains the "payload": the data to be transferred.
-The data can be encoded, only accessible with a specific application,
-and may use some weird character-set, like Vietnamese; the MailBox
-distribution tries to assist you with handling these e-mails without
-the need to know all the details.  This additional information
-("meta-information") about the body data is stored in the header.
-The header contains more information, for instance about the message
-transport and relations to other messages.
+The body contains the "payload": the data to be transferred.  The data
+can be encoded, only accessible with a specific application, and may
+use some weird character-set; MailBox tries to assist you with handling
+these e-mails without the need to know all the details.  This additional
+information ("meta-information") about the body data is stored in the
+header.  The header contains more information, for instance about the
+message transport and relations to other messages.
 
 =section Message object implementation
 
@@ -1436,10 +1435,10 @@ The general idea about the structure of a message is
                    |
                    `-has-many--Mail::Message::Field
 
-However: there are about 7 kinds of body objects, 3 kinds of headers and
-3 kinds of fields.  You will usually not see too much of these kinds,
+However: there are about 7 kinds of body objects, 3 kinds of headers,
+and 3 kinds of fields.  You will usually not see too much of these variations,
 because they are merely created for performance reasons and can be used
-all the same, with the exception of the multipart bodies.
+all in the same for normal libarary usage.
 
 A multipart body is either a Mail::Message::Body::Multipart
 (mime type C<multipart/*>) or a Mail::Message::Body::Nested

@@ -150,16 +150,16 @@ other message receivers.
 The carbon-copy receivers, by default a copy of the P<Cc> field of
 the source message.
 
-=option  Message-ID STRING
+=option  Message-ID $field|$line
 =default Message-ID <uniquely generated>
-Supply a STRING as specific message-id for the reply.  By default, one is
-generated for you.  If there are no angles around your id, they will be
-added.
+Supply a $field or $line as specific message-id for the reply.
+By default, one is generated for you.  If there are no angles around
+your id, they will be added.
 
-=option  Subject STRING|CODE
+=option  Subject $field|$line|CODE
 =default Subject M<replySubject()>
-Force the subject line to the specific STRING, or the result of the
-subroutine specified by CODE.  The subroutine will be called passing
+Force the subject line to the specific $field or $line, or the result of
+the subroutine specified by CODE.  The subroutine will be called passing
 the subject of the original message as only argument.  By default,
 M<Mail::Message::replySubject()> is used.
 
@@ -170,6 +170,7 @@ M<Mail::Message::replySubject()> is used.
     strip_signature => 1,
     signature       => $my_pgp_key,
     group_reply     => 1,
+    'Message-ID'    => $uuid,               # don't forget the quotes
     'X-Extra'       => 'additional header',
   );
 

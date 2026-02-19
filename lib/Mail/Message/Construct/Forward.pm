@@ -70,43 +70,44 @@ It is only possible to inline textual messages, therefore binary or
 multi-part messages will always be enclosed as attachment.
 Read the details in section L</Creating a forward>.
 
-=requires To $string|$address|\@addresses
+=requires To $field|$string|$address|\@addresses
 The destination of your message. Obligatory.  The addresses may be
 specified as string, a Mail::Address object, or as ARRAY of
 Mail::Address objects.
 
-=option  From $string|$address|\@addresses
+=option  From $field|$string|$address|\@addresses
 =default From <'to' in current>
 Your identification, by default taken from the P<To> field of the
 source message.
 
-=option  Bcc $string|$address|\@addresses
+=option  Bcc $field|$string|$address|\@addresses
 =default Bcc undef
 Receivers of blind carbon copies: their names will not be published to
 other message receivers.
 
-=option  Cc $string|$address|\@addresses
+=option  Cc $field|$string|$address|\@addresses
 =default Cc undef
 The carbon-copy receivers, by default none.
 
-=option  Date DATE
+=option  Date $field|$date
 =default Date <now>
-The date to be used in the message sent.
+The content of the Date field to be used in the message sent.  By default,
+the correctly formatted timestamp of 'now' is added.
 
-=option  Message-ID STRING
+=option  Message-ID $msgid
 =default Message-ID <uniquely generated>
 Supply a STRING as specific message-id for the forwarded message.
 By default, one is generated for you.  If there are no angles around
 your id, they will be added.
 
-=option  Subject STRING|CODE
+=option  Subject $field|$string|CODE
 =default Subject M<forwardSubject()>
-Force the subject line to the specific STRING, or the result of the
-subroutine specified by CODE.  The subroutine will be called passing
+Force the subject line to the specific $field, $string, or the result of
+the subroutine specified by CODE.  The subroutine will be called passing
 the subject of the original message as only argument.  By default,
 the M<forwardSubject()> method is used.
 
-=option  preamble STRING|$body
+=option  preamble $string|$body
 =default preamble C<constructed from prelude and postlude>
 Part which is attached before the forwarded message.  If no preamble
 is given, then it is constructed from the prelude and postlude.  When
@@ -146,7 +147,6 @@ sub forward(@)
 	return $self->forwardEncapsulate(@_) if $include eq 'ENCAPSULATE';
 
 	error __x"cannot include forward source as {kind UNKNOWN}.", kind => $include;
-	undef;
 }
 
 =method forwardNo %options
@@ -157,8 +157,7 @@ M<forwardAttach()>, or M<forwardEncapsulate()>.
 The %options are the same as for C<forward()> except that P<body> is
 required.  Some other options, like C<preamble>, are ignored.
 
-=requires body BODY
-
+=requires body $body
 =error method forwardNo requires a body.
 =error method forwardNo requires a To.
 =cut
@@ -218,10 +217,9 @@ sub forwardNo(@)
 
 =method forwardInline %options
 
-This method is equivalent in behavior to M<forward()> with the
-option C<include> set to C<'INLINE'>.  You can specify most of
-the fields which are available to M<forward()> except
-C<include> and C<body>.
+This method is equivalent in behavior to M<forward()> with the option
+C<include> set to C<'INLINE'>.  You can specify most of the fields which
+are available to M<forward()> except C<include> and C<body>.
 
 =option  max_signature INTEGER
 =default max_signature C<10>
@@ -234,6 +232,10 @@ The line(s) which will be added before the quoted forwarded lines.
 If nothing is specified, the result of the M<forwardPrelude()> method
 is used.  When undef is specified, no prelude will be added.
 
+Be not confused with the C<preamble>, which specifies the whole first
+part of the constructed message: the prelude will become the start of
+such part.
+
 =option  postlude $body
 =default postlude undef
 The line(s) which to be added after the quoted reply lines.  Create a
@@ -241,16 +243,16 @@ body for it first.  This should not include the signature, which has its
 own option.  The signature will be added after the postlude when the
 forwarded message is C<INLINE>d.
 
-=option  quote CODE|STRING
+=option  quote CODE|$leader
 =default quote undef
-Mangle the lines of an C<INLINE>d reply with CODE, or by prepending a
-STRING to each line.  The routine specified by CODE is called when the
-line is in C<$_>.
+Mangle the lines of an C<INLINE>d reply with CODE, or by prepending
+a $leader characters to each line.  The routine specified by CODE is
+called when the line is in C<$_>.
 
 By default, nothing is added before each line.  This option is processed
 after the body has been decoded.
 
-=option  is_attached STRING
+=option  is_attached $text
 =default is_attached C<"[The forwarded message is attached]\n">
 A forward on binary messages can not be inlined.  Therefore, they are
 automatically translated into an attachment, as made by M<forwardAttach()>.
@@ -332,7 +334,7 @@ can specify all options available to C<forward()>, although a P<preamble>
 which is provided as body object is required, and any specified C<body>
 is ignored.
 
-=requires preamble BODY|PART
+=requires preamble $body|$part
 =error method forwardAttach requires a preamble.
 =cut
 
@@ -365,8 +367,7 @@ You can specify all options available to C<forward()>, although a P<preamble>
 which is provided as body object is required, and any specified C<body>
 is ignored.  Signatures are not stripped.  Signatures are not stripped.
 
-=requires preamble BODY|PART
-
+=requires preamble $body|$part
 =error method forwardEncapsulate requires a preamble.
 =cut
 

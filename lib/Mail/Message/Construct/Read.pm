@@ -67,8 +67,8 @@ you probably process folders yourself, which is a Bad Thing!
 =option  body_type $type
 =default body_type undef
 Force a body $type (any specific extension of the Mail::Message::Body class)
-to be used to store the message content.  When the body is a multipart or
-nested, this will be overruled.
+to be used to store the message content.  Multipart and nested message parts
+pick their own type.
 
 =option  trusted BOOLEAN
 =default trusted true
@@ -97,13 +97,13 @@ the Mail::Box::Parser class otherwise taken.
   Hi, greetings!
   MSG
 
-  # promail example
+  # procmail example
   my $fromline = <STDIN>;
   my $msg      = Mail::Message->read(\*STDIN);
   my $coerced  = $mboxfolder->addMessage($msg);
   $coerced->fromLine($fromline);
 
-=error cannot read message from a $source}.
+=error cannot read message from a $source.
 =cut
 
 sub _scalar2lines($)

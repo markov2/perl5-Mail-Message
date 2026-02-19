@@ -8,6 +8,7 @@ use parent 'Mail::Message::TransferEnc';
 
 use strict;
 use warnings;
+use utf8;
 
 use Log::Report   'mail-message', import => [ qw/warning/ ];
 
@@ -34,8 +35,8 @@ transportable.
 Base64 re-groups the bits of bytes, and maps them on characters. The
 data contains bytes of 8 bits (an I<octet>).  These are repacked into
 groups of 6 bits, pointing in an array of characters containing
-C<[A-Za-z0-9+/]>.  This way, three data bytes become 4 base64 bytes.
-The encoded data will be trailed by C<'='> characters to align on
+“C<[A-Za-z0-9+/]>”.  This way, three data bytes become 4 base64 bytes.
+The encoded data will be trailed by “C<< = >>” characters to align on
 four bytes.
 
 =chapter METHODS

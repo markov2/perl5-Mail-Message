@@ -45,14 +45,14 @@ handle interpretation and character set encoding and decoding for you.
 
 =chapter OVERLOADED
 
-=overload "" stringification
+=overload '""' stringification
 When the object is used in string context, it will return the encoded
 representation of the e-mail address, just like M<string()> does.
 
-=overload boolean true/falase
+=overload 'bool' use as boolean
 The object used as boolean will always return true
 
-=overload cmp string comparison
+=overload 'cmp' string comparison
 Two address objects are the same when their email addresses are the same.
 =cut
 

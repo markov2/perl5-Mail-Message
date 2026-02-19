@@ -486,7 +486,7 @@ sub encode($@)
 
 =ci_method decode STRING, %options
 Decode field encoded STRING to an utf8 string.  The input STRING is part of
-a header field, and as such, may contain encoded words in C<=?...?.?...?=>
+a header field, and as such, may contain encoded words in “C<< =?...?.?...?= >>”
 format defined by RFC2047.  The STRING may contain multiple encoded parts,
 maybe using different character sets.
 
@@ -498,7 +498,7 @@ Be warned: language information, which is defined in RFC2231, is ignored.
 
 Encodings with unknown charsets are left untouched [requires v2.085,
 otherwise croaked].  Unknown characters within an charset are replaced by
-a '?'.
+a “C<?>”.
 
 =option  is_text BOOLEAN
 =default is_text true
@@ -588,7 +588,7 @@ syntax is accepted, and the new syntax is produced.
 
 This method returns two elements: the phrase (or undef) followed
 by the resulting string.  The phrase will be removed from the optional
-quotes.  Be warned that C<""> will return an empty, valid phrase.
+quotes.  Be warned that “C<"">” will return an empty, valid phrase.
 
 =example
 
