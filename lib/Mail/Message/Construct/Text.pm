@@ -44,7 +44,7 @@ Returns the whole message as string.
 
 sub string()
 {	my $self = shift;
-	$self->head->string . $self->body->string;
+	$self->head->string . $self->body->string . ($self->endsOnNewline ? '' : "\n");
 }
 
 =method lines
