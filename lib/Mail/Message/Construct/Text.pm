@@ -46,7 +46,7 @@ Returns the whole message as string.
 
 sub string()
 {	my $self = shift;
-	$self->head->string . $self->body->string;
+	$self->head->string . $self->body->string . ($self->endsOnNewline ? '' : "\n");
 }
 
 =method lines
@@ -71,7 +71,7 @@ sub file()
 {	my $self = shift;
 	my $file = IO::Lines->new;
 	$self->print($file);
-	$file->seek(0,0);
+	$file->seek(0, 0);
 	$file;
 }
 

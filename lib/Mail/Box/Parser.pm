@@ -102,7 +102,7 @@ the current setting is returned.
 
 sub fixHeaderErrors(;$)
 {	my $self = shift;
-	@_ ? ($self->{MBP_fix} = shift) : $self->{MBPL_fix};
+	@_ ? ($self->{MBP_fix} = shift) : $self->{MBP_fix};
 }
 
 =method trusted
