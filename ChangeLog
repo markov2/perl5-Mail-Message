@@ -15,7 +15,8 @@ Limitations to be fixed:
 version 3.024:
 
 	Fixes:
-	 - $msg->string must end with a newline [Andy Beverley]
+	- $msg->string must end with a newline [Andy Beverley]
+	- fold fields with newline [Edoardo Geraci]
 
 version 3.023: Wed  4 Feb 15:37:17 CET 2026
 

@@ -743,8 +743,8 @@ sub fold($$;$)
 	my $wrap  = shift || $default_wrap_length;
 	$line   //= '';
 
-	$line    =~ s/\n(\s)/$1/gms;            # Remove accidental folding
-	CORE::length($line) or return " \n";    # empty field
+	$line    =~ s/\n(\s?)/$1/gms;         # Remove accidental folding
+	CORE::length($line) or return " \n";  # empty field
 
 	my $lname = CORE::length($name);
 	$lname <= $wrap -5  # Cannot find a real limit in the spec
@@ -766,7 +766,7 @@ sub fold($$;$)
 		||	$line =~ s/^ ( .{$max,}? )    # longer, but minimal chars
 			             [ \t]            # followed by a WSP
 			          //x
-		||	$line =~ s/^ (.*) //x;        # everything
+		||	$line =~ s/^ (.*) //xs;       # everything
 
 		push @folded, " $1\n";
 	}
