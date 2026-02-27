@@ -18,6 +18,7 @@ version 4.05:
 	Fixes:
 	- parse X-MLServer [Edoardo Geraci]
 	- $msg->string must end with a newline [Andy Beverley]
+	- fold fields with newline [Edoardo Geraci]
 
 	Improvements:
 	- Mail::Message->new(message_id) replaces messageId: parameters should
