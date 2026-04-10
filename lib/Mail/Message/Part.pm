@@ -74,7 +74,7 @@ sub init($)
 Transforms a $body or $message to a real message part.  The $multipart
 refers to the parental body.
 
-When ta $body is specified, extra @headers can be supplied as well.
+When a $body is specified, extra @headers can be supplied as well.
 Bodies are coerced into message parts by calling M<buildFromBody()>.
 If you specify a $message residing in a folder, this message will
 automatically be cloned.

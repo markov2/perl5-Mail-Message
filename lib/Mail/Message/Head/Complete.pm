@@ -345,11 +345,11 @@ See also M<Mail::Message::Head::Partial::removeFields()> (mind the 's'
 at the end of the name), which accepts a string or regular expression
 as argument to select the fields to be removed.
 
-WARNING WARNING WARNING: for performance reasons, the header administration
+B<Warning>: for performance reasons, the header administration
 uses weak references (see L<Scalar::Util> method weaken()> to figure-out
-which fields have been removed.  A header is a hash of field for fast search
-and an array of weak references to remember the order of the fields, required
-for printing.  If the field is removed from the hash, the weak-ref is set to
+which fields have been removed.  A header is a HASH of fields for fast search
+plus an ARRAY of weak references to remember the order of the fields, required
+for printing.  If the field is removed from the HASH, the weak-ref is set to
 undef and the field not printed.
 
 However... it is easy to disturb this process.  Example:

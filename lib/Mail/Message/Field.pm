@@ -381,7 +381,7 @@ sub stripCFWS($)
 
 =method comment [STRING]
 
-Returns the unfolded comment (part after a semi-colon) in a structureed
+Returns the unfolded comment (part after a semi-colon) in a structured
 header-line. optionally after setting it to a new STRING first.
 When undef is specified as STRING, the comment is removed.
 Whether the field is structured is defined by M<isStructured()>.
@@ -425,7 +425,7 @@ then undef is returned.  The attribute is still encoded.
 
   print $field->attribute('bitmap') || 'no'; # --> no
 
-  $field->atrribute(filename => '/tmp/xyz');
+  $field->attribute(filename => '/tmp/xyz');
   $field->print;
     # --> Content-Type: text/plain; charset="us-ascii";
     #       filename="/tmp/xyz"
