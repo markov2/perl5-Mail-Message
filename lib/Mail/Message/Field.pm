@@ -758,8 +758,13 @@ sub fold($$;$)
 		my $min = $max >> 2;
 		last if CORE::length($line) < $max;
 
+		# First, with try to get a block which ends on a ; or , to keep attributes
+		# on the same line.  Only then we fold on any blank.
 			$line =~ s/^ ( .{$min,$max}   # some text
-			              [;,]?           # followed at a ; or ,
+			              [;,]            # followed at a ; or ,
+			             )[ \t]           # and then a WSP
+			          //x
+		|| $line =~ s/^ ( .{$min,$max}    # some text
 			             )[ \t]           # and then a WSP
 			          //x
 		||	$line =~ s/^ ( .{$max,}? )    # longer, but minimal chars
