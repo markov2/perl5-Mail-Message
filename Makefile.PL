@@ -5,7 +5,7 @@ require 5.016;
 my $version  = '4.06';
 my $git      = "https://github.com/markov2/perl5-Mail-Message";
 my $publish  = "../public_html/mail-message";
-my $homepage = "http://perl.overmeer.net/mailbox/";
+my $homepage = "https://perl.overmeer.net/mailbox/";
 
 my %oodist   = (
 	oodoc_version => 3.05,
@@ -116,7 +116,7 @@ WriteMakefile
 				web  => "$git/issues",
 			},
 			homepage => $homepage,
-			license  => [ 'http//dev.perl.org/licenses/' ],
+			license  => [ 'https://dev.perl.org/licenses/' ],
 		},
 		prereqs => {
 			runtime => {
