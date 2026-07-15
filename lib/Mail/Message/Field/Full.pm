@@ -414,7 +414,6 @@ sub _encode_q($)   # RFC2047 sections 4.2 and 5
 
 sub encode($@)
 {	my ($self, $utf8, %args) = @_;
-
 	my ($charset, $lang, $encoding);
 
 	if($charset = $args{charset})
@@ -422,7 +421,7 @@ sub encode($@)
 			if $charset =~ m/[\x00-\ ()<>@,;:"\/[\]?.=\\]/;
 	}
 	else
-	{	$charset = $utf8 =~ /\P{ASCII}/ ? 'utf8' : 'us-ascii';
+	{	$charset = $utf8 =~ /\P{ASCII}/ ? 'UTF-8' : 'us-ascii';
 	}
 
 	if($lang = $args{language})

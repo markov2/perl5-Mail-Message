@@ -15,6 +15,9 @@ Limitations to be fixed:
 
 version 4.06:
 
+	Fixes:
+	- automatic encoding of unstructured fields. [Andy Beverly]
+
 version 4.05: Fri 10 Apr 11:00:52 CEST 2026
 
 	Fixes:

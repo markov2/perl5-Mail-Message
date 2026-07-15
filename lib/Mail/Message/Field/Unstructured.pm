@@ -58,10 +58,8 @@ returned.
 
 sub init($)
 {	my ($self, $args) = @_;
-
-	if($args->{body} && ($args->{encoding} || $args->{charset}))
-	{	$args->{body} = $self->encode($args->{body}, %$args);
-	}
+	$args->{body} = $self->encode($args->{body}, %$args)
+		if defined $args->{body};
 
 	$self->SUPER::init($args);
 
