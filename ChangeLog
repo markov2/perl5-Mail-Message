@@ -15,6 +15,7 @@ Limitations to be fixed:
 version 3.024:
 
 	Fixes:
+	- automatic encoding of unstructured fields. [Andy Beverly]
 	- $msg->string must end with a newline [Andy Beverley]
 	- fold fields with newline [Edoardo Geraci]
 
